@@ -3,14 +3,28 @@ import { View, Text, StyleSheet } from "react-native";
 import axios from "axios";
 import { Picker } from "@react-native-picker/picker";
 import CustomText from "../../components/CustomText";
+import { getToken } from "../../utils/token";
+import { API_BASE_URL } from "@env";
 
 export default function BookServiceScreen() {
   const [states, setStates] = useState([]);
   const [selectedState, setSelectedState] = useState("");
+  const baseUrl = API_BASE_URL
 
   const getStates = async () => {
     try {
-      const response = await axios.get("https://api.mycarsbuddy.com/api/State");
+      const token = await getToken();
+      if (!token) {
+        console.warn('No token found');
+        return;
+      }
+
+      const response = await axios.get(`${baseUrl}State`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       setStates(response.data);
     } catch (error) {
       console.error("Error fetching states:", error);
@@ -30,9 +44,9 @@ export default function BookServiceScreen() {
           onValueChange={(itemValue) => setSelectedState(itemValue)}
         >
           <Picker.Item label="Select a state..." value="" />
-          {states.map((state,index) => (
+          {states.map((state, index) => (
             <Picker.Item
-            key={index}
+              key={index}
               label={state.StateName}
               value={state.StateId}
             />

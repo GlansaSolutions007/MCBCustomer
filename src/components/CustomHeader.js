@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import {
   View, Text, TextInput, StyleSheet, Pressable, Image, TouchableOpacity, Modal, FlatList, TouchableWithoutFeedback,
-  Keyboard,
+  Keyboard, Alert, ActivityIndicator,
   TouchableWithoutFeedback as RNModalDismiss,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,6 +11,8 @@ import globalStyles from "../styles/globalStyles";
 import { Linking } from 'react-native';
 import { LocationContext } from "../contexts/LocationContext";
 import { useNavigation } from "@react-navigation/native";
+import * as Location from 'expo-location';
+import CustomAlert from "./CustomAlert";
 
 const CITY_LIST = [
   'Hyderabad, Telangana',
@@ -45,6 +47,18 @@ export default function CustomHeader({ navigation }) {
   const insets = useSafeAreaInsets();
   const [showModal, setShowModal] = useState(false);
   const { locationText, locationStatus, setLocationText, setLocationStatus } = useContext(LocationContext);
+  const [isLocating, setIsLocating] = useState(false);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertData, setAlertData] = useState({
+    title: "",
+    message: "",
+    status: "info",
+  });
+  const showAlert = ({ title, message, status = "info" }) => {
+    setAlertData({ title, message, status });
+    setAlertVisible(true);
+  };
+
   const navigationTo = useNavigation();
 
   const handleManualLocation = (selectedCity) => {
@@ -55,17 +69,59 @@ export default function CustomHeader({ navigation }) {
 
   const handlePressLocation = () => {
     if (locationStatus === 'denied') {
-      Alert.alert(
-        'Location Permission Denied',
-        'Would you like to enable location in settings or choose your city manually?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Choose Manually', onPress: () => setShowModal(true) },
-          { text: 'Open Settings', onPress: () => Linking.openSettings() },
-        ]
-      );
+      showAlert({
+        title: "Location Permission Denied",
+        message: "Open settings and enable location access.",
+        status: "error",
+      });
+      return;
     } else {
       setShowModal(true);
+    }
+  };
+
+  const handleCurrentLocation = async () => {
+    try {
+      setIsLocating(true);
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setIsLocating(false);
+        showAlert({
+          title: "Permission Denied",
+          message: "Location permission is required to detect your current city.",
+          status: "error",
+        });
+        return;
+      }
+
+      const loc = await Location.getCurrentPositionAsync({});
+      const geo = await Location.reverseGeocodeAsync({
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
+      });
+
+      if (geo && geo.length > 0) {
+        const { city, region } = geo[0];
+        const cityName = `${city}, ${region}`;
+        setLocationText(cityName);
+        setLocationStatus("auto");
+        setShowModal(false);
+      } else {
+        showAlert({
+          title: "Location Error",
+          message: "Unable to determine your location.",
+          status: "error",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      showAlert({
+        title: "Error",
+        message: "Something went wrong while detecting location.",
+        status: "error",
+      });
+    } finally {
+      setIsLocating(false);
     }
   };
 
@@ -102,6 +158,19 @@ export default function CustomHeader({ navigation }) {
                 <CustomText style={[globalStyles.f16Bold, globalStyles.primary, { marginBottom: 10 }]}>
                   Select Your City
                 </CustomText>
+                <TouchableOpacity
+                  onPress={handleCurrentLocation}
+                  style={{ paddingVertical: 12, marginBottom: 10, flexDirection: 'row', alignItems: 'center' }}
+                >
+                  {isLocating ? (
+                    <ActivityIndicator size="small" color="#333" style={{ marginRight: 8 }} />
+                  ) : (
+                    <Ionicons name="navigate" size={18} color="#007AFF" style={{ marginRight: 8 }} />
+                  )}
+                  <CustomText style={[globalStyles.primary, globalStyles.f14Bold]}>
+                    Use My Current Location
+                  </CustomText>
+                </TouchableOpacity>
                 <FlatList
                   data={CITY_LIST}
                   keyExtractor={(item) => item}
@@ -121,6 +190,13 @@ export default function CustomHeader({ navigation }) {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+      <CustomAlert
+        visible={alertVisible}
+        title={alertData.title}
+        message={alertData.message}
+        status={alertData.status}
+        onClose={() => setAlertVisible(false)}
+      />
     </>
   );
 }

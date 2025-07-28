@@ -20,22 +20,71 @@ import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Device from "expo-device";
 import * as Location from 'expo-location';
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { LocationContext } from "../../contexts/LocationContext";
+import axios from "axios";
+import { API_BASE_URL } from "@env";
+import { getToken } from "../../utils/token";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { setLocationText, setLocationStatus } = useContext(LocationContext);
+  const [categories, setCategories] = useState([]);
+
+  const fetchCategories = async () => {
+    try {
+      const token = await getToken();
+      const response = await axios.get(`${API_BASE_URL}Category`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.data?.status) {
+        const activeCategories = response.data.data.filter(cat => cat.IsActive);
+        setCategories(activeCategories);
+      }
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const handleCategoryPress = async (category) => {
+    try {
+      const token = await getToken();
+      const response = await axios.get(
+        `${API_BASE_URL}SubCategory1/subcategorybycategoryid?categoryid=${category.CategoryID}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const activeSubCategories = (response.data || []).filter(
+        (sub) => sub.IsActive
+      );
+
+      navigation.navigate('InteriorService', {
+        categoryId: category.CategoryID,
+        categoryName: category.CategoryName,
+        subCategories: activeSubCategories,
+        subcategoryId: activeSubCategories[0]?.SubCategoryID
+      });
+    } catch (error) {
+      console.error('Error fetching subcategories:', error);
+    }
+  };
+
 
   const goToCar = () => {
     navigation.navigate("CustomerTabs", {
       screen: "SelectCarBrand"
     });
   };
-
-  const interiorService = () => {
-    navigation.navigate("InteriorService");
-  }
 
   const DeviceId = Device.osInternalBuildId || Device.osBuildId || "unknown-device-id";
 
@@ -97,32 +146,27 @@ export default function HomeScreen() {
           We Provide Services Like
         </CustomText>
         <View style={[globalStyles.flexrow, globalStyles.justifysb]}>
-          <TouchableOpacity style={styles.card}>
-            <Image source={exteriorservice} style={styles.cardImage} />
-
-            <LinearGradient
-              colors={[color.primary, 'transparent']}
-              start={{ x: 0.5, y: 1 }}
-              end={{ x: 0.5, y: 0 }}
-              style={styles.gradientOverlay}
-            >
-              <CustomText style={[globalStyles.f12Bold, globalStyles.textWhite]}>Exterior</CustomText>
-              <CustomText style={[globalStyles.f12Regular, globalStyles.textWhite]}>Service</CustomText>
-            </LinearGradient>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.card} onPress={interiorService}>
-            <Image source={interiorservice} style={styles.cardImage} />
-
-            <LinearGradient
-              colors={[color.primary, 'transparent']}
-              start={{ x: 0.5, y: 1 }}
-              end={{ x: 0.5, y: 0 }}
-              style={styles.gradientOverlay}
-            >
-              <CustomText style={[globalStyles.f12Bold, globalStyles.textWhite]}>Interior</CustomText>
-              <CustomText style={[globalStyles.f12Regular, globalStyles.textWhite]}>Service</CustomText>
-            </LinearGradient>
-          </TouchableOpacity>
+          {categories.map((cat) => (
+            <TouchableOpacity key={cat.CategoryID} style={styles.card} onPress={() => handleCategoryPress(cat)}>
+              <Image
+                source={{ uri: `https://api.mycarsbuddy.com/Images/${cat.ThumbnailImage}` }}
+                style={styles.cardImage}
+              />
+              <LinearGradient
+                colors={[color.primary, 'transparent']}
+                start={{ x: 0.5, y: 1 }}
+                end={{ x: 0.5, y: 0 }}
+                style={styles.gradientOverlay}
+              >
+                <CustomText style={[globalStyles.f12Bold, globalStyles.textWhite]}>
+                  {cat.CategoryName.split(" ")[0]}
+                </CustomText>
+                <CustomText style={[globalStyles.f12Regular, globalStyles.textWhite]}>
+                  {cat.CategoryName.split(" ")[1] || "Service"}
+                </CustomText>
+              </LinearGradient>
+            </TouchableOpacity>
+          ))}
         </View>
         <ImageBackground
           source={CTAbannerhome}

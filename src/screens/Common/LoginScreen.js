@@ -26,10 +26,13 @@ import { registerForPushNotificationsAsync } from "../../utils/notifications";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Logo from '../../../assets/Logo/my car buddy-02 yellow-01.png'
 import BgImage from '../../../assets/images/loginbg2.png'
+import { API_BASE_URL } from "@env";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
   const { login } = useAuth();
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [loginId, setLoginId] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [showAlert, setShowAlert] = useState(false);
   const [status, setStatus] = useState("info");
@@ -41,11 +44,12 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
+  const baseUrl = API_BASE_URL;
 
   const handleSendOtp = async () => {
-    if (!email) {
-      setTitle("Missing Email");
-      setMessage("Please enter your email.");
+    if (!loginId) {
+      setTitle("Missing Input");
+      setMessage("Please enter your email or phone number.");
       setStatus("error");
       setShowAlert(true);
       return;
@@ -53,16 +57,16 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      const response = await fetch("https://api.mycarsbuddy.com/api/Auth/send-otp", {
+      const response = await fetch(`${baseUrl}Auth/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ Email: email }),
+        body: JSON.stringify({ loginId }),
       });
 
       if (response.ok) {
         setOtpSent(true);
         setTitle("OTP Sent");
-        setMessage("Please check your email for the OTP.");
+        setMessage("Please check your email or phone for the OTP.");
         setStatus("success");
       } else {
         const errorText = await response.text();
@@ -90,14 +94,18 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const DeviceId = Device.osInternalBuildId || Device.osBuildId || "unknown-device-id";
-
       // const deviceToken = await registerForPushNotificationsAsync();
       const DeviceToken = 'dummy_token';
 
-      const response = await fetch("https://api.mycarsbuddy.com/api/Auth/verify-otp", {
+      const response = await fetch(`${baseUrl}Auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ Email: email, otp }),
+        body: JSON.stringify({
+          loginId,
+          otp,
+          deviceToken: DeviceToken,
+          deviceId: DeviceId,
+        }),
       });
 
       const result = await response.json();
@@ -105,12 +113,22 @@ export default function LoginScreen() {
       console.log("Device Token:", DeviceToken);
 
       if (response.ok && result?.success) {
-        // Store token if needed: result.token
-        login({ email: result.email, token: result.token, DeviceToken, DeviceId, });
+        login({
+          email: result.email,
+          token: result.token,
+          DeviceToken,
+          DeviceId,
+        });
+        await AsyncStorage.setItem('authToken', result.token);
+        await AsyncStorage.setItem('userData', JSON.stringify({
+          custID: result.custID,
+          email: result.email,
+          name: result.name,
+        }));
 
-        // Navigate to home (replace so user can't go back to login)
+        console.log("Login successful:", result);
+
         navigation.replace("CustomerTabs");
-
       } else {
         throw new Error(result?.message || "Invalid OTP.");
       }
@@ -123,6 +141,7 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     const showSub = Keyboard.addListener(
@@ -171,8 +190,8 @@ export default function LoginScreen() {
         <TextInput
           placeholder="Enter your email"
           placeholderTextColor={color.textInputDark}
-          value={email}
-          onChangeText={setEmail}
+          value={loginId}
+          onChangeText={setLoginId}
           style={styles.textInput}
           keyboardType="email-address"
           autoCapitalize="none"
@@ -249,7 +268,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 100,
     marginBottom: 100,
-    alignSelf:'center'
+    alignSelf: 'center'
   },
   skipButton: {
     position: "absolute",

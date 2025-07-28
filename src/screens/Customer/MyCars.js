@@ -9,17 +9,31 @@ import { color } from "../../styles/theme";
 import axios from "axios";
 import Loader from "../../components/Loader";
 import Logo from '../../../assets/Logo/logo.png'
+import { API_BASE_URL } from "@env";
+import { getToken } from "../../utils/token";
 
 
 export default function MyCars() {
     const [brands, setBrands] = useState([]);
     const [loading, setLoading] = useState(true)
+    const baseUrl = API_BASE_URL
 
     const getBrands = async () => {
         try {
-            const brandRes = await axios.get('https://api.mycarsbuddy.com/api/VehicleBrands/GetVehicleBrands');
-            const modelRes = await axios.get('https://api.mycarsbuddy.com/api/VehicleModels/GetListVehicleModel');
+            const token = await getToken();
+            if (!token) {
+                console.warn('Token not found');
+                return;
+            }
 
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            };
+
+            const brandRes = await axios.get(`${baseUrl}VehicleBrands/GetVehicleBrands`, config);
+            const modelRes = await axios.get(`${baseUrl}VehicleModels/GetListVehicleModel`, config);
             const brands = brandRes.data.data;
             const models = modelRes.data.data;
 
@@ -28,18 +42,25 @@ export default function MyCars() {
                 const brandModels = models
                     .filter(model => model.BrandID === brand.BrandID)
                     .map(model => {
-                        let imagePath = '';
+                        // let imagePath = '';
 
-                        if (model.VehicleImage) {
-                            imagePath = model.VehicleImage.includes("Images/VehicleModel")
-                                ? model.VehicleImage
-                                : `Images/VehicleModel/${model.VehicleImage}`;
-                        }
+                        // if (model.VehicleImage) {
+                        //     imagePath = model.VehicleImage.includes("Images/VehicleModel")
+                        //         ? model.VehicleImage
+                        //         : `/VehicleModel/${model.VehicleImage}`;
+                        // }
+
+                        const getModelImageUrl = (path) => {
+                            if (!path) return null;
+                            const fileName = path.split('/').pop();
+                            return `https://api.mycarsbuddy.com/Images/VehicleModel/${fileName}`;
+                        };
+
 
                         return {
                             id: model.ModelID,
                             name: model.ModelName,
-                            image: imagePath ? `https://api.mycarsbuddy.com/${imagePath.replace(/^\/+/, '')}` : null,
+                            image: getModelImageUrl(model.VehicleImage),
                             fuelType: model.FuelTypeID
                         };
                     });
@@ -76,7 +97,7 @@ export default function MyCars() {
             }}
         >
             <ImageBackground
-                source={item.logo }
+                source={item.logo}
                 style={styles.logo}
                 imageStyle={{ resizeMode: 'contain' }}
             >

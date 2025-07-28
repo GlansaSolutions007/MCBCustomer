@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -14,68 +14,79 @@ import {
 import { color } from '../../styles/theme';
 import globalStyles from '../../styles/globalStyles';
 import SearchBox from '../../components/SearchBox';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import interior from '../../../assets/images/interiorservice.png'
 import { StatusBar } from 'react-native';
 import Garage from '../../../assets/icons/garageIcon.png'
 import CustomText from '../../components/CustomText';
 import { useCart } from '../../contexts/CartContext';
-
-const popularServices = [
-  { id: '1', title: 'Dashboard & CoVishalllll', image: require('../../../assets/images/exteriorservice.png') },
-  { id: '2', title: 'Roof / HeadlinerVishalllll', image: require('../../../assets/images/exteriorservice.png') },
-  { id: '3', title: 'Door Pad & PanelVishalllll', image: require('../../../assets/images/exteriorservice.png') },
-  { id: '4', title: 'Seat VacuumingVishalllll', image: require('../../../assets/images/exteriorservice.png') },
-  { id: '5', title: 'Dashboard & CoVishalllll', image: require('../../../assets/images/exteriorservice.png') },
-  { id: '6', title: 'Roof / HeadlinerVishalllll', image: require('../../../assets/images/exteriorservice.png') },
-  { id: '7', title: 'Door Pad & PanelVishalllll', image: require('../../../assets/images/exteriorservice.png') },
-  { id: '8', title: 'Seat VacuumingVishalllll', image: require('../../../assets/images/exteriorservice.png') },
-];
-
-const allServices = [
-  { title: 'Steering & Gear Knob Sanitization', image: require('../../../assets/images/exteriorservice.png') },
-  { title: 'AC Vent Sanitization', image: require('../../../assets/images/exteriorservice.png') },
-  { title: 'Leather/ Fabric Seat Polishing', image: require('../../../assets/images/exteriorservice.png') },
-  { title: 'Mat Washing & Floor Vacuuming', image: require('../../../assets/images/exteriorservice.png') },
-  { title: 'Window Glass Cleaning', image: require('../../../assets/images/exteriorservice.png') },
-  { title: 'Interior Perfume Spray', image: require('../../../assets/images/exteriorservice.png') },
-];
-
-const packages = [
-  {
-    id: 'essential',
-    title: 'Essential Interior Care',
-    price: 600,
-    originalPrice: 800,
-    services: [
-      'Dashboard & Console Wipe',
-      'Seat Surface Vacuuming',
-      'Door Panel Dusting',
-    ],
-  },
-  {
-    id: 'deluxe',
-    title: 'Deluxe Interior Detail',
-    price: 600,
-    originalPrice: 800,
-    services: [
-      'Dashboard & Console Wipe',
-      'Seat Surface Vacuuming',
-      'Door Panel Dusting',
-    ],
-  },
-];
+import { getToken } from '../../utils/token';
+import axios from 'axios';
+import { API_BASE_URL } from '@env';
 
 const InteriorService = () => {
   const navigation = useNavigation();
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
-  const [selectedTab, setSelectedTab] = useState(popularServices[0]?.id);
-  const [selectedServiceId, setSelectedServiceId] = useState(popularServices[0]?.id);
+  const [selectedTab, setSelectedTab] = useState(subCategories?.[0]?.SubCategoryID);
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null);
+  const [packages, setPackages] = useState([]);
   const { cartItems, addToCart } = useCart();
+  const route = useRoute();
+  const { categoryId, categoryName, subCategories, subCategoryId } = route.params;
+  const [selectedServiceId, setSelectedServiceId] = useState(
+    subCategories?.[0]?.SubCategoryID || null
+  );
 
+
+  const fetchPackages = async (subCategoryId) => {
+    try {
+      const token = await getToken();
+      console.log(categoryId, subCategoryId, 'Fetching packages for category and subcategory');
+
+      const response = await axios.get(
+        `${API_BASE_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?categoryId=${categoryId}&subCategoryId=${selectedServiceId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = (response.data || []).filter(pkg => pkg.isActive);
+
+      const formatted = data.map(pkg => ({
+        id: pkg.packageID,
+        title: pkg.packageName,
+        image: pkg.packageImage,
+        bannerImages: pkg.bannerImage?.split(','),
+        price: pkg.serv_Off_Price,
+        originalPrice: pkg.serv_Reg_Price,
+        services: pkg.includeNames?.split(',') || [],
+      }));
+
+      setPackages(formatted);
+    } catch (error) {
+      console.error('Failed to fetch packages:', error);
+      setPackages([]);
+    }
+  };
+
+  useEffect(() => {
+    if (subCategories.length > 0) {
+      const firstActive = subCategories.find(sub => sub.IsActive);
+      if (firstActive) {
+        setSelectedSubCategoryId(firstActive.SubCategoryID);
+        fetchPackages(firstActive.SubCategoryID);
+      }
+    }
+  }, []);
+
+  const handleTabPress = (subCategory) => {
+    setSelectedSubCategoryId(subCategory.SubCategoryID);
+    fetchPackages(subCategory.SubCategoryID);
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -129,19 +140,24 @@ const InteriorService = () => {
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={popularServices}
-          keyExtractor={(item) => item.id.toString()}
+          data={subCategories}
+          keyExtractor={(item) => item.SubCategoryID.toString()}
           contentContainerStyle={styles.flatListContainer}
           renderItem={({ item }) => {
-            const isSelected = selectedServiceId === item.id;
+            const isSelected = selectedServiceId === item.SubCategoryID;
             return (
               <TouchableOpacity
                 style={styles.popularItem}
-                onPress={() => setSelectedServiceId(item.id)}
+                onPress={() => { setSelectedServiceId(item.SubCategoryID); handleTabPress(item); }}
               >
-                <View style={[styles.imageWrapper, isSelected && styles.selectedImageWrapper]}>
+                <View
+                  style={[
+                    styles.imageWrapper,
+                    isSelected && styles.selectedImageWrapper,
+                  ]}
+                >
                   <Image
-                    source={item.image}
+                    source={{ uri: `https://api.mycarsbuddy.com/Images/${item.ThumbnailImage}` }}
                     style={styles.popularImage}
                   />
                 </View>
@@ -154,78 +170,76 @@ const InteriorService = () => {
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {item.title}
+                  {item.SubCategoryName}
                 </CustomText>
               </TouchableOpacity>
             );
           }}
         />
         <View style={styles.tabContent}>
-          {popularServices.map((item) =>
-            item.id === selectedServiceId ? (
-              <View key={item.id}>
-                <View style={styles.section}>
-                  <CustomText style={[globalStyles.f20Bold, globalStyles.primary, { marginBottom: 8 }]}>
-                    {item.title}
-                  </CustomText>
-                  {packages.map((item) => (
-                    <View key={item.id} style={styles.rowCard}>
-                      <ImageBackground
-                        source={require('../../../assets/images/exteriorservice.png')}
-                        style={styles.sideImage}
-                        imageStyle={{ borderRadius: 10 }}
-                      >
-                        <View style={styles.discountBadge}>
-                          <CustomText style={styles.discountText}>
-                            {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}%
-                          </CustomText>
-                        </View>
-                      </ImageBackground>
+          <View style={styles.section}>
+            <CustomText style={[{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }]}>
+              {categoryName}
+            </CustomText>
 
-                      <View style={styles.cardRight}>
-                        <CustomText style={[globalStyles.f16Bold, { color: color.primary, marginBottom: 6 }]}>
-                          {item.title}
-                        </CustomText>
+            {packages.length === 0 ? (
+              /* ① nothing came back from the API */
+              <CustomText style={{ textAlign: 'center', marginTop: 20 }}>
+                No Packages Available
+              </CustomText>
+            ) : (
 
-                        <View>
-                          <CustomText style={styles.cardSubheading}>Services Included:</CustomText>
-                          {item.services.map((service, index) => (
-                            <CustomText key={index} style={styles.serviceText}>
-                              • {service}
-                            </CustomText>
-                          ))}
-                        </View>
-
-                        <View style={styles.priceRow}>
-                          <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-                            <CustomText style={styles.striked}>₹{item.originalPrice}</CustomText>
-                            <CustomText style={[globalStyles.f14Bold, { marginLeft: 6 }]}>₹{item.price}</CustomText>
-                          </View>
-
-                          {cartItems.find(ci => ci.id === item.id) ? (
-                            <TouchableOpacity
-                              style={[styles.addButton, { backgroundColor: '#444' }]}
-                              onPress={() => navigation.navigate('Cart')}
-                            >
-                              <CustomText style={styles.addButtonText}>View Cart</CustomText>
-                            </TouchableOpacity>
-                          ) : (
-                            <TouchableOpacity
-                              style={styles.addButton}
-                              onPress={() => addToCart(item)}
-                            >
-                              <CustomText style={styles.addButtonText}>Add Service</CustomText>
-                            </TouchableOpacity>
-                          )}
-                        </View>
-                      </View>
+              packages.map((item) => (
+                <View key={item.id} style={styles.rowCard}>
+                  <ImageBackground
+                    source={{ uri: `https://api.mycarsbuddy.com/Images/${item.image}` }}
+                    style={styles.sideImage}
+                    imageStyle={{ borderRadius: 10 }}
+                  >
+                    <View style={styles.discountBadge}>
+                      <CustomText style={styles.discountText}>
+                        {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}%
+                      </CustomText>
                     </View>
-                  ))}
+                  </ImageBackground>
 
+                  <View style={styles.cardRight}>
+                    <CustomText style={[{ color: color.primary, marginBottom: 6 }, globalStyles.f16Bold]}>
+                      {item.title}
+                    </CustomText>
+
+                    <CustomText style={styles.cardSubheading}>Services Included:</CustomText>
+                    {item.services.map((service, index) => (
+                      <CustomText key={`${service}-${index}`} style={styles.serviceText}>
+                        • {service}
+                      </CustomText>
+                    ))}
+                    <View style={styles.priceRow}>
+                      <View style={{ flexDirection: 'column', alignItems: 'center' }}>
+                        <CustomText style={styles.striked}>₹{item.originalPrice}</CustomText>
+                        <CustomText style={{ fontWeight: 'bold' }}>₹{item.price}</CustomText>
+                      </View>
+
+                      {cartItems.find(ci => ci.id === item.id) ? (
+                        <TouchableOpacity
+                          style={[styles.addButton, { backgroundColor: '#444' }]}
+                          onPress={() => navigation.navigate('Cart')}
+                        >
+                          <CustomText style={styles.addButtonText}>View Cart</CustomText>
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity
+                          style={styles.addButton}
+                          onPress={() => addToCart(item)}
+                        >
+                          <CustomText style={styles.addButtonText}>Add Service</CustomText>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
                 </View>
-              </View>
-            ) : null
-          )}
+              )))}
+          </View>
         </View>
       </View>
 

@@ -11,6 +11,8 @@ import Electric from "../../../assets/icons/fuelTypes/ev.png";
 import globalStyles from "../../styles/globalStyles";
 import { color } from "../../styles/theme";
 import CustomText from "../../components/CustomText";
+import { API_BASE_URL } from "@env";
+import axios from "axios";
 
 export default function CarModels() {
   const route = useRoute();
@@ -30,8 +32,8 @@ export default function CarModels() {
   useEffect(() => {
     const fetchFuelTypes = async () => {
       try {
-        const response = await fetch("https://api.mycarsbuddy.com/api/FuelTypes/GetFuelTypes");
-        const json = await response.json();
+        const response = await axios.get(`${API_BASE_URL}FuelTypes/GetFuelTypes`);
+        const json = response.data;
 
         if (json.status && Array.isArray(json.data)) {
           const activeFuelTypes = json.data.filter(f => f.IsActive);
@@ -51,7 +53,7 @@ export default function CarModels() {
     if (!path) return null;
 
     const fileName = path.split("/").pop();
-    const encodedFileName = encodeURIComponent(fileName); 
+    const encodedFileName = encodeURIComponent(fileName);
 
     return `https://api.mycarsbuddy.com/images/FuelImages/${encodedFileName}`;
   };
