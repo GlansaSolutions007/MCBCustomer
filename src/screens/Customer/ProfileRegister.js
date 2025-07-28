@@ -16,10 +16,11 @@ import CustomText from '../../components/CustomText';
 import { color } from '../../styles/theme';
 import globalStyles from '../../styles/globalStyles';
 import * as ImagePicker from "expo-image-picker";
-import Ionicons from "react-native-vector-icons/Ionicons";
 import DefaultProfileImage from '../../../assets/images/profile-user.png'
 import axios from 'axios';
 import CustomAlert from '../../components/CustomAlert';
+import { Ionicons } from "@expo/vector-icons";
+
 
 export const ProfileRegister = () => {
     const [firstName, setFirstName] = useState('');
@@ -134,7 +135,7 @@ export const ProfileRegister = () => {
             return;
         }
         let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ImagePicker.MediaType,
 
             allowsEditing: true,
             aspect: [1, 1],

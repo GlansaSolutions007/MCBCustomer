@@ -14,8 +14,9 @@ import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
-import Ionicons from "react-native-vector-icons/Ionicons";
 import Logo from '../../../assets/Logo/my car buddy-02 yellow-01.png'
+import { Ionicons } from "@expo/vector-icons";
+
 
 export default function RegisterScreen() {
   const navigation = useNavigation();
@@ -47,7 +48,7 @@ export default function RegisterScreen() {
       return;
     }
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaType,
 
       allowsEditing: true,
       aspect: [1, 1],

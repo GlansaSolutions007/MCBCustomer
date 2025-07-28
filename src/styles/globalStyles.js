@@ -96,6 +96,9 @@ export default StyleSheet.create({
   neutral500: {
     color: color.neutral[500],
   },
+  yellow:{
+    color: color.yellow,
+  },
   // Color styles .............. end
 
   // background color ----------- start

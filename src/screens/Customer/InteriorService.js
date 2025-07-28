@@ -11,7 +11,6 @@ import {
   ImageBackground,
   Platform
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { color } from '../../styles/theme';
 import globalStyles from '../../styles/globalStyles';
 import SearchBox from '../../components/SearchBox';
@@ -269,7 +268,7 @@ const styles = StyleSheet.create({
   },
 
   selectedImageWrapper: {
-    borderColor: color.primary,
+    borderColor: color.yellow,
   },
 
   popularImage: {
@@ -280,7 +279,7 @@ const styles = StyleSheet.create({
   },
 
   selectedText: {
-    color: color.primary,
+    color: color.yellow,
   },
 
   // tabContent: {
