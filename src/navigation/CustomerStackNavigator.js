@@ -39,7 +39,9 @@ export default function CustomerStackNavigator() {
         <Stack.Screen
           name="MyCarDetails"
           component={MyCarDetails}
-          options={{ title: "My Car Details" }}
+          options={{
+            title: "My Car Details",
+          }}
         />
         <Stack.Screen
           name="InteriorService"

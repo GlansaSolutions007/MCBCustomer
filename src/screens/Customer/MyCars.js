@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ImageBackground } from "react-native";
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ImageBackground, StatusBar } from "react-native";
 import carData from "../../../assets/data/carBrands.json";
 import { useNavigation } from "@react-navigation/native";
 import SearchBox from "../../components/SearchBox";
@@ -67,6 +67,7 @@ export default function MyCars() {
 
                 return {
                     brand: brand.BrandName,
+                    brandId: brand.BrandID,
                     logo: brand.BrandLogo
                         ? { uri: `https://api.mycarsbuddy.com/Images/BrandLogo/${brand.BrandLogo.split('/').pop()}` }
                         : Logo,
@@ -92,7 +93,7 @@ export default function MyCars() {
         <TouchableOpacity
             style={styles.card}
             onPress={() => {
-                navigation.navigate("CarModels", { models: item.models, brand: item.brand })
+                navigation.navigate("CarModels", { models: item.models, brand: item.brand, brandId: item.brandId })
                 console.log("Selected brand:", item.brand);
             }}
         >
@@ -102,29 +103,31 @@ export default function MyCars() {
                 imageStyle={{ resizeMode: 'contain' }}
             >
             </ImageBackground>
-            <CustomText style={globalStyles.f12Bold}>{item.brand} {item.brandId}</CustomText>
+            <CustomText style={globalStyles.f12Bold}>{item.brand}</CustomText>
         </TouchableOpacity>
     );
 
     if (loading) return <Loader />;
 
     return (
-        <View style={[styles.container, { padding: 10, flex: 1 }]}>
-            <SearchBox />
-            <View style={{ marginVertical: 10 }}>
-                <CustomText style={globalStyles.f12Bold}>Add Your Car</CustomText>
-                <CustomText style={{ ...globalStyles.f10Bold, color: color.secondary }}>Start From Selecting Your Manufacturer.</CustomText>
+        <>
+            <View style={[styles.container, { padding: 10, flex: 1 }]}>
+                <SearchBox />
+                <View style={{ marginVertical: 10 }}>
+                    <CustomText style={globalStyles.f12Bold}>Add Your Car</CustomText>
+                    <CustomText style={{ ...globalStyles.f10Bold, color: color.secondary }}>Start From Selecting Your Manufacturer.</CustomText>
+                </View>
+                <FlatList
+                    data={brands}
+                    renderItem={renderBrand}
+                    keyExtractor={(item) => item.brand}
+                    numColumns={3}
+                    columnWrapperStyle={styles.row}
+                    contentContainerStyle={{ paddingBottom: 20 }}
+                    showsVerticalScrollIndicator={false}
+                />
             </View>
-            <FlatList
-                data={brands}
-                renderItem={renderBrand}
-                keyExtractor={(item) => item.brand}
-                numColumns={3}
-                columnWrapperStyle={styles.row}
-                contentContainerStyle={{ paddingBottom: 20 }}
-                showsVerticalScrollIndicator={false}
-            />
-        </View>
+        </>
     );
 }
 

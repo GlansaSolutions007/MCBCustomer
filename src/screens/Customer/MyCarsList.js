@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Text,
     View,
@@ -16,53 +16,65 @@ import SearchBox from '../../components/SearchBox';
 import { color } from '../../styles/theme';
 import CustomText from '../../components/CustomText';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-// import {color} from '../../../'
+import { getToken } from '../../utils/token';
+import { API_BASE_URL } from '@env';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const MyCarsList = () => {
     const navigation = useNavigation();
 
-    const [cars, setCars] = useState([
-        {
-            id: '1',
-            model: 'Car Model No 1',
-            fuel: 'Petrol',
-            manufacturer: 'Honda',
-            image: sampleCar,
-        },
-        {
-            id: '2',
-            model: 'Car Model No 2',
-            fuel: 'Petrol',
-            manufacturer: 'Honda',
-            image: sampleCar,
-        },
-        {
-            id: '3',
-            model: 'Car Model No 3',
-            fuel: 'Petrol',
-            manufacturer: 'Honda',
-            image: sampleCar,
-        },
-        {
-            id: '4',
-            model: 'Car Model No 4',
-            fuel: 'Petrol',
-            manufacturer: 'Honda',
-            image: sampleCar,
-        },
-        {
-            id: '5',
-            model: 'Car Model No 5',
-            fuel: 'Petrol',
-            manufacturer: 'Honda',
-            image: sampleCar,
-        },
-    ]);
+    const [cars, setCars] = useState([]);
+
+    useEffect(() => {
+        const fetchCustomerCars = async () => {
+            try {
+                const token = await getToken();
+                const userData = await AsyncStorage.getItem('userData');
+                const parsedData = JSON.parse(userData);
+                const custID = parsedData?.custID;
+
+                if (!custID || !token) {
+                    console.warn("Customer ID or token missing");
+                    return;
+                }
+
+                const response = await axios.get(
+                    `${API_BASE_URL}CustomerVehicles/CustId?CustId=${custID}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                const carList = response.data;
+
+                const formattedCars = Array.isArray(carList) ? carList.map(car => ({
+                    id: car.VehicleID.toString(),
+                    model: car.ModelName,
+                    fuel: car.FuelTypeName,
+                    manufacturer: car.BrandName,
+                    image: { uri: `https://api.mycarsbuddy.com/Images${car.VehicleImage}` },
+                    vehicleNumber: car.VehicleNumber,
+                })) : [];
+
+                setCars(formattedCars);
+            } catch (error) {
+                console.error('Error fetching car list:', error);
+            }
+        };
+
+        fetchCustomerCars();
+    }, []);
 
     const renderCar = ({ item }) => (
         <View style={styles.carCard}>
             <View style={{ flexDirection: 'row' }}>
-                <Image source={item.image} style={styles.carImage} />
+                <View style={styles.carContainer}>
+                    <Image source={item.image} style={styles.carImage} />
+                    <CustomText style={styles.numberText}>* {item.vehicleNumber} *</CustomText>
+                </View>
                 <View style={styles.carInfo}>
                     <CustomText style={[globalStyles.f10Bold, { color: '#737373' }]}>Model Name</CustomText>
                     <CustomText style={globalStyles.f12Bold}>{item.model}</CustomText>
@@ -76,7 +88,16 @@ export const MyCarsList = () => {
             </View>
             <View style={{ height: 16 }} />
             <TouchableOpacity style={styles.detailsButton}>
-                <CustomText style={{ color: '#fff' }}>View Details</CustomText>
+                <CustomText
+                    style={{ color: '#fff' }}
+                    onPress={() => navigation.navigate('MyCarDetails', {
+                        vehicleId: item.id,
+                        model: {
+                            name: `${item.manufacturer} ${item.model}`,
+                            image: item.image.uri,
+                        }
+                    })}>View Details
+                </CustomText>
             </TouchableOpacity>
         </View>
 
@@ -137,7 +158,15 @@ const styles = StyleSheet.create({
         backgroundColor: color.secondary,
         borderRadius: 8,
     },
-
+    numberText: {
+        borderWidth: 2,
+        borderColor: '#ccc',
+        paddingHorizontal: 12,
+        backgroundColor: '#ffffff',
+        paddingVertical: 2,
+        borderRadius: 4,
+        ...globalStyles.f14Bold,
+    },
     plusIcon: {
         width: 24,
         height: 24,
@@ -153,13 +182,18 @@ const styles = StyleSheet.create({
         marginBottom: 40,
         overflow: 'visible',
     },
+    carContainer: {
+        width: '57%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     carImage: {
-        width: '57%',       // 60% of the parent container
-        height: 100,
+        width: '100%',
+        height: 120,
         resizeMode: 'contain'
     },
     carInfo: {
-        width: '43%',       // 40% of the parent container
+        width: '43%',
         paddingLeft: 12,
         flex: 1,
         position: 'relative',

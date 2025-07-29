@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, StyleSheet, Pressable, Image, TouchableOpacity, Modal, FlatList, TouchableWithoutFeedback,
   Keyboard, Alert, ActivityIndicator,
   TouchableWithoutFeedback as RNModalDismiss,
+  StatusBar,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -13,6 +14,7 @@ import { LocationContext } from "../contexts/LocationContext";
 import { useNavigation } from "@react-navigation/native";
 import * as Location from 'expo-location';
 import CustomAlert from "./CustomAlert";
+import { color } from "../styles/theme";
 
 const CITY_LIST = [
   'Hyderabad, Telangana',
@@ -127,6 +129,7 @@ export default function CustomHeader({ navigation }) {
 
   return (
     <>
+      <StatusBar barStyle="light-content" backgroundColor={color.primary} />
       <View style={[styles.headerContainer, globalStyles.bgprimary, { paddingTop: insets.top + 10 }]}>
         <View style={styles.topRow}>
           <View>

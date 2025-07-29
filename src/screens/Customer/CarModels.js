@@ -66,13 +66,6 @@ export default function CarModels() {
     </TouchableOpacity>
   );
 
-  const fuelOptions = [
-    { name: 'Petrol', icon: Petrol },
-    { name: 'Diesel', icon: Diesel },
-    { name: 'CNG', icon: CNG },
-    { name: 'Electric', icon: Electric }
-  ];
-
   return (
     <View style={styles.container}>
       <FlatList
@@ -103,6 +96,9 @@ export default function CarModels() {
               onPress={() => {
                 console.log(`Selected ${fuel.FuelTypeName} for ${selectedModel?.name}`);
                 navigation.navigate("MyCarDetails", {
+                  brandId: route.params.brandId,
+                  modelId: selectedModel.id,
+                  fuelId: fuel.FuelTypeID,
                   model: selectedModel,
                   fuelType: fuel.FuelTypeName
                 });
