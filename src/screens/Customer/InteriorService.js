@@ -26,7 +26,9 @@ import { getToken } from '../../utils/token';
 import axios from 'axios';
 import { API_BASE_URL } from '@env';
 
+
 const InteriorService = () => {
+  const token = getToken();
   const navigation = useNavigation();
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const [selectedTab, setSelectedTab] = useState(subCategories?.[0]?.SubCategoryID);
@@ -42,7 +44,7 @@ const InteriorService = () => {
 
   const fetchPackages = async (subCategoryId) => {
     try {
-      const token = await getToken();
+      // const token = await getToken();
       console.log(categoryId, subCategoryId, 'Fetching packages for category and subcategory');
 
       const response = await axios.get(
@@ -65,8 +67,8 @@ const InteriorService = () => {
         originalPrice: pkg.serv_Reg_Price,
         services: pkg.includeNames?.split(',') || [],
       }));
-
-      setPackages(formatted);
+      console.log('Fetched packages:', formatted);
+      // setPackages(formatted);
     } catch (error) {
       console.error('Failed to fetch packages:', error);
       setPackages([]);

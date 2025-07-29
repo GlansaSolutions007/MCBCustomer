@@ -56,11 +56,12 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
+    console.log("base url:", baseUrl );
     try {
       const response = await fetch(`${baseUrl}Auth/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ loginId }),
+        body: JSON.stringify({ loginId: loginId }),
       });
 
       if (response.ok) {

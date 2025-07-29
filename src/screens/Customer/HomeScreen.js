@@ -17,9 +17,9 @@ import logo from "../../../assets/Logo/logo.png";
 import { color } from "../../styles/theme";
 import CustomText from "../../components/CustomText";
 import { useNavigation } from "@react-navigation/native";
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from "expo-linear-gradient";
 import * as Device from "expo-device";
-import * as Location from 'expo-location';
+import * as Location from "expo-location";
 import { useContext, useEffect, useState } from "react";
 import { LocationContext } from "../../contexts/LocationContext";
 import axios from "axios";
@@ -27,20 +27,23 @@ import { API_BASE_URL } from "@env";
 import { getToken } from "../../utils/token";
 
 export default function HomeScreen() {
+  const token = getToken();
+
   const navigation = useNavigation();
   const { setLocationText, setLocationStatus } = useContext(LocationContext);
   const [categories, setCategories] = useState([]);
 
   const fetchCategories = async () => {
     try {
-      const token = await getToken();
       const response = await axios.get(`${API_BASE_URL}Category`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       if (response.data?.status) {
-        const activeCategories = response.data.data.filter(cat => cat.IsActive);
+        const activeCategories = response.data.data.filter(
+          (cat) => cat.IsActive
+        );
         setCategories(activeCategories);
       }
     } catch (error) {
@@ -54,7 +57,7 @@ export default function HomeScreen() {
 
   const handleCategoryPress = async (category) => {
     try {
-      const token = await getToken();
+      // const token = await getToken();
       const response = await axios.get(
         `${API_BASE_URL}SubCategory1/subcategorybycategoryid?categoryid=${category.CategoryID}`,
         {
@@ -68,35 +71,35 @@ export default function HomeScreen() {
         (sub) => sub.IsActive
       );
 
-      navigation.navigate('InteriorService', {
+      navigation.navigate("InteriorService", {
         categoryId: category.CategoryID,
         categoryName: category.CategoryName,
         subCategories: activeSubCategories,
-        subcategoryId: activeSubCategories[0]?.SubCategoryID
+        subcategoryId: activeSubCategories[0]?.SubCategoryID,
       });
     } catch (error) {
-      console.error('Error fetching subcategories:', error);
+      console.error("Error fetching subcategories:", error);
     }
   };
 
-
   const goToCar = () => {
     navigation.navigate("CustomerTabs", {
-      screen: "SelectCarBrand"
+      screen: "SelectCarBrand",
     });
   };
 
-  const DeviceId = Device.osInternalBuildId || Device.osBuildId || "unknown-device-id";
+  const DeviceId =
+    Device.osInternalBuildId || Device.osBuildId || "unknown-device-id";
 
   useEffect(() => {
     (async () => {
-      setLocationStatus('loading');
+      setLocationStatus("loading");
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
 
-        if (status !== 'granted') {
-          setLocationStatus('denied');
-          setLocationText('Select your location');
+        if (status !== "granted") {
+          setLocationStatus("denied");
+          setLocationText("Select your location");
           return;
         }
 
@@ -105,15 +108,15 @@ export default function HomeScreen() {
 
         if (geo.length > 0) {
           const { city, region } = geo[0];
-          setLocationText(`${city || 'City'}, ${region || 'Region'}`);
-          setLocationStatus('granted');
+          setLocationText(`${city || "City"}, ${region || "Region"}`);
+          setLocationStatus("granted");
         } else {
-          setLocationText('Select your location');
-          setLocationStatus('error');
+          setLocationText("Select your location");
+          setLocationStatus("error");
         }
       } catch (err) {
-        setLocationStatus('error');
-        setLocationText('Select your location');
+        setLocationStatus("error");
+        setLocationText("Select your location");
       }
     })();
   }, []);
@@ -147,21 +150,31 @@ export default function HomeScreen() {
         </CustomText>
         <View style={[globalStyles.flexrow, globalStyles.justifysb]}>
           {categories.map((cat) => (
-            <TouchableOpacity key={cat.CategoryID} style={styles.card} onPress={() => handleCategoryPress(cat)}>
+            <TouchableOpacity
+              key={cat.CategoryID}
+              style={styles.card}
+              onPress={() => handleCategoryPress(cat)}
+            >
               <Image
-                source={{ uri: `https://api.mycarsbuddy.com/Images/${cat.ThumbnailImage}` }}
+                source={{
+                  uri: `https://api.mycarsbuddy.com/Images/${cat.ThumbnailImage}`,
+                }}
                 style={styles.cardImage}
               />
               <LinearGradient
-                colors={[color.primary, 'transparent']}
+                colors={[color.primary, "transparent"]}
                 start={{ x: 0.5, y: 1 }}
                 end={{ x: 0.5, y: 0 }}
                 style={styles.gradientOverlay}
               >
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textWhite]}>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textWhite]}
+                >
                   {cat.CategoryName.split(" ")[0]}
                 </CustomText>
-                <CustomText style={[globalStyles.f12Regular, globalStyles.textWhite]}>
+                <CustomText
+                  style={[globalStyles.f12Regular, globalStyles.textWhite]}
+                >
                   {cat.CategoryName.split(" ")[1] || "Service"}
                 </CustomText>
               </LinearGradient>
@@ -268,26 +281,26 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    width: '47%',
+    width: "47%",
     height: 150,
     borderRadius: 12,
-    overflow: 'hidden',
-    position: 'relative',
-    backgroundColor: '#ccc',
+    overflow: "hidden",
+    position: "relative",
+    backgroundColor: "#ccc",
   },
 
   cardImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   gradientOverlay: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: '70%', // adjust how far the gradient fades up
-    justifyContent: 'flex-end',
+    height: "70%", // adjust how far the gradient fades up
+    justifyContent: "flex-end",
     padding: 10,
   },
   ctaContainer: {
