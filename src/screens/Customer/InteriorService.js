@@ -68,7 +68,7 @@ const InteriorService = () => {
         services: pkg.includeNames?.split(',') || [],
       }));
       console.log('Fetched packages:', formatted);
-      // setPackages(formatted);
+      setPackages(formatted);
     } catch (error) {
       console.error('Failed to fetch packages:', error);
       setPackages([]);
@@ -187,7 +187,7 @@ const InteriorService = () => {
             {packages.length === 0 ? (
               /* ① nothing came back from the API */
               <CustomText style={{ textAlign: 'center', marginTop: 20 }}>
-                No Packages Available
+                No Packages Available{packages.length}
               </CustomText>
             ) : (
 
