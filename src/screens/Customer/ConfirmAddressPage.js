@@ -81,10 +81,10 @@ const ConfirmAddressPage = ({ navigation }) => {
                         </View>
 
                         <CustomText style={styles.label}>House / Flat / Block No</CustomText>
-                        <TextInput style={styles.input} placeholder="e.g. 11-2-553/1/1" />
+                        <TextInput style={styles.input} placeholder="e.g. 11-2-553/1/1" placeholderTextColor="grey" />
 
                         <CustomText style={styles.label}>Area / Apartment</CustomText>
-                        <TextInput style={styles.input} placeholder="e.g. My Residency" />
+                        <TextInput style={styles.input} placeholder="e.g. My Residency" placeholderTextColor="grey" />
 
                         <CustomText style={styles.label}>Save As</CustomText>
                         <View style={styles.saveAsRow}>
@@ -101,7 +101,7 @@ const ConfirmAddressPage = ({ navigation }) => {
                                     >
                                         <View style={{ flexDirection: "row", alignItems: "center" }}>
                                             {iconMap[label]}
-                                            <CustomText style={{ color: isActive ? "#fff" : "#000" }}>
+                                            <CustomText style={{ color: isActive ? "#fff" : "#000", ...globalStyles.f12Bold }}>
                                                 {label}
                                             </CustomText>
                                         </View>
@@ -111,10 +111,10 @@ const ConfirmAddressPage = ({ navigation }) => {
                         </View>
 
                         <CustomText style={styles.label}>Full Name</CustomText>
-                        <TextInput style={styles.input} placeholder="Your Name" />
+                        <TextInput style={styles.input} placeholder="Your Name" placeholderTextColor="grey" />
 
                         <CustomText style={styles.label}>Mobile Number</CustomText>
-                        <TextInput style={styles.input} placeholder="Your Mobile" keyboardType="numeric" />
+                        <TextInput style={styles.input} placeholder="Your Mobile" keyboardType="numeric" placeholderTextColor="grey" />
 
                         <TouchableOpacity style={styles.saveBtn} onPress={()=>navigation.navigate("Cart")}>
                             <CustomText style={styles.saveText}>Save & Add</CustomText>
@@ -176,10 +176,13 @@ const styles = StyleSheet.create({
     locationSub: {
         color: '#777',
         marginBottom: 20,
+        ...globalStyles.f12Regular
     },
     label: {
         marginTop: 14,
         marginBottom: 4,
+        ...globalStyles.f12Bold,
+        color: color.black,
     },
     input: {
         borderBottomWidth: 1,

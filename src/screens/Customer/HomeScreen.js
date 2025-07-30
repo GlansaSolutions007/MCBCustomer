@@ -142,9 +142,9 @@ export default function HomeScreen() {
         </View>
       </View>
       <View style={globalStyles.container}>
-        <CustomText>{DeviceId}</CustomText>
+        <CustomText style={[globalStyles.textBlack]}>{DeviceId}</CustomText>
         <CustomText
-          style={[globalStyles.mt4, globalStyles.mb1, globalStyles.f16Bold]}
+          style={[globalStyles.mt4, globalStyles.mb1, globalStyles.f16Bold, globalStyles.textBlack]}
         >
           We Provide Services Like
         </CustomText>
@@ -220,7 +220,7 @@ export default function HomeScreen() {
               style={[styles.ctaButton, globalStyles.bgwhite]}
               onPress={goToCar}
             >
-              <CustomText style={globalStyles.f16Bold}>Add My Car</CustomText>
+              <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack]}>Add My Car</CustomText>
             </TouchableOpacity>
           </View>
         </ImageBackground>

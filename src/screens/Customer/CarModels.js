@@ -62,7 +62,7 @@ export default function CarModels() {
   const renderModel = ({ item }) => (
     <TouchableOpacity style={styles.card} onPress={() => handleModelPress(item)}>
       <ImageBackground source={{ uri: item.image }} style={styles.image} imageStyle={{ resizeMode: 'contain' }}></ImageBackground>
-      <CustomText style={{ ...globalStyles.f16SemiBold, color: color.primary }}>{item.name}</CustomText>
+      <CustomText style={{ ...globalStyles.f12Bold, color: color.primary }}>{item.name}</CustomText>
     </TouchableOpacity>
   );
 
@@ -115,7 +115,7 @@ export default function CarModels() {
                 }
                 style={styles.fuelImage}
               />
-              <CustomText style={globalStyles.f10Bold}>{fuel.FuelTypeName}</CustomText>
+              <CustomText style={[globalStyles.f10Bold, globalStyles.textBlack]}>{fuel.FuelTypeName}</CustomText>
 
             </TouchableOpacity>
           ))}

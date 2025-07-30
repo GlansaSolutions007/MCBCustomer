@@ -22,6 +22,10 @@ import Entypo from '@expo/vector-icons/Entypo';
 import CustomText from "../../components/CustomText";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useCart } from "../../contexts/CartContext";
+import Config from "react-native-config";
+import RazorpayCheckout from "react-native-razorpay";
+import {RAZORPAY_KEY} from "@env"; 
 
 const addressList = [
     {
@@ -47,6 +51,42 @@ const CartPage = () => {
     const [addressModalVisible, setAddressModalVisible] = useState(false);
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
+
+    const { cartItems, removeFromCart } = useCart();
+
+    const totalServiceAmount = cartItems.reduce((sum, item) => sum + item.price, 0);
+    const originalAmount = cartItems.reduce((sum, item) => sum + item.originalPrice, 0);
+    const savedAmount = originalAmount - totalServiceAmount;
+    const gst = Math.round(totalServiceAmount * 0.18); // assuming 18% GST
+    const finalAmount = totalServiceAmount + gst;
+
+    const handlePayment = () => {
+        const options = {
+            description: 'MyCarBuddy Service Payment',
+            image: 'https://mycarsbuddy.com/logo.png',
+            currency: 'INR',
+            key: RAZORPAY_KEY,
+            amount: finalAmount * 100,
+            name: 'MyCarBuddy',
+            prefill: {
+                email: 'test@example.com',
+                contact: '9999999999',
+                name: 'Test User'
+            },
+            theme: { color: color.primary }
+        };
+
+        RazorpayCheckout.open(options)
+            .then((data) => {
+                console.log(`Success: ${data.razorpay_payment_id}`);
+                Alert.alert("Payment Successful", `Payment ID: ${data.razorpay_payment_id}`);
+            })
+            .catch((error) => {
+                console.log(`Error: ${error.description}`);
+                Alert.alert("Payment Failed", error.description);
+            });
+    };
+
 
     return (
         <View style={[styles.container, { paddingBottom: insets.bottom + 1 }]}>
@@ -76,25 +116,51 @@ const CartPage = () => {
 
             {/* Content Scrollable */}
             <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Selected Service */}
-                <View style={styles.card}>
-                    <View style={styles.serviceHeader}>
-                        <Image
-                            source={require('../../../assets/images/exteriorservice.png')}
-                            style={styles.serviceImage}
-                        />
-                        <View style={{ flex: 1 }}>
-                            <CustomText style={styles.serviceTitle}>Essential Interior Care</CustomText>
+                {cartItems.length === 0 ? (
+                    <CustomText style={{ textAlign: 'center', margin: 20 }}>Your cart is empty</CustomText>
+                ) : (
+                    cartItems.map((item) => (
+                        <View key={item.id} style={styles.card}>
+                            <View style={styles.serviceHeader}>
+                                <Image
+                                    source={{ uri: `https://api.mycarsbuddy.com/Images/${item.image}` }}
+                                    style={styles.serviceImage}
+                                />
+
+                                <View style={{ flex: 1, justifyContent: 'center' }}>
+                                    <CustomText style={styles.serviceTitle}>{item.title}</CustomText>
+
+                                    {/* Remove Button (inline under title) */}
+                                    <TouchableOpacity
+                                        onPress={() => removeFromCart(item.id)}
+                                        style={{
+                                            marginTop: 4,
+                                            alignSelf: 'flex-start',
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                        }}
+                                    >
+                                        <Ionicons name="trash-outline" size={16} color="#c62828" />
+                                        <Text style={{ color: '#c62828', marginLeft: 2, ...globalStyles.f10Regular }}>Remove</Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                                <View style={{ alignItems: 'flex-end' }}>
+                                    <CustomText style={styles.originalPrice}>₹{item.originalPrice}</CustomText>
+                                    <CustomText style={styles.discountedPrice}>₹{item.price}</CustomText>
+                                </View>
+                            </View>
+
+                            <View style={styles.savingsBox}>
+                                <CustomText style={styles.savingsText}>
+                                    + ₹{item.originalPrice - item.price} saved on this service!
+                                </CustomText>
+                            </View>
                         </View>
-                        <View>
-                            <CustomText style={styles.originalPrice}>₹1400</CustomText>
-                            <CustomText style={styles.discountedPrice}>₹600</CustomText>
-                        </View>
-                    </View>
-                    <View style={styles.savingsBox}>
-                        <CustomText style={styles.savingsText}>+ ₹800 Saved! On this services</CustomText>
-                    </View>
-                </View>
+
+
+                    ))
+                )}
 
                 {/* Add More Services */}
                 <View style={styles.card}>
@@ -122,11 +188,11 @@ const CartPage = () => {
                 <View style={styles.card}>
                     <CustomText style={styles.sectionTitle}>Get Discount</CustomText>
                     <View style={styles.rowBetween}>
-                        <CustomText>Apply coupon</CustomText>
+                        <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]} >Apply coupon</CustomText>
                         <Feather name="chevron-right" size={20} color="black" />
                     </View>
                     <View style={styles.couponBox}>
-                        <CustomText style={{ flex: 1 }}>Hurray you saved ₹100</CustomText>
+                        <CustomText style={{ flex: 1, ...globalStyles.f12Bold, ...globalStyles.textBlack }}>Hurray you saved ₹100</CustomText>
                         <CustomText style={styles.appliedCoupon}>NEWCUS26 Applied</CustomText>
                     </View>
                 </View>
@@ -135,10 +201,11 @@ const CartPage = () => {
                 <View style={styles.card}>
                     <CustomText style={styles.sectionTitle}>Instructions</CustomText>
                     <TextInput
-                        placeholder="e.g. Call after arrival reached"
+                        placeholder="e.g. Call after arrival"
                         style={styles.textInput}
                         maxLength={100}
                         multiline={true}
+                        placeholderTextColor="grey"
                     />
                     <CustomText style={styles.textLimit}>100/100</CustomText>
                 </View>
@@ -147,23 +214,23 @@ const CartPage = () => {
                 <View style={styles.card}>
                     <View style={styles.rowBetween}>
                         <View>
-                            <CustomText style={styles.toPay}>To Pay ₹1298</CustomText>
-                            <CustomText style={styles.saved}>₹100 saved by coupon</CustomText>
+                            <CustomText style={styles.toPay}>To Pay ₹{finalAmount}</CustomText>
+                            <CustomText style={styles.saved}>₹{savedAmount} saved by coupon</CustomText>
                         </View>
                     </View>
                     <View style={styles.divider} />
                     <View style={[styles.rowBetween]}>
-                        <CustomText style={{ color: color.secondary }}>Total Services</CustomText>
-                        <CustomText>₹1100</CustomText>
+                        <CustomText style={{ color: color.secondary, ...globalStyles.f12Bold }}>Total Services</CustomText>
+                        <CustomText style={{ color: color.black, ...globalStyles.f12Bold }}>₹{totalServiceAmount}</CustomText>
                     </View>
                     <View style={styles.rowBetween}>
-                        <CustomText style={{ color: color.secondary }}>GST & Other Charges</CustomText>
-                        <CustomText>₹198</CustomText>
+                        <CustomText style={{ color: color.secondary, ...globalStyles.f12Bold }}>GST & Other Charges</CustomText>
+                        <CustomText style={{ color: color.black, ...globalStyles.f10Bold }}>₹{gst}</CustomText>
                     </View>
                     <View style={styles.divider} />
                     <View style={styles.rowBetween}>
                         <CustomText style={styles.toPayBold}>To Pay</CustomText>
-                        <CustomText style={styles.toPayBold}>₹1298</CustomText>
+                        <CustomText style={styles.toPayBold}>₹{finalAmount}</CustomText>
                     </View>
                 </View>
             </ScrollView>
@@ -171,9 +238,9 @@ const CartPage = () => {
             {/* Pay Button */}
             <View style={styles.footerBtnWrapper}>
                 <View style={styles.footerContent}>
-                    <CustomText style={styles.totalAmount}>₹1298</CustomText>
-                    <TouchableOpacity style={styles.payNowBtn}>
-                        <CustomText style={styles.payNowText}>Pay Now</CustomText>
+                    <CustomText style={styles.totalAmount}>₹{finalAmount}</CustomText>
+                    <TouchableOpacity style={styles.payNowBtn} onPress={handlePayment}>
+                        <CustomText style={styles.payNowText} >Pay Now</CustomText>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -222,7 +289,7 @@ const CartPage = () => {
                                     }}>
                                         <AntDesign name="plus" size={22} color="white" />
                                     </View>
-                                    <CustomText style={[globalStyles.f14Bold]}>Add new address</CustomText>
+                                    <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack]}>Add new address</CustomText>
                                 </TouchableOpacity>
 
                                 {/* Address List */}
@@ -238,7 +305,7 @@ const CartPage = () => {
                                         >
                                             <Ionicons name="location-outline" size={20} color={color.primary} style={{ marginRight: 10, marginTop: 4 }} />
                                             <View style={{ flex: 1, marginBottom: 10 }}>
-                                                <CustomText style={[globalStyles.f14Bold]}>{item.label}</CustomText>
+                                                <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack]}>{item.label}</CustomText>
                                                 <CustomText style={[globalStyles.f12Regular, { color: color.muted }]}>{item.address}</CustomText>
                                             </View>
                                         </TouchableOpacity>
@@ -279,7 +346,7 @@ const styles = StyleSheet.create({
     serviceImage: { width: 50, height: 50, borderRadius: 8, marginRight: 10 },
     serviceTitle: { ...globalStyles.f14Bold, color: color.primary },
     originalPrice: { textDecorationLine: "line-through", color: "gray", ...globalStyles.f10Regular },
-    discountedPrice: { ...globalStyles.f12Bold },
+    discountedPrice: { ...globalStyles.f12Bold, color: color.secondary, marginTop: 2 },
     savingsBox: {
         marginTop: 30,
         backgroundColor: "#06c2b530",
@@ -290,12 +357,12 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: color.secondary,
     },
-    savingsText: { color: color.secondary },
+    savingsText: { color: color.secondary, ...globalStyles.f12Bold },
     sectionTitle: { ...globalStyles.f14Bold, color: color.primary, marginBottom: 10 },
     moreServiceCard: { width: 120, marginRight: 10, alignItems: "flex-start" },
     moreServiceImage: { width: 90, height: 120, borderRadius: 8, marginTop: 6 },
-    moreServiceText: { textAlign: "flex-start", fontSize: 12, marginTop: 5 },
-    moreServicePrice: { fontWeight: "bold" },
+    moreServiceText: { textAlign: "flex-start", ...globalStyles.f10Bold, marginTop: 5, color: "black" },
+    moreServicePrice: { ...globalStyles.f12Bold, color: color.secondary, marginTop: 2 },
     plusIcon: { position: "absolute", top: -3, right: 12 },
     rowBetween: {
         flexDirection: "row",
@@ -311,10 +378,11 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
     },
-    appliedCoupon: { color: color.secondary, fontWeight: "bold" },
+    appliedCoupon: { color: color.secondary, ...globalStyles.f12Bold, marginLeft: 10 },
     textInput: {
         borderWidth: 1,
         borderColor: "#ccc",
+        color: "black",
         borderRadius: 8,
         paddingVertical: 12,
         paddingHorizontal: 10,
@@ -322,10 +390,10 @@ const styles = StyleSheet.create({
         textAlignVertical: "top", // Ensures text starts at the top
         minHeight: 100, // Optional: gives textarea-like height
     },
-    textLimit: { alignSelf: "flex-end", fontSize: 12, color: "gray", marginTop: 4 },
-    toPay: { ...globalStyles.f12Bold },
+    textLimit: { alignSelf: "flex-end", ...globalStyles.f10Bold, color: "gray", marginTop: 4 },
+    toPay: { ...globalStyles.f12Bold, color: color.black, marginBottom: 4 },
     saved: { color: color.secondary, ...globalStyles.f10Bold },
-    toPayBold: { ...globalStyles.f12Bold },
+    toPayBold: { ...globalStyles.f12Bold, color: color.black, },
     footerBtnWrapper: {
         backgroundColor: "#fff",
         padding: 16,
@@ -343,8 +411,8 @@ const styles = StyleSheet.create({
     },
 
     totalAmount: {
-        fontWeight: "bold",
-        fontSize: 16,
+        ...globalStyles.f16Bold,
+        color: color.black,
     },
 
     payNowBtn: {

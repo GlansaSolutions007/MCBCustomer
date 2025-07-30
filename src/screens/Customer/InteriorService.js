@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,8 @@ import {
   FlatList,
   TouchableOpacity,
   ImageBackground,
-  Platform
+  Platform,
+  Animated
 } from 'react-native';
 import { color } from '../../styles/theme';
 import globalStyles from '../../styles/globalStyles';
@@ -25,6 +26,8 @@ import { useCart } from '../../contexts/CartContext';
 import { getToken } from '../../utils/token';
 import axios from 'axios';
 import { API_BASE_URL } from '@env';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import CustomAlert from '../../components/CustomAlert';
 
 
 const InteriorService = () => {
@@ -41,14 +44,23 @@ const InteriorService = () => {
     subCategories?.[0]?.SubCategoryID || null
   );
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const fadeIn = () => {
+    fadeAnim.setValue(0);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
 
   const fetchPackages = async (subCategoryId) => {
     try {
-      // const token = await getToken();
       console.log(categoryId, subCategoryId, 'Fetching packages for category and subcategory');
 
       const response = await axios.get(
-        `${API_BASE_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?categoryId=${categoryId}&subCategoryId=${selectedServiceId}`,
+        `${API_BASE_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?categoryId=${categoryId}&subCategoryId=${subCategoryId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -69,6 +81,7 @@ const InteriorService = () => {
       }));
       console.log('Fetched packages:', formatted);
       setPackages(formatted);
+      fadeIn();
     } catch (error) {
       console.error('Failed to fetch packages:', error);
       setPackages([]);
@@ -90,6 +103,62 @@ const InteriorService = () => {
     fetchPackages(subCategory.SubCategoryID);
   };
 
+  const [cars, setCars] = useState([]);
+  const [showCarModal, setShowCarModal] = useState(false);
+  const [selectedCar, setSelectedCar] = useState(null);
+
+  useEffect(() => {
+    const fetchCustomerCars = async () => {
+      try {
+        const token = await getToken();
+        const userData = await AsyncStorage.getItem('userData');
+        const parsedData = JSON.parse(userData);
+        const custID = parsedData?.custID;
+
+        if (!custID || !token) {
+          console.warn("Customer ID or token missing");
+          return;
+        }
+
+        const response = await axios.get(
+          `${API_BASE_URL}CustomerVehicles/CustId?CustId=${custID}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const carList = response.data;
+
+        const normalizedList = carList
+          ? (Array.isArray(carList) ? carList : [carList])
+          : [];
+
+        const formattedCars = normalizedList.map((car) => ({
+          id: car.VehicleID.toString(),
+          model: car.ModelName,
+          fuel: car.FuelTypeName,
+          manufacturer: car.BrandName,
+          image: { uri: `https://api.mycarsbuddy.com/Images${car.VehicleImage}` },
+          vehicleNumber: car.VehicleNumber,
+        }));
+
+        setCars(formattedCars);
+      } catch (error) {
+        console.error('Error fetching car list:', error);
+      }
+    };
+
+    fetchCustomerCars();
+  }, []);
+
+  useEffect(() => {
+    if (cars.length > 0 && !selectedCar) {
+      setSelectedCar(cars[0]);
+    }
+  }, [cars]);
+
   return (
     <ScrollView style={styles.container}>
       <ImageBackground
@@ -102,7 +171,7 @@ const InteriorService = () => {
           backgroundColor="transparent"
         />
         <LinearGradient
-          colors={['rgba(19, 109, 110, .6)', 'rgba(19, 109, 110, .10)', 'rgba(19, 109, 110, .6)']}
+          colors={['rgba(19, 109, 110, .6)', 'rgba(19, 109, 110, .10)', 'rgba(0, 0, 0, 1)']}
           locations={[0.13, 0.52, 0.91]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
@@ -128,14 +197,35 @@ const InteriorService = () => {
 
           {/* Search Box */}
           <View style={styles.searchContainer}>
-            <SearchBox />
+            <View style={styles.textContainer}>
+              <CustomText style={[globalStyles.textWhite, globalStyles.f32Bold]}>
+                Interior Services
+              </CustomText>
+              <CustomText style={[globalStyles.textWhite, globalStyles.f12Regular]}>
+                Here you can find the suitable packages for your car
+              </CustomText>
+            </View>
+
+            <View style={styles.chooseCarRow}>
+              <View style={styles.chooseCarDiv}>
+                <SearchBox />
+              </View>
+              <TouchableOpacity
+                style={styles.chooseCarButton}
+                onPress={() => setShowCarModal(true)}
+              >
+                <Ionicons name="filter" size={26} color="#000" />
+                <CustomText style={styles.chooseCarText}>CHOOSE CAR</CustomText>
+              </TouchableOpacity>
+            </View>
           </View>
+
         </LinearGradient>
       </ImageBackground>
 
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <CustomText style={[globalStyles.f16Bold, globalStyles.primary]}>Popular Services</CustomText>
+          {/* <CustomText style={[globalStyles.f16Bold, globalStyles.primary]}>Popular Services</CustomText> */}
           <Ionicons name="arrow-forward-circle" size={20} color={color.primary} style={styles.scrollHintIcon} />
         </View>
 
@@ -167,6 +257,7 @@ const InteriorService = () => {
                   style={[
                     globalStyles.f10Bold,
                     styles.popularText,
+                    globalStyles.textBlack,
                     isSelected && styles.selectedText,
                   ]}
                   numberOfLines={1}
@@ -180,67 +271,83 @@ const InteriorService = () => {
         />
         <View style={styles.tabContent}>
           <View style={styles.section}>
-            <CustomText style={[{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }]}>
-              {categoryName}
-            </CustomText>
+
 
             {packages.length === 0 ? (
               /* ① nothing came back from the API */
               <CustomText style={{ textAlign: 'center', marginTop: 20 }}>
                 No Packages Available{packages.length}
               </CustomText>
-            ) : (
+            ) :
 
-              packages.map((item) => (
-                <View key={item.id} style={styles.rowCard}>
-                  <ImageBackground
-                    source={{ uri: `https://api.mycarsbuddy.com/Images/${item.image}` }}
-                    style={styles.sideImage}
-                    imageStyle={{ borderRadius: 10 }}
-                  >
-                    <View style={styles.discountBadge}>
-                      <CustomText style={styles.discountText}>
-                        {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}%
-                      </CustomText>
-                    </View>
-                  </ImageBackground>
+              (
+                <Animated.View style={{ opacity: fadeAnim, marginTop: 20 }}>
+                  {packages.map((item) => (
+                    <View key={item.id} style={styles.rowCard}>
+                      <ImageBackground
+                        source={{ uri: `https://api.mycarsbuddy.com/Images/${item.image}` }}
+                        style={styles.sideImage}
+                        imageStyle={{ borderRadius: 10 }}
+                      >
+                        <View style={styles.discountBadge}>
+                          <CustomText style={styles.discountText}>
+                            {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}%
+                          </CustomText>
+                        </View>
+                      </ImageBackground>
 
-                  <View style={styles.cardRight}>
-                    <CustomText style={[{ color: color.primary, marginBottom: 6 }, globalStyles.f16Bold]}>
-                      {item.title}
-                    </CustomText>
+                      <View style={styles.cardRight}>
+                        <CustomText style={[{ color: color.primary }, globalStyles.f16Bold]}>
+                          {item.title}
+                        </CustomText>
 
-                    <CustomText style={styles.cardSubheading}>Services Included:</CustomText>
-                    {item.services.map((service, index) => (
-                      <CustomText key={`${service}-${index}`} style={styles.serviceText}>
-                        • {service}
-                      </CustomText>
-                    ))}
-                    <View style={styles.priceRow}>
-                      <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-                        <CustomText style={styles.striked}>₹{item.originalPrice}</CustomText>
-                        <CustomText style={{ fontWeight: 'bold' }}>₹{item.price}</CustomText>
+                        <CustomText style={styles.cardSubheading}>Services Included:</CustomText>
+                        {item.services.map((service, index) => (
+                          <CustomText key={`${service}-${index}`} style={styles.serviceText}>
+                            • {service}
+                          </CustomText>
+                        ))}                      
+
+                        {cars.length === 0 || !selectedCar ? (
+                          <TouchableOpacity
+                            style={styles.addCarButton}
+                            onPress={() => navigation.navigate('SelectCarBrand')}
+                          >
+                            <CustomText style={styles.addButtonText}>Add Your Car</CustomText>
+                          </TouchableOpacity>
+                        ) : (
+                          <View style={styles.priceRow}>
+                            <View style={{ flexDirection: 'column', alignItems: 'center' }}>
+                              <CustomText style={styles.striked}>₹{item.originalPrice}</CustomText>
+                              <CustomText style={[globalStyles.textBlack, globalStyles.f16Bold]}>
+                                ₹{item.price}
+                              </CustomText>
+                            </View>
+
+                            {cartItems.find(ci => ci.id === item.id) ? (
+                              <TouchableOpacity
+                                style={[styles.addButton, { backgroundColor: '#444' }]}
+                                onPress={() => navigation.navigate('Cart')}
+                              >
+                                <CustomText style={styles.addButtonText}>View Cart</CustomText>
+                              </TouchableOpacity>
+                            ) : (
+                              <TouchableOpacity
+                                style={styles.addButton}
+                                onPress={() => addToCart(item)}
+                              >
+                                <CustomText style={styles.addButtonText}>Add Service</CustomText>
+                              </TouchableOpacity>
+                            )}
+                          </View>
+                        )}
+
                       </View>
-
-                      {cartItems.find(ci => ci.id === item.id) ? (
-                        <TouchableOpacity
-                          style={[styles.addButton, { backgroundColor: '#444' }]}
-                          onPress={() => navigation.navigate('Cart')}
-                        >
-                          <CustomText style={styles.addButtonText}>View Cart</CustomText>
-                        </TouchableOpacity>
-                      ) : (
-                        <TouchableOpacity
-                          style={styles.addButton}
-                          onPress={() => addToCart(item)}
-                        >
-                          <CustomText style={styles.addButtonText}>Add Service</CustomText>
-                        </TouchableOpacity>
-                      )}
                     </View>
-                  </View>
-                </View>
-              )))}
+                  )
+                  )}
+                </Animated.View>
+              )}
           </View>
         </View>
       </View>
@@ -266,6 +373,49 @@ const InteriorService = () => {
           ))}
         </View>
       </View>
+      <CustomAlert
+        visible={showCarModal}
+        onClose={() => setShowCarModal(false)}
+        title="Select Your Car"
+        showButton={false}
+      >
+        <View style={{ marginTop: 10 }}>
+          {cars.length === 1 ? (
+            // Single car layout
+            <TouchableOpacity
+              style={[styles.carItem, { alignSelf: 'center' }]}
+              onPress={() => {
+                setSelectedCar(cars[0]);
+                setShowCarModal(false);
+              }}
+            >
+              <Image source={cars[0].image} style={styles.singleCarImage} />
+              <CustomText style={styles.carModel}>{cars[0].model}</CustomText>
+            </TouchableOpacity>
+          ) : (
+            // Multiple cars layout
+            <ScrollView style={{ maxHeight: 150 }}>
+              <View style={styles.carGrid}>
+                {cars.map((car) => (
+                  <TouchableOpacity
+                    key={car.id}
+                    style={styles.carItem}
+                    onPress={() => {
+                      setSelectedCar(car);
+                      setShowCarModal(false);
+                    }}
+                  >
+                    <Image source={car.image} style={styles.carImage} />
+                    <CustomText style={styles.carModel}>{car.model}</CustomText>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          )}
+        </View>
+      </CustomAlert>
+
+
 
     </ScrollView>
   );
@@ -273,8 +423,8 @@ const InteriorService = () => {
 
 const styles = StyleSheet.create({
   imageWrapper: {
-    width: 90,
-    height: 90,
+    width: 80,
+    height: 80,
     borderRadius: 45,
     overflow: 'hidden',
     alignItems: 'center',
@@ -298,16 +448,8 @@ const styles = StyleSheet.create({
     color: color.yellow,
   },
 
-  // tabContent: {
-  //   padding: 10,
-  //   backgroundColor: '#fff',
-  //   borderRadius: 10,
-  //   elevation: 1,
-  //   marginTop: 10
-  // },
-
   imageBackground: {
-    height: 260,
+    height: 350,
     resizeMode: 'cover',
   },
   overlay: {
@@ -356,20 +498,56 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   searchContainer: {
-    marginTop: 20,
+    backgroundColor: 'transparent',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    height: 140, // adjust as needed
+  },
+
+  textContainer: {
+    flex: 1,
+    marginBottom: 10,
+  },
+
+  chooseCarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  chooseCarButton: {
+    backgroundColor: '#dca24aff',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 55,
+    width: 70,
+    marginLeft: 8,
+    marginTop: 10,
+  },
+  chooseCarDiv: {
+    width: '80%',
+  },
+  chooseCarText: {
+    color: '#000',
+    ...globalStyles.f8Bold,
+    textAlign: 'center',
+
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
+    justifyContent: 'flex-end',
+    marginBottom: 2,
   },
   scrollHintIcon: {
     marginLeft: 10,
   },
   section: {
     padding: 10,
-    borderTopEndRadius: 30
+    borderTopEndRadius: 30,
+    borderTopLeftRadius: 30,
+    borderTopStartRadius: 30,
   },
   flatListContainer: {
     paddingHorizontal: 10,
@@ -442,8 +620,8 @@ const styles = StyleSheet.create({
   },
 
   sideImage: {
-    width: 160,
-    height: 210,
+    width: 120,
+    height: 180,
     marginRight: 10,
     justifyContent: 'flex-start',
     alignItems: 'flex-end',
@@ -460,12 +638,12 @@ const styles = StyleSheet.create({
   discountText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 12,
+    ...globalStyles.f12Bold
   },
 
   cardRight: {
     flex: 1,
-    paddingLeft: 20,
+    paddingLeft: 12,
     justifyContent: 'space-around'
   },
 
@@ -479,17 +657,28 @@ const styles = StyleSheet.create({
     ...globalStyles.f10Bold,
     color: '#333',
   },
-
+  addCarButton: {
+    backgroundColor: '#000000ff',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginTop: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 10,
   },
 
   striked: {
     textDecorationLine: 'line-through',
     color: '#888',
-    fontSize: 14,
+    ...globalStyles.f12Bold,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
   },
 
   addButton: {
@@ -505,6 +694,38 @@ const styles = StyleSheet.create({
     color: '#fff',
     ...globalStyles.f10Bold
   },
+  carGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+  },
+  carItem: {
+    width: '30%',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+
+  carImage: {
+    width: 60,
+    height: 60,
+    resizeMode: 'contain',
+    marginRight: 10,
+    // borderRadius: 6,
+    // backgroundColor: '#f0f0f0',
+  },
+
+  carModel: {
+    ...globalStyles.f12Bold,
+    color: '#333',
+  },
+  singleCarImage: {
+    width: 80,
+    height: 80,
+    resizeMode: 'contain',
+    marginBottom: 10,
+  },
 });
+
 
 export default InteriorService;

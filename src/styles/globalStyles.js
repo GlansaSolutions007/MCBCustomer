@@ -84,6 +84,9 @@ export default StyleSheet.create({
   textWhite: {
     color: color.white,
   },
+  textBlack: {
+    color: color.black,
+  },
   neutral100: {
     color: color.neutral[100],
   },
@@ -239,6 +242,9 @@ export default StyleSheet.create({
 
 
   // Font styles ----------- start
+  f8Bold:{
+    ...fonts.lilBold,
+  },
   f10Bold: {
     ...fonts.tinyBold,
   },

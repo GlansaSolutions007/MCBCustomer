@@ -103,7 +103,7 @@ export default function MyCars() {
                 imageStyle={{ resizeMode: 'contain' }}
             >
             </ImageBackground>
-            <CustomText style={globalStyles.f12Bold}>{item.brand}</CustomText>
+            <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>{item.brand}</CustomText>
         </TouchableOpacity>
     );
 
@@ -114,7 +114,7 @@ export default function MyCars() {
             <View style={[styles.container, { padding: 10, flex: 1 }]}>
                 <SearchBox />
                 <View style={{ marginVertical: 10 }}>
-                    <CustomText style={globalStyles.f12Bold}>Add Your Car</CustomText>
+                    <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>Add Your Car</CustomText>
                     <CustomText style={{ ...globalStyles.f10Bold, color: color.secondary }}>Start From Selecting Your Manufacturer.</CustomText>
                 </View>
                 <FlatList

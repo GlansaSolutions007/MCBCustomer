@@ -36,7 +36,7 @@ const CustomDropdown = ({ label, value, onSelect, options, placeholder = 'Select
                     <CustomText style={styles.dropdownText}>
                         {value || placeholder}
                     </CustomText>
-                    <Entypo name="chevron-with-circle-down" size={24} style={styles.icon} />
+                    <Entypo name="chevron-with-circle-down" size={22} style={styles.icon} />
                 </View>
             </TouchableOpacity>
 
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     },
     dropdownButton: {
         borderColor: '#ccc',
-        padding: 16,
+        padding: 20,
         borderRadius: 8,
         backgroundColor: '#fff',
         justifyContent: 'center',
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     dropdownText: {
-        fontSize: 16,
+        ...globalStyles.f10Bold,
         color: '#333',
         flex: 1,
     },
@@ -119,6 +119,7 @@ const styles = StyleSheet.create({
     },
     optionText: {
         ...globalStyles.f12Bold,
+        color: '#333',
     },
     dropdownError: {
         borderColor: '#f16b6bff',

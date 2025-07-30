@@ -33,12 +33,12 @@ export default function WelcomeScreen() {
                     fingertips. Because your car deserves the best.
                 </CustomText>
 
-                <TouchableOpacity
+                {/* <TouchableOpacity
                     style={styles.registerBtn}
                     onPress={() => navigation.navigate("Register")}
                 >
                     <CustomText style={styles.registerText}>Register</CustomText>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
 
                 <View style={styles.row}>
                     <View style={styles.seventy}>
@@ -51,9 +51,9 @@ export default function WelcomeScreen() {
                     </View>
                     <TouchableOpacity
                         style={styles.skipBtn}
-                        onPress={() => navigation.replace("CustomerTabs")}
+                      onPress={() => navigation.navigate("Register")}
                     >
-                        <CustomText style={styles.skipText}>Skip</CustomText>
+                        <CustomText style={styles.skipText}>Register</CustomText>
                     </TouchableOpacity>
                 </View>
             </View>

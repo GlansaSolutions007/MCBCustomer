@@ -50,7 +50,13 @@ export const MyCarDetails = () => {
     ];
 
     const route = useRoute();
-    const [model, setModel] = useState(route.params?.model || null);
+    const [model, setModel] = useState(null);
+
+    useEffect(() => {
+        if (route.params?.model) {
+            setModel(route.params.model);
+        }
+    }, [route.params]);
 
     const { brandId, modelId, fuelId, fuelType } = route.params;
 
@@ -389,6 +395,7 @@ const styles = StyleSheet.create({
     label: {
         ...globalStyles.f12Bold,
         marginBottom: 4,
+        ...globalStyles.textBlack,
         // marginTop: 10,
     },
     optional: {
@@ -397,6 +404,7 @@ const styles = StyleSheet.create({
     },
     input: {
         backgroundColor: '#fff',
+        color: '#111111',
         borderRadius: 8,
         padding: 20,
         ...globalStyles.f10Bold,
@@ -424,14 +432,6 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',
         marginBottom: 10,
-    },
-
-    picker: {
-        height: 48,
-        paddingVertical: 6,
-        color: '#000',
-        backgroundColor: '#fff',
-        borderRadius: 8,
     },
     privacyContainer: {
         alignItems: 'flex-start',

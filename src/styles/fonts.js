@@ -12,6 +12,7 @@ export const fontFamilies = {
 
 export const fonts = {
   // 🔹 Bold Fonts
+  lilBold: { fontSize: normalize(8), fontFamily: fontFamilies.bold },
   tinyBold: { fontSize: normalize(10), fontFamily: fontFamilies.bold },
   smallBold: { fontSize: normalize(12), fontFamily: fontFamilies.bold },
   regularBold: { fontSize: normalize(14), fontFamily: fontFamilies.bold },

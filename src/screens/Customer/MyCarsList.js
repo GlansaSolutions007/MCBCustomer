@@ -50,16 +50,22 @@ export const MyCarsList = () => {
 
                 const carList = response.data;
 
-                const formattedCars = Array.isArray(carList) ? carList.map(car => ({
+                const normalizedList = carList
+                    ? (Array.isArray(carList) ? carList : [carList])
+                    : [];
+
+                const formattedCars = normalizedList.map((car) => ({
                     id: car.VehicleID.toString(),
                     model: car.ModelName,
                     fuel: car.FuelTypeName,
                     manufacturer: car.BrandName,
                     image: { uri: `https://api.mycarsbuddy.com/Images${car.VehicleImage}` },
                     vehicleNumber: car.VehicleNumber,
-                })) : [];
+                }));
 
                 setCars(formattedCars);
+                console.log("Fetched cars:", formattedCars);
+
             } catch (error) {
                 console.error('Error fetching car list:', error);
             }
@@ -77,13 +83,13 @@ export const MyCarsList = () => {
                 </View>
                 <View style={styles.carInfo}>
                     <CustomText style={[globalStyles.f10Bold, { color: '#737373' }]}>Model Name</CustomText>
-                    <CustomText style={globalStyles.f12Bold}>{item.model}</CustomText>
+                    <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>{item.model}</CustomText>
                     <View style={{ height: 6 }} />
                     <CustomText style={[globalStyles.f10Bold, { color: '#737373' }]}>Fuel Type</CustomText>
-                    <CustomText style={globalStyles.f12Bold}>{item.fuel}</CustomText>
+                    <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>{item.fuel}</CustomText>
                     <View style={{ height: 6 }} />
                     <CustomText style={[globalStyles.f10Bold, { color: '#737373' }]}>Manufacturer</CustomText>
-                    <CustomText style={globalStyles.f12Bold}>{item.manufacturer}</CustomText>
+                    <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>{item.manufacturer}</CustomText>
                 </View>
             </View>
             <View style={{ height: 16 }} />
@@ -166,6 +172,7 @@ const styles = StyleSheet.create({
         paddingVertical: 2,
         borderRadius: 4,
         ...globalStyles.f14Bold,
+        ...globalStyles.textBlack,
     },
     plusIcon: {
         width: 24,
