@@ -181,7 +181,7 @@ export default function CustomHeader({ navigation }) {
                   style={{ maxHeight: 250 }}
                   renderItem={({ item }) => (
                     <TouchableOpacity onPress={() => handleManualLocation(item)} style={{ paddingVertical: 10 }}>
-                      <CustomText>{item}</CustomText>
+                      <CustomText style={[globalStyles.textBlack, globalStyles.f12Bold]}>{item}</CustomText>
                     </TouchableOpacity>
                   )}
                 />

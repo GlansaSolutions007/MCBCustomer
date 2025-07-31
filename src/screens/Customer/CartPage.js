@@ -12,7 +12,8 @@ import {
     Modal,
     FlatList,
     Pressable,
-    TouchableWithoutFeedback
+    TouchableWithoutFeedback,
+    ImageBackground
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { color } from "../../styles/theme";
@@ -25,7 +26,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCart } from "../../contexts/CartContext";
 import Config from "react-native-config";
 import RazorpayCheckout from "react-native-razorpay";
-import {RAZORPAY_KEY} from "@env"; 
+import { RAZORPAY_KEY } from "@env";
+import bg from '../../../assets/images/info.png'
 
 const addressList = [
     {
@@ -161,6 +163,54 @@ const CartPage = () => {
 
                     ))
                 )}
+
+                <View style={{ marginHorizontal: 16, marginTop: 20 }}>
+                    <View style={{ borderRadius: 16, overflow: 'hidden' }}>
+                        <ImageBackground
+                            source={bg}
+                            resizeMode="cover"
+                            style={{
+                                height: 150,
+                                justifyContent: 'center',
+                                paddingHorizontal: 20,
+                            }}
+                        >
+                            <View style={{justifyContent:'center', alignItems:'center', marginBottom:40}}>
+                                <CustomText style={[{ color: 'white' }, globalStyles.f20Bold]}>
+                                    Hey, Buddy... Busy?
+                                </CustomText>
+                                <CustomText style={[{ color: 'white' }, globalStyles.f20Bold]}>
+                                    Schedule right now
+                                </CustomText>
+                            </View>
+                        </ImageBackground>
+                    </View>
+
+                    <TouchableOpacity
+                        style={{
+                            marginTop: -44,
+                            alignSelf: 'center',
+                            backgroundColor: 'white',
+                            paddingHorizontal: 64,
+                            paddingVertical: 10,
+                            borderTopLeftRadius: 8,
+                            borderTopRightRadius: 8,
+                            elevation: 5,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.2,
+                            shadowRadius: 4,
+                        }}
+                        onPress={() => {
+                            navigation.navigate('Schedule')
+                        }}
+                    >
+                        <CustomText style={[globalStyles.f14Bold]}>
+                            Choose Date
+                        </CustomText>
+                    </TouchableOpacity>
+                </View>
+
 
                 {/* Add More Services */}
                 <View style={styles.card}>

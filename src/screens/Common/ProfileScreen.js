@@ -18,12 +18,12 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <CustomText style={[styles.heading, globalStyles.f28Bold]}>Profile</CustomText>
+      <CustomText style={[styles.heading, globalStyles.f28Bold, globalStyles.textBlack]}>Profile</CustomText>
 
       <View style={styles.cardContainer}>
         <TouchableOpacity style={styles.card} onPress={handleRegister}>
           <Ionicons name="person-add" size={24} color="#333" />
-          <CustomText style={styles.cardText}>My Profile</CustomText>
+          <CustomText style={[styles.cardText, globalStyles.textBlack]}>My Profile</CustomText>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.card, { backgroundColor: '#FF3333' }]} onPress={handleLogout}>
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   cardText: {
-    fontSize: 16,
+    ...globalStyles.f12Bold,
     marginLeft: 12,
   },
 });

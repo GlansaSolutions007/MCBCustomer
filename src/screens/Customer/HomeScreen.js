@@ -40,8 +40,10 @@ export default function HomeScreen() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (response.data?.status) {
-        const activeCategories = response.data.data.filter(
+      console.log('Catttt',);
+      
+      if (response.data) {
+        const activeCategories = response.data.filter(
           (cat) => cat.IsActive
         );
         setCategories(activeCategories);

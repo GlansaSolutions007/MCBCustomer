@@ -12,6 +12,8 @@ import NotificationScreen from "../screens/Customer/NotificationScreen";
 import { CartProvider } from "../contexts/CartContext";
 import CartPage from "../screens/Customer/CartPage";
 import ConfirmAddressPage from "../screens/Customer/ConfirmAddressPage";
+import ServiceInnerPage from "../screens/Customer/ServiceInnerPage";
+import SchedulePage from "../screens/Customer/SchedulePage";
 
 const Stack = createNativeStackNavigator();
 
@@ -47,6 +49,11 @@ export default function CustomerStackNavigator() {
           name="InteriorService"
           component={InteriorService}
           options={{ headerShown: false }} />
+        <Stack.Screen
+          name="ServiceInnerPage"
+          component={ServiceInnerPage}
+          options={{ headerShown: false }}
+        />
 
         <Stack.Screen
           name="ProfileRegister"
@@ -68,7 +75,11 @@ export default function CustomerStackNavigator() {
           component={ConfirmAddressPage}
           options={{ title: "Address" }}
         />
-
+        <Stack.Screen
+          name="Schedule"
+          component={SchedulePage}
+          options={{ title: "Schedule" }}
+        />
       </Stack.Navigator>
     </CartProvider>
   );

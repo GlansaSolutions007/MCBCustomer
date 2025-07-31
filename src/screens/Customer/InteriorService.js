@@ -67,17 +67,23 @@ const InteriorService = () => {
           },
         }
       );
+      console.log("Packkkkkk", response);
 
-      const data = (response.data || []).filter(pkg => pkg.isActive);
+
+      const rawData = response.data;
+      const dataArray = Array.isArray(rawData) ? rawData : [rawData];
+      const data = dataArray.filter(pkg => pkg.IsActive);
 
       const formatted = data.map(pkg => ({
-        id: pkg.packageID,
-        title: pkg.packageName,
-        image: pkg.packageImage,
-        bannerImages: pkg.bannerImage?.split(','),
-        price: pkg.serv_Off_Price,
-        originalPrice: pkg.serv_Reg_Price,
-        services: pkg.includeNames?.split(',') || [],
+        id: pkg.PackageID,
+        title: pkg.PackageName,
+        image: pkg.PackageImage,
+        bannerImages: pkg.BannerImage?.split(','),
+        price: pkg.Serv_Off_Price,
+        originalPrice: pkg.Serv_Reg_Price,
+        services: pkg.IncludeNames?.split(',') || [],
+        estimatedMins: pkg.EstimatedDurationMinutes,
+        desc: pkg.Description,
       }));
       console.log('Fetched packages:', formatted);
       setPackages(formatted);
@@ -284,29 +290,36 @@ const InteriorService = () => {
                 <Animated.View style={{ opacity: fadeAnim, marginTop: 20 }}>
                   {packages.map((item) => (
                     <View key={item.id} style={styles.rowCard}>
-                      <ImageBackground
-                        source={{ uri: `https://api.mycarsbuddy.com/Images/${item.image}` }}
-                        style={styles.sideImage}
-                        imageStyle={{ borderRadius: 10 }}
+                      <TouchableOpacity
+                        onPress={() => navigation.navigate('ServiceInnerPage', { package: item })}
                       >
-                        <View style={styles.discountBadge}>
-                          <CustomText style={styles.discountText}>
-                            {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}%
-                          </CustomText>
-                        </View>
-                      </ImageBackground>
+                        <ImageBackground
+                          source={{ uri: `https://api.mycarsbuddy.com/Images/${item.image}` }}
+                          style={styles.sideImage}
+                          imageStyle={{ borderRadius: 10 }}
+                        >
+                          <View style={styles.discountBadge}>
+                            <CustomText style={styles.discountText}>
+                              {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}%
+                            </CustomText>
+                          </View>
+                        </ImageBackground>
+                      </TouchableOpacity>
 
                       <View style={styles.cardRight}>
-                        <CustomText style={[{ color: color.primary }, globalStyles.f16Bold]}>
-                          {item.title}
-                        </CustomText>
-
+                        <TouchableOpacity
+                          onPress={() => navigation.navigate('ServiceInnerPage', { package: item })}
+                        >
+                          <CustomText style={[{ color: color.primary }, globalStyles.f16Bold]}>
+                            {item.title}
+                          </CustomText>
+                        </TouchableOpacity>
                         <CustomText style={styles.cardSubheading}>Services Included:</CustomText>
                         {item.services.map((service, index) => (
                           <CustomText key={`${service}-${index}`} style={styles.serviceText}>
                             • {service}
                           </CustomText>
-                        ))}                      
+                        ))}
 
                         {cars.length === 0 || !selectedCar ? (
                           <TouchableOpacity
