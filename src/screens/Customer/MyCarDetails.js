@@ -27,6 +27,7 @@ import { API_BASE_URL } from '@env';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getToken } from '../../utils/token';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const MyCarDetails = () => {
     const [transmission, setTransmission] = useState('');
@@ -158,175 +159,176 @@ export const MyCarDetails = () => {
     }
 
     return (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={{ flex: 1 }}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 80}
-            >
-                <ScrollView
-                    contentContainerStyle={{
-                        flexGrow: 1,
-                    }}
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['bottom']}>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={{ flex: 1 }}
+                    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 80}
                 >
-                    <View style={{ flex: 1, }}>
-                        {model?.image && (
-                            <View style={{ backgroundColor: '#fff', borderBottomLeftRadius: 30, borderBottomRightRadius: 30 }}>
-                                <View style={styles.modelImageContainer}>
-                                    <ImageBackground source={{ uri: model.image }} style={styles.modelImage} resizeMode="contain" />
-                                    <View style={styles.modelNameTag}>
-                                        <CustomText style={styles.modelNameText}>{model.name}</CustomText>
+                    <ScrollView
+                        contentContainerStyle={{
+                            flexGrow: 1,
+                        }}
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        <View style={{ flex: 1, }}>
+                            {model?.image && (
+                                <View style={{ backgroundColor: '#fff', borderBottomLeftRadius: 30, borderBottomRightRadius: 30 }}>
+                                    <View style={styles.modelImageContainer}>
+                                        <ImageBackground source={{ uri: model.image }} style={styles.modelImage} resizeMode="contain" />
+                                        <View style={styles.modelNameTag}>
+                                            <CustomText style={styles.modelNameText}>{model.name}</CustomText>
+                                        </View>
                                     </View>
                                 </View>
-                            </View>
-                        )}
-                        <View style={{ padding: 20, backgroundColor: '#f1f0f5', flex: 1, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
-                            <View style={styles.bannerContainer}>
-                                <Image source={bannerImage} style={styles.bannerImage} />
+                            )}
+                            <View style={{ padding: 20, backgroundColor: '#f1f0f5', flex: 1, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
+                                <View style={styles.bannerContainer}>
+                                    <Image source={bannerImage} style={styles.bannerImage} />
 
-                                <View style={styles.bannerTextContainer}>
-                                    <CustomText style={styles.bannerTitle}>Your car,{'\n'}our priority</CustomText>
-                                    <CustomText style={styles.bannerSubtitle}>
-                                        Filling these details ensures better{'\n'}service accuracy & reminders
-                                    </CustomText>
+                                    <View style={styles.bannerTextContainer}>
+                                        <CustomText style={styles.bannerTitle}>Your car,{'\n'}our priority</CustomText>
+                                        <CustomText style={styles.bannerSubtitle}>
+                                            Filling these details ensures better{'\n'}service accuracy & reminders
+                                        </CustomText>
+                                    </View>
                                 </View>
-                            </View>
-                            <CustomText style={styles.label}>
-                                Registration Number<CustomText style={styles.optional}> *</CustomText>
-                            </CustomText>
-                            <TextInput
-                                placeholder="e.g. TS08-AB-1234"
-                                placeholderTextColor="#888"
-                                value={vehicleNumber}
-                                onChangeText={(text) => {
-                                    setVehicleNumber(text);
-                                    setVehicleNumberError(false);
-                                }}
-                                style={[
-                                    styles.input,
-                                    vehicleNumberError && styles.inputError,
-                                ]}
-                                editable={!isViewOnly}
-                            />
+                                <CustomText style={styles.label}>
+                                    Registration Number<CustomText style={styles.optional}> *</CustomText>
+                                </CustomText>
+                                <TextInput
+                                    placeholder="e.g. TS08-AB-1234"
+                                    placeholderTextColor="#888"
+                                    value={vehicleNumber}
+                                    onChangeText={(text) => {
+                                        setVehicleNumber(text);
+                                        setVehicleNumberError(false);
+                                    }}
+                                    style={[
+                                        styles.input,
+                                        vehicleNumberError && styles.inputError,
+                                    ]}
+                                    editable={!isViewOnly}
+                                />
 
-                            <View style={styles.row}>
-                                <View style={{ flex: 1, marginRight: 8 }}>
-                                    <CustomText style={styles.label}>
-                                        Year of Purchase
-                                    </CustomText>
-                                    <TouchableOpacity onPress={() => setShowYearPicker(true)}>
-                                        <TextInput
-                                            value={formatDate(yearOfPurchase)}
-                                            placeholder="DD/MM/YYYY"
-                                            style={styles.input}
-                                            placeholderTextColor="#888"
-                                            editable={false}
-                                            pointerEvents="none"
+                                <View style={styles.row}>
+                                    <View style={{ flex: 1, marginRight: 8 }}>
+                                        <CustomText style={styles.label}>
+                                            Year of Purchase
+                                        </CustomText>
+                                        <TouchableOpacity onPress={() => setShowYearPicker(true)}>
+                                            <TextInput
+                                                value={formatDate(yearOfPurchase)}
+                                                placeholder="DD/MM/YYYY"
+                                                style={styles.input}
+                                                placeholderTextColor="#888"
+                                                editable={false}
+                                                pointerEvents="none"
 
-                                        />
-                                    </TouchableOpacity>
-                                    {showYearPicker && (
-                                        <DateTimePicker
-                                            value={yearOfPurchase || new Date()}
-                                            mode="date"
-                                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                            onChange={(event, selectedDate) => {
-                                                setShowYearPicker(false);
-                                                if (selectedDate) {
-                                                    setYearOfPurchase(selectedDate);
-                                                }
+                                            />
+                                        </TouchableOpacity>
+                                        {showYearPicker && (
+                                            <DateTimePicker
+                                                value={yearOfPurchase || new Date()}
+                                                mode="date"
+                                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                                onChange={(event, selectedDate) => {
+                                                    setShowYearPicker(false);
+                                                    if (selectedDate) {
+                                                        setYearOfPurchase(selectedDate);
+                                                    }
+                                                }}
+                                                maximumDate={new Date()}
+                                            />
+                                        )}
+                                    </View>
+                                    <View style={[{ flex: 1, marginLeft: 8 }]}>
+                                        <CustomText style={styles.label}>
+                                            Transmission Type<CustomText style={styles.optional}> *</CustomText>
+                                        </CustomText>
+                                        <CustomDropdown
+
+                                            value={transmission}
+                                            onSelect={(value) => {
+                                                setTransmission(value);
+                                                setTransmissionError('');
                                             }}
-                                            maximumDate={new Date()}
+                                            options={transmissionOptions}
+                                            error={!!transmissionError}
+                                            disabled={isViewOnly}
                                         />
-                                    )}
-                                </View>
-                                <View style={[{ flex: 1, marginLeft: 8 }]}>
-                                    <CustomText style={styles.label}>
-                                        Transmission Type<CustomText style={styles.optional}> *</CustomText>
-                                    </CustomText>
-                                    <CustomDropdown
 
-                                        value={transmission}
-                                        onSelect={(value) => {
-                                            setTransmission(value);
-                                            setTransmissionError('');
-                                        }}
-                                        options={transmissionOptions}
-                                        error={!!transmissionError}
-                                        disabled={isViewOnly}
-                                    />
-
-                                </View>
-                            </View>
-                            <View style={styles.labelWithHelperRow}>
-                                <CustomText style={styles.label}>
-                                    Engine Type / Size
-                                </CustomText>
-                                <CustomText style={styles.helperTextInline}>Useful for technicians</CustomText>
-                            </View>
-                            <TextInput
-                                placeholder="e.g. 1.2L i-VTEC"
-                                style={styles.input}
-                                placeholderTextColor="#888"
-                                value={engineType}
-                                onChangeText={setEngineType}
-                            />
-                            <View style={styles.labelWithHelperRow}>
-                                <CustomText style={styles.label}>
-                                    Kilometers Driven
-                                </CustomText>
-                                <CustomText style={styles.helperTextInline}>Useful for technicians</CustomText>
-                            </View>
-                            <TextInput
-                                placeholder="---"
-                                style={styles.input}
-                                placeholderTextColor="#888"
-                                value={kilometersDriven}
-                                onChangeText={setKilometersDriven}
-                            />
-                            {!isViewOnly && (
-                                <View style={styles.privacyContainer}>
-                                    <View style={styles.privacyRow}>
-                                        <Checkbox
-                                            value={privacyAccepted}
-                                            onValueChange={setPrivacyAccepted}
-                                        />
-                                        <CustomText style={styles.privacyText}>I accept the Privacy Policy</CustomText>
                                     </View>
                                 </View>
-                            )}
-                            {!isViewOnly && (
-                                <TouchableOpacity
-                                    style={[styles.submitButton, !privacyAccepted && styles.disabledButton]}
-                                    onPress={handleSubmit}
-                                    disabled={!privacyAccepted}
-                                >
-                                    <CustomText style={{ ...globalStyles.f12Bold, color: color.white }}>
-                                        Submit
+                                <View style={styles.labelWithHelperRow}>
+                                    <CustomText style={styles.label}>
+                                        Engine Type / Size
                                     </CustomText>
+                                    <CustomText style={styles.helperTextInline}>Useful for technicians</CustomText>
+                                </View>
+                                <TextInput
+                                    placeholder="e.g. 1.2L i-VTEC"
+                                    style={styles.input}
+                                    placeholderTextColor="#888"
+                                    value={engineType}
+                                    onChangeText={setEngineType}
+                                />
+                                <View style={styles.labelWithHelperRow}>
+                                    <CustomText style={styles.label}>
+                                        Kilometers Driven
+                                    </CustomText>
+                                    <CustomText style={styles.helperTextInline}>Useful for technicians</CustomText>
+                                </View>
+                                <TextInput
+                                    placeholder="---"
+                                    style={styles.input}
+                                    placeholderTextColor="#888"
+                                    value={kilometersDriven}
+                                    onChangeText={setKilometersDriven}
+                                />
+                                {!isViewOnly && (
+                                    <View style={styles.privacyContainer}>
+                                        <View style={styles.privacyRow}>
+                                            <Checkbox
+                                                value={privacyAccepted}
+                                                onValueChange={setPrivacyAccepted}
+                                            />
+                                            <CustomText style={styles.privacyText}>I accept the Privacy Policy</CustomText>
+                                        </View>
+                                    </View>
+                                )}
+                                {!isViewOnly && (
+                                    <TouchableOpacity
+                                        style={[styles.submitButton, !privacyAccepted && styles.disabledButton]}
+                                        onPress={handleSubmit}
+                                        disabled={!privacyAccepted}
+                                    >
+                                        <CustomText style={{ ...globalStyles.f12Bold, color: color.white }}>
+                                            Submit
+                                        </CustomText>
+                                    </TouchableOpacity>
+                                )}
+
+                            </View>
+                            <CustomAlert
+                                visible={alertVisible}
+                                onClose={goCarList}
+                                title="Success"
+                                message="Your Car Added Successfully"
+                                status="info"
+                                showButton={false} // hide default button
+                            >
+                                <TouchableOpacity onPress={goCarList} style={styles.submitButton} >
+                                    <CustomText style={{ ...globalStyles.f12Bold, color: color.white }}>Go To Cars List</CustomText>
                                 </TouchableOpacity>
-                            )}
-
+                            </CustomAlert>
                         </View>
-                        <CustomAlert
-                            visible={alertVisible}
-                            onClose={goCarList}
-                            title="Success"
-                            message="Your Car Added Successfully"
-                            status="info"
-                            showButton={false} // hide default button
-                        >
-                            <TouchableOpacity onPress={goCarList} style={styles.submitButton} >
-                                <CustomText style={{ ...globalStyles.f12Bold, color: color.white }}>Go To Cars List</CustomText>
-                            </TouchableOpacity>
-                        </CustomAlert>
-                    </View>
-                </ScrollView >
-            </KeyboardAvoidingView>
-        </TouchableWithoutFeedback >
-
+                    </ScrollView >
+                </KeyboardAvoidingView>
+            </TouchableWithoutFeedback >
+        </SafeAreaView>
     );
 }
 const styles = StyleSheet.create({

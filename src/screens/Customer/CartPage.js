@@ -28,6 +28,8 @@ import Config from "react-native-config";
 import RazorpayCheckout from "react-native-razorpay";
 import { RAZORPAY_KEY } from "@env";
 import bg from '../../../assets/images/info.png'
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useCoupon } from "../../contexts/CouponContext";
 
 const addressList = [
     {
@@ -56,11 +58,24 @@ const CartPage = () => {
 
     const { cartItems, removeFromCart } = useCart();
 
+    const { appliedCoupon, setAppliedCoupon } = useCoupon();
+
+    let discountAmount = 0;
+
     const totalServiceAmount = cartItems.reduce((sum, item) => sum + item.price, 0);
     const originalAmount = cartItems.reduce((sum, item) => sum + item.originalPrice, 0);
     const savedAmount = originalAmount - totalServiceAmount;
     const gst = Math.round(totalServiceAmount * 0.18); // assuming 18% GST
-    const finalAmount = totalServiceAmount + gst;
+
+    if (appliedCoupon) {
+        if (appliedCoupon.DiscountType === 'FixedAmount') {
+            discountAmount = appliedCoupon.DiscountValue;
+        } else if (appliedCoupon.DiscountType === 'Percentage') {
+            discountAmount = Math.round(totalServiceAmount * (appliedCoupon.DiscountValue / 100));
+        }
+    }
+
+    const finalAmount = totalServiceAmount + gst - discountAmount;
 
     const handlePayment = () => {
         const options = {
@@ -98,7 +113,7 @@ const CartPage = () => {
             />
 
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 20 }}>
                     <Ionicons name="arrow-back-outline" size={24} color="black" />
                 </TouchableOpacity>
 
@@ -106,7 +121,7 @@ const CartPage = () => {
                     onPress={() => setAddressModalVisible(true)}
                     style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
                 >
-                    <View style={{ flex: 1, marginLeft: 10 }}>
+                    <View style={{ flex: 1 }}>
                         <CustomText style={styles.headerTitle}>Glansa Solutions</CustomText>
                         <CustomText style={styles.headerSubtitle}>
                             4031 Space E, Metro Business Park #4031 Dr No 6-95, GVR Colony...
@@ -119,7 +134,7 @@ const CartPage = () => {
             {/* Content Scrollable */}
             <ScrollView showsVerticalScrollIndicator={false}>
                 {cartItems.length === 0 ? (
-                    <CustomText style={{ textAlign: 'center', margin: 20 }}>Your cart is empty</CustomText>
+                    <CustomText style={{ textAlign: 'center', margin: 20, color: "black" }}>Your cart is empty</CustomText>
                 ) : (
                     cartItems.map((item) => (
                         <View key={item.id} style={styles.card}>
@@ -132,7 +147,6 @@ const CartPage = () => {
                                 <View style={{ flex: 1, justifyContent: 'center' }}>
                                     <CustomText style={styles.serviceTitle}>{item.title}</CustomText>
 
-                                    {/* Remove Button (inline under title) */}
                                     <TouchableOpacity
                                         onPress={() => removeFromCart(item.id)}
                                         style={{
@@ -175,7 +189,7 @@ const CartPage = () => {
                                 paddingHorizontal: 20,
                             }}
                         >
-                            <View style={{justifyContent:'center', alignItems:'center', marginBottom:40}}>
+                            <View style={{ justifyContent: 'center', alignItems: 'center', marginBottom: 40 }}>
                                 <CustomText style={[{ color: 'white' }, globalStyles.f20Bold]}>
                                     Hey, Buddy... Busy?
                                 </CustomText>
@@ -202,10 +216,10 @@ const CartPage = () => {
                             shadowRadius: 4,
                         }}
                         onPress={() => {
-                            navigation.navigate('Schedule')
+                            navigation.navigate('Schedule', { selectedServices: cartItems })
                         }}
                     >
-                        <CustomText style={[globalStyles.f14Bold]}>
+                        <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack]}>
                             Choose Date
                         </CustomText>
                     </TouchableOpacity>
@@ -235,17 +249,65 @@ const CartPage = () => {
                 </View>
 
                 {/* Coupon Section */}
-                <View style={styles.card}>
-                    <CustomText style={styles.sectionTitle}>Get Discount</CustomText>
+                <View style={styles.cardSecondary}>
+                    <CustomText style={styles.sectionTitleSec}>Get Discount</CustomText>
+
                     <View style={styles.rowBetween}>
-                        <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]} >Apply coupon</CustomText>
-                        <Feather name="chevron-right" size={20} color="black" />
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <MaterialCommunityIcons name="tag-outline" size={16} color="white" style={{ marginRight: 6 }} />
+                            <CustomText style={[globalStyles.f12Bold, globalStyles.textWhite]}>
+                                {appliedCoupon ? 'Coupon Applied' : 'Apply coupon'}
+                            </CustomText>
+                        </View>
+
+                        <TouchableOpacity
+                            onPress={() => navigation.navigate('Coupons')}
+                            style={{ flexDirection: 'row', alignItems: 'center' }}
+                        >
+                            <CustomText style={[globalStyles.f10Bold, globalStyles.neutral300]}>
+                                {appliedCoupon ? 'change' : 'view coupons'}
+                            </CustomText>
+                            <Feather name="chevron-right" size={20} color="white" style={[globalStyles.mt1]} />
+                        </TouchableOpacity>
                     </View>
-                    <View style={styles.couponBox}>
-                        <CustomText style={{ flex: 1, ...globalStyles.f12Bold, ...globalStyles.textBlack }}>Hurray you saved ₹100</CustomText>
-                        <CustomText style={styles.appliedCoupon}>NEWCUS26 Applied</CustomText>
-                    </View>
+
+                    <View style={styles.separator} />
+
+                    {appliedCoupon ? (
+                        <View style={[styles.couponBox, { flexDirection: 'row', alignItems: 'center' }]}>
+                            <MaterialCommunityIcons name="tag-outline" size={16} color="white" style={{ marginRight: 6 }} />
+                            <CustomText style={{ flex: 1, ...globalStyles.f12Bold, ...globalStyles.textWhite }}>
+                                Hurray! You saved ₹{discountAmount}
+                            </CustomText>
+                            <View style={{
+                                backgroundColor: color.yellow,
+                                paddingVertical: 6,
+                                borderRadius: 20,
+                                marginTop: 10,
+                                paddingHorizontal: 14,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                            }}>
+                                <MaterialCommunityIcons
+                                    name="tag-outline"
+                                    size={18}
+                                    color={color.black}
+                                    style={{ marginLeft: 2 }}
+                                />
+                                <CustomText style={styles.appliedCoupon}> {appliedCoupon?.Code} </CustomText>
+                                <TouchableOpacity onPress={() => setAppliedCoupon(null)}>
+                                    <MaterialCommunityIcons
+                                        name="close-circle"
+                                        size={18}
+                                        color={color.black}
+                                        style={{ marginLeft: 6 }}
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    ) : null}
                 </View>
+
 
                 {/* Instructions */}
                 <View style={styles.card}>
@@ -265,7 +327,7 @@ const CartPage = () => {
                     <View style={styles.rowBetween}>
                         <View>
                             <CustomText style={styles.toPay}>To Pay ₹{finalAmount}</CustomText>
-                            <CustomText style={styles.saved}>₹{savedAmount} saved by coupon</CustomText>
+                            <CustomText style={styles.saved}>₹{savedAmount + discountAmount} saved by coupon</CustomText>
                         </View>
                     </View>
                     <View style={styles.divider} />
@@ -277,6 +339,11 @@ const CartPage = () => {
                         <CustomText style={{ color: color.secondary, ...globalStyles.f12Bold }}>GST & Other Charges</CustomText>
                         <CustomText style={{ color: color.black, ...globalStyles.f10Bold }}>₹{gst}</CustomText>
                     </View>
+                    {appliedCoupon && (<View style={styles.rowBetween}>
+                        <CustomText style={{ color: color.secondary, ...globalStyles.f12Bold }}>Discount</CustomText>
+                        <CustomText style={{ color: color.black, ...globalStyles.f10Bold }}>- ₹{discountAmount}</CustomText>
+                    </View>)}
+
                     <View style={styles.divider} />
                     <View style={styles.rowBetween}>
                         <CustomText style={styles.toPayBold}>To Pay</CustomText>
@@ -392,6 +459,14 @@ const styles = StyleSheet.create({
         borderRadius: 12,
 
     },
+    cardSecondary: {
+        backgroundColor: color.secondary,
+        padding: 16,
+        marginTop: 20,
+        marginHorizontal: 12,
+        borderRadius: 12,
+
+    },
     serviceHeader: { flexDirection: "row", alignItems: "center", ...globalStyles.f12 },
     serviceImage: { width: 50, height: 50, borderRadius: 8, marginRight: 10 },
     serviceTitle: { ...globalStyles.f14Bold, color: color.primary },
@@ -409,6 +484,12 @@ const styles = StyleSheet.create({
     },
     savingsText: { color: color.secondary, ...globalStyles.f12Bold },
     sectionTitle: { ...globalStyles.f14Bold, color: color.primary, marginBottom: 10 },
+    sectionTitleSec: { ...globalStyles.f14Bold, color: '#fff', marginBottom: 10 },
+    separator: {
+        height: 1,
+        backgroundColor: '#ffffffff',
+        marginVertical: 20,
+    },
     moreServiceCard: { width: 120, marginRight: 10, alignItems: "flex-start" },
     moreServiceImage: { width: 90, height: 120, borderRadius: 8, marginTop: 6 },
     moreServiceText: { textAlign: "flex-start", ...globalStyles.f10Bold, marginTop: 5, color: "black" },
@@ -421,14 +502,11 @@ const styles = StyleSheet.create({
         marginVertical: 6,
     },
     couponBox: {
-        backgroundColor: "#00b1c51d",
-        padding: 10,
-        borderRadius: 8,
-        marginTop: 8,
         flexDirection: "row",
         alignItems: "center",
+        marginBottom: 6
     },
-    appliedCoupon: { color: color.secondary, ...globalStyles.f12Bold, marginLeft: 10 },
+    appliedCoupon: { color: 'black', ...globalStyles.f12Bold, marginRight:6, marginBottom:2 },
     textInput: {
         borderWidth: 1,
         borderColor: "#ccc",

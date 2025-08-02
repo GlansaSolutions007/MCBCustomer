@@ -9,12 +9,14 @@ import { Ionicons } from '@expo/vector-icons'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { useCart } from '../../contexts/CartContext'
 import { color } from '../../styles/theme'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const ServiceInnerPage = () => {
     const route = useRoute();
     const { package: pkg } = route.params;
     const { cartItems, addToCart } = useCart();
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
 
     const serviceDetails = () => {
         console.log(`Service ID: ${pkg.id}`);
@@ -42,7 +44,7 @@ const ServiceInnerPage = () => {
     );
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['bottom']}>
             <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={{ paddingBottom: 100 }}>
                 <ImageBackground
                     source={{ uri: `https://api.mycarsbuddy.com/Images/${pkg.image}` }}
@@ -124,7 +126,7 @@ const ServiceInnerPage = () => {
                                 style={{ width: 40, height: 40, borderRadius: 20, marginRight: 10 }}
                             />
                             <View>
-                                <CustomText style={[globalStyles.f14Bold]}>Sri Wedari Soekarno</CustomText>
+                                <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack]}>Sri Wedari Soekarno</CustomText>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                                     <Ionicons name="star" size={14} color="#F4C150" />
                                     <Ionicons name="star" size={14} color="#F4C150" />
@@ -161,7 +163,7 @@ const ServiceInnerPage = () => {
                 </View>
 
             </ScrollView>
-            <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', padding: 16, borderTopWidth: 1, borderColor: '#eee' }}>
+            <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', padding: 16, paddingBottom: 16 + insets.bottom, borderTopWidth: 1, borderColor: '#eee' }}>
                 <TouchableOpacity
                     style={{
                         backgroundColor: color.primary,
@@ -169,14 +171,14 @@ const ServiceInnerPage = () => {
                         borderRadius: 12,
                         alignItems: 'center',
                     }}
-                onPress={handleAddToCart}
+                    onPress={handleAddToCart}
                 >
                     <CustomText style={[globalStyles.f14Bold, { color: '#fff' }]}>
                         {isInCart ? 'View Cart' : 'Add to Cart'}
                     </CustomText>
                 </TouchableOpacity>
             </View>
-        </View>
+        </SafeAreaView>
     )
 }
 

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ImageBackground, StatusBar } from "react-native";
-import carData from "../../../assets/data/carBrands.json";
 import { useNavigation } from "@react-navigation/native";
 import SearchBox from "../../components/SearchBox";
 import globalStyles from "../../styles/globalStyles";
@@ -38,42 +37,44 @@ export default function MyCars() {
             const models = modelRes.data.data;
 
             // Format and attach models to each brand
-            const formattedBrands = brands.map(brand => {
-                const brandModels = models
-                    .filter(model => model.BrandID === brand.BrandID)
-                    .map(model => {
-                        // let imagePath = '';
+            const formattedBrands = brands
+                .filter(brand => brand.IsActive)
+                .map(brand => {
+                    const brandModels = models
+                        .filter(model => model.BrandID === brand.BrandID)
+                        .map(model => {
+                            // let imagePath = '';
 
-                        // if (model.VehicleImage) {
-                        //     imagePath = model.VehicleImage.includes("Images/VehicleModel")
-                        //         ? model.VehicleImage
-                        //         : `/VehicleModel/${model.VehicleImage}`;
-                        // }
+                            // if (model.VehicleImage) {
+                            //     imagePath = model.VehicleImage.includes("Images/VehicleModel")
+                            //         ? model.VehicleImage
+                            //         : `/VehicleModel/${model.VehicleImage}`;
+                            // }
 
-                        const getModelImageUrl = (path) => {
-                            if (!path) return null;
-                            const fileName = path.split('/').pop();
-                            return `https://api.mycarsbuddy.com/Images/VehicleModel/${fileName}`;
-                        };
+                            const getModelImageUrl = (path) => {
+                                if (!path) return null;
+                                const fileName = path.split('/').pop();
+                                return `https://api.mycarsbuddy.com/Images/VehicleModel/${fileName}`;
+                            };
 
 
-                        return {
-                            id: model.ModelID,
-                            name: model.ModelName,
-                            image: getModelImageUrl(model.VehicleImage),
-                            fuelType: model.FuelTypeID
-                        };
-                    });
+                            return {
+                                id: model.ModelID,
+                                name: model.ModelName,
+                                image: getModelImageUrl(model.VehicleImage),
+                                fuelType: model.FuelTypeID
+                            };
+                        });
 
-                return {
-                    brand: brand.BrandName,
-                    brandId: brand.BrandID,
-                    logo: brand.BrandLogo
-                        ? { uri: `https://api.mycarsbuddy.com/Images/BrandLogo/${brand.BrandLogo.split('/').pop()}` }
-                        : Logo,
-                    models: brandModels
-                };
-            });
+                    return {
+                        brand: brand.BrandName,
+                        brandId: brand.BrandID,
+                        logo: brand.BrandLogo
+                            ? { uri: `https://api.mycarsbuddy.com/Images/BrandLogo/${brand.BrandLogo.split('/').pop()}` }
+                            : Logo,
+                        models: brandModels
+                    };
+                });
 
             setBrands(formattedBrands);
 

@@ -14,6 +14,7 @@ import CartPage from "../screens/Customer/CartPage";
 import ConfirmAddressPage from "../screens/Customer/ConfirmAddressPage";
 import ServiceInnerPage from "../screens/Customer/ServiceInnerPage";
 import SchedulePage from "../screens/Customer/SchedulePage";
+import CouponsList from "../screens/Customer/Coupons";
 
 const Stack = createNativeStackNavigator();
 
@@ -79,6 +80,11 @@ export default function CustomerStackNavigator() {
           name="Schedule"
           component={SchedulePage}
           options={{ title: "Schedule" }}
+        />
+        <Stack.Screen
+          name="Coupons"
+          component={CouponsList}
+          options={{ title: "Coupon List" }}
         />
       </Stack.Navigator>
     </CartProvider>

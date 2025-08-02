@@ -9,6 +9,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Text, TextInput } from 'react-native';
 import { LocationProvider } from "./src/contexts/LocationContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { CouponProvider } from "./src/contexts/CouponContext";
 
 if (Text.defaultProps == null) Text.defaultProps = {};
 Text.defaultProps.allowFontScaling = false;
@@ -42,7 +43,9 @@ export default function App() {
         <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
           <AuthProvider>
             <LocationProvider>
-              <RootNavigator />
+              <CouponProvider>
+                <RootNavigator />
+              </CouponProvider>
             </LocationProvider>
           </AuthProvider>
         </View>

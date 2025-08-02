@@ -28,6 +28,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomAlert from '../../components/CustomAlert';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 const InteriorService = () => {
@@ -166,271 +167,278 @@ const InteriorService = () => {
   }, [cars]);
 
   return (
-    <ScrollView style={styles.container}>
-      <ImageBackground
-        source={interior}
-        style={styles.imageBackground}
-      >
-        <StatusBar
-          barStyle="light-content"
-          translucent
-          backgroundColor="transparent"
-        />
-        <LinearGradient
-          colors={['rgba(19, 109, 110, .6)', 'rgba(19, 109, 110, .10)', 'rgba(0, 0, 0, 1)']}
-          locations={[0.13, 0.52, 0.91]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={styles.overlay}
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['bottom']}>
+      <ScrollView style={styles.container}>
+        <ImageBackground
+          source={interior}
+          style={styles.imageBackground}
         >
-          {/* Top Row */}
-          <View style={styles.topRow}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backIcon}>
-              <Ionicons name="arrow-back" size={24} color="black" />
-            </TouchableOpacity>
-
-            <View style={styles.iconWrapper}>
-              <TouchableOpacity onPress={() => navigation.navigate('Cart')} >
-                <Image source={Garage} style={styles.garageIcon} />
-                {cartItems.length > 0 && (
-                  <View style={styles.badge}>
-                    <CustomText style={styles.badgeText}>{cartItems.length}</CustomText>
-                  </View>
-                )}
+          <StatusBar
+            barStyle="light-content"
+            translucent
+            backgroundColor="transparent"
+          />
+          <LinearGradient
+            colors={['rgba(19, 109, 110, .6)', 'rgba(19, 109, 110, .10)', 'rgba(0, 0, 0, 1)']}
+            locations={[0.13, 0.52, 0.91]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={styles.overlay}
+          >
+            {/* Top Row */}
+            <View style={styles.topRow}>
+              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backIcon}>
+                <Ionicons name="arrow-back" size={24} color="black" />
               </TouchableOpacity>
-            </View>
-          </View>
 
-          {/* Search Box */}
-          <View style={styles.searchContainer}>
-            <View style={styles.textContainer}>
-              <CustomText style={[globalStyles.textWhite, globalStyles.f32Bold]}>
-                Interior Services
-              </CustomText>
-              <CustomText style={[globalStyles.textWhite, globalStyles.f12Regular]}>
-                Here you can find the suitable packages for your car
-              </CustomText>
-            </View>
-
-            <View style={styles.chooseCarRow}>
-              <View style={styles.chooseCarDiv}>
-                <SearchBox />
+              <View style={styles.iconWrapper}>
+                <TouchableOpacity onPress={() => navigation.navigate('Cart')} >
+                  <Image source={Garage} style={styles.garageIcon} />
+                  {cartItems.length > 0 && (
+                    <View style={styles.badge}>
+                      <CustomText style={styles.badgeText}>{cartItems.length}</CustomText>
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                style={styles.chooseCarButton}
-                onPress={() => setShowCarModal(true)}
-              >
-                <Ionicons name="filter" size={26} color="#000" />
-                <CustomText style={styles.chooseCarText}>CHOOSE CAR</CustomText>
-              </TouchableOpacity>
             </View>
+
+            {/* Search Box */}
+            <View style={styles.searchContainer}>
+              <View style={styles.textContainer}>
+                <CustomText style={[globalStyles.textWhite, globalStyles.f32Bold]}>
+                  Interior Services
+                </CustomText>
+                <CustomText style={[globalStyles.textWhite, globalStyles.f12Regular]}>
+                  Here you can find the suitable packages for your car
+                </CustomText>
+              </View>
+
+              <View style={styles.chooseCarRow}>
+                <View style={styles.chooseCarDiv}>
+                  <SearchBox />
+                </View>
+                <TouchableOpacity
+                  style={styles.chooseCarButton}
+                  onPress={() => setShowCarModal(true)}
+                >
+                  <Ionicons name="filter" size={26} color="#000" />
+                  <CustomText style={styles.chooseCarText}>CHOOSE CAR</CustomText>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+          </LinearGradient>
+        </ImageBackground>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            {/* <CustomText style={[globalStyles.f16Bold, globalStyles.primary]}>Popular Services</CustomText> */}
+            <Ionicons name="arrow-forward-circle" size={20} color={color.primary} style={styles.scrollHintIcon} />
           </View>
 
-        </LinearGradient>
-      </ImageBackground>
-
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          {/* <CustomText style={[globalStyles.f16Bold, globalStyles.primary]}>Popular Services</CustomText> */}
-          <Ionicons name="arrow-forward-circle" size={20} color={color.primary} style={styles.scrollHintIcon} />
-        </View>
-
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={subCategories}
-          keyExtractor={(item) => item.SubCategoryID.toString()}
-          contentContainerStyle={styles.flatListContainer}
-          renderItem={({ item }) => {
-            const isSelected = selectedServiceId === item.SubCategoryID;
-            return (
-              <TouchableOpacity
-                style={styles.popularItem}
-                onPress={() => { setSelectedServiceId(item.SubCategoryID); handleTabPress(item); }}
-              >
-                <View
-                  style={[
-                    styles.imageWrapper,
-                    isSelected && styles.selectedImageWrapper,
-                  ]}
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={subCategories}
+            keyExtractor={(item) => item.SubCategoryID.toString()}
+            contentContainerStyle={styles.flatListContainer}
+            renderItem={({ item }) => {
+              const isSelected = selectedServiceId === item.SubCategoryID;
+              return (
+                <TouchableOpacity
+                  style={styles.popularItem}
+                  onPress={() => { setSelectedServiceId(item.SubCategoryID); handleTabPress(item); }}
                 >
-                  <Image
-                    source={{ uri: `https://api.mycarsbuddy.com/Images/${item.ThumbnailImage}` }}
-                    style={styles.popularImage}
-                  />
-                </View>
-                <CustomText
-                  style={[
-                    globalStyles.f10Bold,
-                    styles.popularText,
-                    globalStyles.textBlack,
-                    isSelected && styles.selectedText,
-                  ]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {item.SubCategoryName}
+                  <View
+                    style={[
+                      styles.imageWrapper,
+                      isSelected && styles.selectedImageWrapper,
+                    ]}
+                  >
+                    <Image
+                      source={{ uri: `https://api.mycarsbuddy.com/Images/${item.ThumbnailImage}` }}
+                      style={styles.popularImage}
+                    />
+                  </View>
+                  <CustomText
+                    style={[
+                      globalStyles.f10Bold,
+                      styles.popularText,
+                      globalStyles.textBlack,
+                      isSelected && styles.selectedText,
+                    ]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {item.SubCategoryName}
+                  </CustomText>
+                </TouchableOpacity>
+              );
+            }}
+          />
+          <View style={styles.tabContent}>
+            <View style={styles.section}>
+
+
+              {packages.length === 0 ? (
+                /* ① nothing came back from the API */
+                <CustomText style={{ textAlign: 'center', marginTop: 20 }}>
+                  No Packages Available{packages.length}
                 </CustomText>
-              </TouchableOpacity>
-            );
-          }}
-        />
-        <View style={styles.tabContent}>
-          <View style={styles.section}>
+              ) :
 
-
-            {packages.length === 0 ? (
-              /* ① nothing came back from the API */
-              <CustomText style={{ textAlign: 'center', marginTop: 20 }}>
-                No Packages Available{packages.length}
-              </CustomText>
-            ) :
-
-              (
-                <Animated.View style={{ opacity: fadeAnim, marginTop: 20 }}>
-                  {packages.map((item) => (
-                    <View key={item.id} style={styles.rowCard}>
-                      <TouchableOpacity
-                        onPress={() => navigation.navigate('ServiceInnerPage', { package: item })}
-                      >
-                        <ImageBackground
-                          source={{ uri: `https://api.mycarsbuddy.com/Images/${item.image}` }}
-                          style={styles.sideImage}
-                          imageStyle={{ borderRadius: 10 }}
-                        >
-                          <View style={styles.discountBadge}>
-                            <CustomText style={styles.discountText}>
-                              {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}%
-                            </CustomText>
-                          </View>
-                        </ImageBackground>
-                      </TouchableOpacity>
-
-                      <View style={styles.cardRight}>
+                (
+                  <Animated.View style={{ opacity: fadeAnim, marginTop: 20 }}>
+                    {packages.map((item) => (
+                      <View key={item.id} style={styles.rowCard}>
                         <TouchableOpacity
                           onPress={() => navigation.navigate('ServiceInnerPage', { package: item })}
                         >
-                          <CustomText style={[{ color: color.primary }, globalStyles.f16Bold]}>
-                            {item.title}
-                          </CustomText>
-                        </TouchableOpacity>
-                        <CustomText style={styles.cardSubheading}>Services Included:</CustomText>
-                        {item.services.map((service, index) => (
-                          <CustomText key={`${service}-${index}`} style={styles.serviceText}>
-                            • {service}
-                          </CustomText>
-                        ))}
-
-                        {cars.length === 0 || !selectedCar ? (
-                          <TouchableOpacity
-                            style={styles.addCarButton}
-                            onPress={() => navigation.navigate('SelectCarBrand')}
+                          <ImageBackground
+                            source={{ uri: `https://api.mycarsbuddy.com/Images/${item.image}` }}
+                            style={styles.sideImage}
+                            imageStyle={{ borderRadius: 10 }}
                           >
-                            <CustomText style={styles.addButtonText}>Add Your Car</CustomText>
-                          </TouchableOpacity>
-                        ) : (
-                          <View style={styles.priceRow}>
-                            <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-                              <CustomText style={styles.striked}>₹{item.originalPrice}</CustomText>
-                              <CustomText style={[globalStyles.textBlack, globalStyles.f16Bold]}>
-                                ₹{item.price}
+                            <View style={styles.discountBadge}>
+                              <CustomText style={styles.discountText}>
+                                {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}%
                               </CustomText>
                             </View>
+                          </ImageBackground>
+                        </TouchableOpacity>
 
-                            {cartItems.find(ci => ci.id === item.id) ? (
-                              <TouchableOpacity
-                                style={[styles.addButton, { backgroundColor: '#444' }]}
-                                onPress={() => navigation.navigate('Cart')}
-                              >
-                                <CustomText style={styles.addButtonText}>View Cart</CustomText>
-                              </TouchableOpacity>
-                            ) : (
-                              <TouchableOpacity
-                                style={styles.addButton}
-                                onPress={() => addToCart(item)}
-                              >
-                                <CustomText style={styles.addButtonText}>Add Service</CustomText>
-                              </TouchableOpacity>
-                            )}
-                          </View>
-                        )}
+                        <View style={styles.cardRight}>
+                          <TouchableOpacity
+                            onPress={() => navigation.navigate('ServiceInnerPage', { package: item })}
+                          >
+                            <CustomText style={[{ color: color.primary }, globalStyles.f16Bold]}>
+                              {item.title}
+                            </CustomText>
+                          </TouchableOpacity>
+                          <CustomText style={styles.cardSubheading}>Services Included:</CustomText>
+                          {item.services.slice(0, 3).map((service, index) => (
+                            <CustomText key={`${service}-${index}`} style={styles.serviceText}>
+                              • {service}
+                            </CustomText>
+                          ))}
+                          {item.services.length > 3 && (
+                            <TouchableOpacity onPress={() => navigation.navigate('ServiceInnerPage', { package: item })}>
+                              <CustomText style={[styles.serviceText, { color: color.primary }]}>+more</CustomText>
+                            </TouchableOpacity>
+                          )}
 
+                          {cars.length === 0 || !selectedCar ? (
+                            <TouchableOpacity
+                              style={styles.addCarButton}
+                              onPress={() => navigation.navigate('SelectCarBrand')}
+                            >
+                              <CustomText style={styles.addButtonText}>Add Your Car</CustomText>
+                            </TouchableOpacity>
+                          ) : (
+                            <View style={styles.priceRow}>
+                              <View style={{ flexDirection: 'column', alignItems: 'center' }}>
+                                <CustomText style={styles.striked}>₹{item.originalPrice}</CustomText>
+                                <CustomText style={[globalStyles.textBlack, globalStyles.f16Bold]}>
+                                  ₹{item.price}
+                                </CustomText>
+                              </View>
+
+                              {cartItems.find(ci => ci.id === item.id) ? (
+                                <TouchableOpacity
+                                  style={[styles.addButton, { backgroundColor: color.yellow}]}
+                                  onPress={() => navigation.navigate('Cart')}
+                                >
+                                  <CustomText style={styles.addButtonTextCart}>View Cart</CustomText>
+                                </TouchableOpacity>
+                              ) : (
+                                <TouchableOpacity
+                                  style={styles.addButton}
+                                  onPress={() => addToCart(item)}
+                                >
+                                  <CustomText style={styles.addButtonText}>Add Service</CustomText>
+                                </TouchableOpacity>
+                              )}
+                            </View>
+                          )}
+
+                        </View>
                       </View>
-                    </View>
-                  )
-                  )}
-                </Animated.View>
-              )}
+                    )
+                    )}
+                  </Animated.View>
+                )}
+            </View>
           </View>
         </View>
-      </View>
 
-      <View style={styles.bannerContainer}>
-        <FlatList
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          data={[interior, interior, interior]}
-          keyExtractor={(_, index) => index.toString()}
-          onScroll={(event) => {
-            const index = Math.round(event.nativeEvent.contentOffset.x / event.nativeEvent.layoutMeasurement.width);
-            setActiveBannerIndex(index);
-          }}
-          renderItem={({ item }) => (
-            <Image source={item} style={styles.bannerImage} resizeMode="cover" />
-          )}
-        />
-        <View style={styles.dotContainer}>
-          {[0, 1, 2].map((_, i) => (
-            <View key={i} style={i === activeBannerIndex ? styles.activeDot : styles.inactiveDot} />
-          ))}
+        <View style={styles.bannerContainer}>
+          <FlatList
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            data={[interior, interior, interior]}
+            keyExtractor={(_, index) => index.toString()}
+            onScroll={(event) => {
+              const index = Math.round(event.nativeEvent.contentOffset.x / event.nativeEvent.layoutMeasurement.width);
+              setActiveBannerIndex(index);
+            }}
+            renderItem={({ item }) => (
+              <Image source={item} style={styles.bannerImage} resizeMode="cover" />
+            )}
+          />
+          <View style={styles.dotContainer}>
+            {[0, 1, 2].map((_, i) => (
+              <View key={i} style={i === activeBannerIndex ? styles.activeDot : styles.inactiveDot} />
+            ))}
+          </View>
         </View>
-      </View>
-      <CustomAlert
-        visible={showCarModal}
-        onClose={() => setShowCarModal(false)}
-        title="Select Your Car"
-        showButton={false}
-      >
-        <View style={{ marginTop: 10 }}>
-          {cars.length === 1 ? (
-            // Single car layout
-            <TouchableOpacity
-              style={[styles.carItem, { alignSelf: 'center' }]}
-              onPress={() => {
-                setSelectedCar(cars[0]);
-                setShowCarModal(false);
-              }}
-            >
-              <Image source={cars[0].image} style={styles.singleCarImage} />
-              <CustomText style={styles.carModel}>{cars[0].model}</CustomText>
-            </TouchableOpacity>
-          ) : (
-            // Multiple cars layout
-            <ScrollView style={{ maxHeight: 150 }}>
-              <View style={styles.carGrid}>
-                {cars.map((car) => (
-                  <TouchableOpacity
-                    key={car.id}
-                    style={styles.carItem}
-                    onPress={() => {
-                      setSelectedCar(car);
-                      setShowCarModal(false);
-                    }}
-                  >
-                    <Image source={car.image} style={styles.carImage} />
-                    <CustomText style={styles.carModel}>{car.model}</CustomText>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-          )}
-        </View>
-      </CustomAlert>
+        <CustomAlert
+          visible={showCarModal}
+          onClose={() => setShowCarModal(false)}
+          title="Select Your Car"
+          showButton={false}
+        >
+          <View style={{ marginTop: 10 }}>
+            {cars.length === 1 ? (
+              // Single car layout
+              <TouchableOpacity
+                style={[styles.carItem, { alignSelf: 'center' }]}
+                onPress={() => {
+                  setSelectedCar(cars[0]);
+                  setShowCarModal(false);
+                }}
+              >
+                <Image source={cars[0].image} style={styles.singleCarImage} />
+                <CustomText style={styles.carModel}>{cars[0].model}</CustomText>
+              </TouchableOpacity>
+            ) : (
+              // Multiple cars layout
+              <ScrollView style={{ maxHeight: 150 }}>
+                <View style={styles.carGrid}>
+                  {cars.map((car) => (
+                    <TouchableOpacity
+                      key={car.id}
+                      style={styles.carItem}
+                      onPress={() => {
+                        setSelectedCar(car);
+                        setShowCarModal(false);
+                      }}
+                    >
+                      <Image source={car.image} style={styles.carImage} />
+                      <CustomText style={styles.carModel}>{car.model}</CustomText>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            )}
+          </View>
+        </CustomAlert>
 
 
 
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -641,7 +649,7 @@ const styles = StyleSheet.create({
   },
 
   discountBadge: {
-    backgroundColor: '#FFC107',
+    backgroundColor: color.yellow,
     borderRadius: 50,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -705,6 +713,10 @@ const styles = StyleSheet.create({
 
   addButtonText: {
     color: '#fff',
+    ...globalStyles.f10Bold
+  },
+  addButtonTextCart: {
+    color: color.black,
     ...globalStyles.f10Bold
   },
   carGrid: {
