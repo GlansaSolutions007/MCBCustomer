@@ -21,7 +21,12 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.itglansa.mcbc"
+      "package": "com.itglansa.mcbc",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAC8UIiyDI55MVKRzNTHwQ9mnCnRjDymVo"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"

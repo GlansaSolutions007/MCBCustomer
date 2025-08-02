@@ -3,14 +3,19 @@ import { View, TextInput, StyleSheet } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { color } from '../styles/theme';
 
-const SearchBox = () => {
+const SearchBox = ({ value, onChangeText, onSubmitEditing }) => {
   return (
     <View style={styles.searchBox}>
-     <FontAwesome name="search" size={20} color={color.secondary} marginRight={8} />
+      <FontAwesome name="search" size={20} color={color.secondary} marginRight={8} />
       <TextInput
         placeholder="Search"
         style={{ flex: 1 }}
         placeholderTextColor="#777"
+        color={color.black}
+        value={value}
+        onChangeText={onChangeText}
+        onSubmitEditing={onSubmitEditing}
+        returnKeyType="search"
       />
     </View>
   );

@@ -44,6 +44,12 @@ const InteriorService = () => {
   const [selectedServiceId, setSelectedServiceId] = useState(
     subCategories?.[0]?.SubCategoryID || null
   );
+  const [cars, setCars] = useState([]);
+  const [showCarModal, setShowCarModal] = useState(false);
+  const [selectedCar, setSelectedCar] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredPackages, setFilteredPackages] = useState([]);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -56,63 +62,6 @@ const InteriorService = () => {
     }).start();
   };
 
-  const fetchPackages = async (subCategoryId) => {
-    try {
-      console.log(categoryId, subCategoryId, 'Fetching packages for category and subcategory');
-
-      const response = await axios.get(
-        `${API_BASE_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?categoryId=${categoryId}&subCategoryId=${subCategoryId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log("Packkkkkk", response);
-
-
-      const rawData = response.data;
-      const dataArray = Array.isArray(rawData) ? rawData : [rawData];
-      const data = dataArray.filter(pkg => pkg.IsActive);
-
-      const formatted = data.map(pkg => ({
-        id: pkg.PackageID,
-        title: pkg.PackageName,
-        image: pkg.PackageImage,
-        bannerImages: pkg.BannerImage?.split(','),
-        price: pkg.Serv_Off_Price,
-        originalPrice: pkg.Serv_Reg_Price,
-        services: pkg.IncludeNames?.split(',') || [],
-        estimatedMins: pkg.EstimatedDurationMinutes,
-        desc: pkg.Description,
-      }));
-      console.log('Fetched packages:', formatted);
-      setPackages(formatted);
-      fadeIn();
-    } catch (error) {
-      console.error('Failed to fetch packages:', error);
-      setPackages([]);
-    }
-  };
-
-  useEffect(() => {
-    if (subCategories.length > 0) {
-      const firstActive = subCategories.find(sub => sub.IsActive);
-      if (firstActive) {
-        setSelectedSubCategoryId(firstActive.SubCategoryID);
-        fetchPackages(firstActive.SubCategoryID);
-      }
-    }
-  }, []);
-
-  const handleTabPress = (subCategory) => {
-    setSelectedSubCategoryId(subCategory.SubCategoryID);
-    fetchPackages(subCategory.SubCategoryID);
-  };
-
-  const [cars, setCars] = useState([]);
-  const [showCarModal, setShowCarModal] = useState(false);
-  const [selectedCar, setSelectedCar] = useState(null);
 
   useEffect(() => {
     const fetchCustomerCars = async () => {
@@ -149,9 +98,21 @@ const InteriorService = () => {
           manufacturer: car.BrandName,
           image: { uri: `https://api.mycarsbuddy.com/Images${car.VehicleImage}` },
           vehicleNumber: car.VehicleNumber,
+          isPrimary: car.IsPrimary,
+          brandId: car.BrandID,
+          modelId: car.ModelID,
+          fuelId: parseInt(car.FuelTypeID),
         }));
 
         setCars(formattedCars);
+        const primaryCar = formattedCars.find(car => car.isPrimary);
+        if (primaryCar) {
+          setSelectedCar(primaryCar);
+        }
+        if (formattedCars.length === 1 && !formattedCars[0].isPrimary) {
+          await makeCarPrimary(formattedCars[0].id);
+          formattedCars[0].isPrimary = true;
+        }
       } catch (error) {
         console.error('Error fetching car list:', error);
       }
@@ -165,6 +126,106 @@ const InteriorService = () => {
       setSelectedCar(cars[0]);
     }
   }, [cars]);
+
+  const makeCarPrimary = async (vehicleId) => {
+    try {
+      const token = await getToken();
+      await axios.post(
+        `${API_BASE_URL}CustomerVehicles/primary-vehicle?vehicleId=${vehicleId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const updated = cars.map((car) => ({
+        ...car,
+        isPrimary: car.id === vehicleId,
+      }));
+      setCars(updated);
+    } catch (error) {
+      console.error('Error setting primary car:', error);
+    }
+  };
+
+
+  const fetchPackages = async (subCategoryId, brandId = '', modelId = '', fuelId = '') => {
+    try {
+      console.log(categoryId, subCategoryId, brandId, modelId, fuelId, 'Fetching packages for category and subcategory');
+      setLoading(true);
+      const response = await axios.get(
+        `${API_BASE_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?categoryId=${categoryId}&subCategoryId=${subCategoryId}&BrandId=${brandId || ''}&ModelId=${modelId || ''}&fuelTypeId=${fuelId || ''}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+      );
+      console.log("Packkkkkk", response);
+
+
+      const rawData = response.data;
+      const dataArray = Array.isArray(rawData) ? rawData : [rawData];
+      const data = dataArray.filter(pkg => pkg.IsActive);
+
+      const formatted = data.map(pkg => ({
+        id: pkg.PackageID,
+        title: pkg.PackageName,
+        image: pkg.PackageImage,
+        bannerImages: pkg.BannerImage?.split(','),
+        price: pkg.Serv_Off_Price,
+        originalPrice: pkg.Serv_Reg_Price,
+        services: pkg.IncludeNames?.split(',') || [],
+        estimatedMins: pkg.EstimatedDurationMinutes,
+        desc: pkg.Description,
+      }));
+      console.log('Fetched packages:', formatted);
+      setPackages(formatted);
+      fadeIn();
+    } catch (error) {
+      console.error('Failed to fetch packages:', error);
+      setPackages([]);
+    }
+    finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (subCategories.length > 0) {
+      const firstActive = subCategories.find(sub => sub.IsActive);
+      setSelectedSubCategoryId(firstActive?.SubCategoryID || null);
+
+      if (firstActive) {
+        const primaryCar = cars.find(car => car.isPrimary);
+        if (cars.length > 0 && primaryCar) {
+          setSelectedCar(primaryCar);
+          fetchPackages(firstActive.SubCategoryID, primaryCar.brandId, primaryCar.modelId, primaryCar.fuelId);
+        } else {
+          fetchPackages(firstActive.SubCategoryID); // ✅ fallback when no car
+        }
+      }
+    }
+  }, [subCategories, cars]);
+
+
+
+  const handleTabPress = (subCategory) => {
+    setSelectedSubCategoryId(subCategory.SubCategoryID);
+    if (selectedCar) {
+      fetchPackages(subCategory.SubCategoryID, selectedCar.brandId, selectedCar.modelId, selectedCar.fuelId);
+    } else {
+      fetchPackages(subCategory.SubCategoryID);
+    }
+  };
+
+  useEffect(() => {
+    const filtered = packages.filter(pkg =>
+      pkg.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredPackages(filtered);
+  }, [packages, searchQuery]);
+
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['bottom']}>
@@ -216,7 +277,7 @@ const InteriorService = () => {
 
               <View style={styles.chooseCarRow}>
                 <View style={styles.chooseCarDiv}>
-                  <SearchBox />
+                  <SearchBox value={searchQuery} onChangeText={setSearchQuery} />
                 </View>
                 <TouchableOpacity
                   style={styles.chooseCarButton}
@@ -280,17 +341,18 @@ const InteriorService = () => {
           <View style={styles.tabContent}>
             <View style={styles.section}>
 
-
-              {packages.length === 0 ? (
-                /* ① nothing came back from the API */
-                <CustomText style={{ textAlign: 'center', marginTop: 20 }}>
-                  No Packages Available{packages.length}
+              {loading ? (
+                <CustomText style={{ textAlign: 'center', marginTop: 20, color: color.black }}>
+                  Loading packages...
+                </CustomText>
+              ) : filteredPackages.length === 0 ? (
+                <CustomText style={{ textAlign: 'center', marginTop: 20, color: color.black }}>
+                  No Packages Available
                 </CustomText>
               ) :
-
                 (
                   <Animated.View style={{ opacity: fadeAnim, marginTop: 20 }}>
-                    {packages.map((item) => (
+                    {filteredPackages.map((item) => (
                       <View key={item.id} style={styles.rowCard}>
                         <TouchableOpacity
                           onPress={() => navigation.navigate('ServiceInnerPage', { package: item })}
@@ -346,7 +408,7 @@ const InteriorService = () => {
 
                               {cartItems.find(ci => ci.id === item.id) ? (
                                 <TouchableOpacity
-                                  style={[styles.addButton, { backgroundColor: color.yellow}]}
+                                  style={[styles.addButton, { backgroundColor: color.yellow }]}
                                   onPress={() => navigation.navigate('Cart')}
                                 >
                                   <CustomText style={styles.addButtonTextCart}>View Cart</CustomText>
@@ -414,23 +476,40 @@ const InteriorService = () => {
               </TouchableOpacity>
             ) : (
               // Multiple cars layout
-              <ScrollView style={{ maxHeight: 150 }}>
+              <ScrollView style={{ maxHeight: 180 }}>
                 <View style={styles.carGrid}>
-                  {cars.map((car) => (
-                    <TouchableOpacity
-                      key={car.id}
-                      style={styles.carItem}
-                      onPress={() => {
-                        setSelectedCar(car);
-                        setShowCarModal(false);
-                      }}
-                    >
-                      <Image source={car.image} style={styles.carImage} />
-                      <CustomText style={styles.carModel}>{car.model}</CustomText>
-                    </TouchableOpacity>
-                  ))}
+                  {cars.map((car) => {
+                    const isSelected = selectedCar?.id === car.id;
+                    return (
+                      <TouchableOpacity
+                        key={car.id}
+                        style={[
+                          styles.carItem,
+                          car.isPrimary && styles.primaryCarItem,
+                          isSelected && styles.selectedCarItem,
+                        ]}
+                        onPress={async () => {
+                          setSelectedCar(car);
+                          setTimeout(() => {
+                            setShowCarModal(false);
+                          }, 1000)
+                          if (!car.isPrimary) {
+                            await makeCarPrimary(car.id);
+                          }
+                          fetchPackages(selectedSubCategoryId, car.brandId, car.modelId, car.fuelId);
+                        }}
+                      >
+                        <Image source={car.image} style={styles.carImage} />
+                        <CustomText style={styles.carModel}>{car.model}</CustomText>
+                        {car.isPrimary && (
+                          <CustomText style={styles.primaryLabel}>Primary</CustomText>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </ScrollView>
+
             )}
           </View>
         </CustomAlert>
@@ -750,6 +829,27 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginBottom: 10,
   },
+  // primaryCarItem: {
+  //   backgroundColor: '#e6f5e6', // light green highlight
+  //   borderColor: '#28a745',
+  //   borderWidth: 1.5,
+  //   borderRadius: 8,
+  //   padding: 8,
+  // },
+
+  // selectedCarItem: {
+  //   borderWidth: 2,
+  //   borderColor: '#007BFF',
+  //   borderRadius: 8,
+  // },
+
+  primaryLabel: {
+    marginTop: 4,
+    ...globalStyles.f12Bold,
+    color: color.yellow,
+    fontWeight: 'bold',
+  },
+
 });
 
 

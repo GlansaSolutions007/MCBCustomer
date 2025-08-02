@@ -15,6 +15,8 @@ import { getToken } from "../../utils/token";
 export default function MyCars() {
     const [brands, setBrands] = useState([]);
     const [loading, setLoading] = useState(true)
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filteredBrands, setFilteredBrands] = useState([]);
     const baseUrl = API_BASE_URL
 
     const getBrands = async () => {
@@ -77,7 +79,7 @@ export default function MyCars() {
                 });
 
             setBrands(formattedBrands);
-
+            setFilteredBrands(formattedBrands);
         } catch (error) {
             console.error('Failed to fetch car brands or models:', error);
         } finally {
@@ -89,6 +91,24 @@ export default function MyCars() {
     }, []);
 
     const navigation = useNavigation();
+
+    const handleSearch = (query) => {
+        setSearchQuery(query);
+        if (!query.trim()) {
+            setFilteredBrands(brands);
+            return;
+        }
+
+        const filtered = brands.filter(brand =>
+            brand.brand.toLowerCase().includes(query.toLowerCase()) ||
+            brand.models.some(model =>
+                model.name.toLowerCase().includes(query.toLowerCase())
+            )
+        );
+
+        setFilteredBrands(filtered);
+    };
+
 
     const renderBrand = ({ item }) => (
         <TouchableOpacity
@@ -113,13 +133,15 @@ export default function MyCars() {
     return (
         <>
             <View style={[styles.container, { padding: 10, flex: 1 }]}>
-                <SearchBox />
+                <SearchBox
+                    value={searchQuery}
+                    onChangeText={handleSearch} />
                 <View style={{ marginVertical: 10 }}>
                     <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>Add Your Car</CustomText>
                     <CustomText style={{ ...globalStyles.f10Bold, color: color.secondary }}>Start From Selecting Your Manufacturer.</CustomText>
                 </View>
                 <FlatList
-                    data={brands}
+                    data={filteredBrands}
                     renderItem={renderBrand}
                     keyExtractor={(item) => item.brand}
                     numColumns={3}

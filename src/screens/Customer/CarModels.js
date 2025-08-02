@@ -13,11 +13,13 @@ import { color } from "../../styles/theme";
 import CustomText from "../../components/CustomText";
 import { API_BASE_URL } from "@env";
 import axios from "axios";
+import SearchBox from "../../components/SearchBox";
 
 export default function CarModels() {
   const route = useRoute();
   const { brand, models } = route.params;
-
+  const [searchText, setSearchText] = useState('');
+  const [filteredModels, setFilteredModels] = useState(models);
   const [selectedModel, setSelectedModel] = useState(null);
   const [alertVisible, setAlertVisible] = useState(false);
   const [fuelTypes, setFuelTypes] = useState([]);
@@ -58,6 +60,14 @@ export default function CarModels() {
     return `https://api.mycarsbuddy.com/images/FuelImages/${encodedFileName}`;
   };
 
+  useEffect(() => {
+    const text = searchText.toLowerCase();
+    const filtered = models.filter((model) =>
+      model.name.toLowerCase().includes(text)
+    );
+    setFilteredModels(filtered);
+  }, [searchText, models]);
+
 
   const renderModel = ({ item }) => (
     <TouchableOpacity style={styles.card} onPress={() => handleModelPress(item)}>
@@ -68,8 +78,14 @@ export default function CarModels() {
 
   return (
     <View style={styles.container}>
+      <SearchBox
+        placeholder="Search car models"
+        value={searchText}
+        onChangeText={setSearchText}
+        style={{ marginBottom: 40 }}
+      />
       <FlatList
-        data={models}
+        data={filteredModels}
         renderItem={renderModel}
         keyExtractor={(item) => item.name}
         numColumns={3}

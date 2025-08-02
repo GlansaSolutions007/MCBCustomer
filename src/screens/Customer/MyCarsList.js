@@ -25,6 +25,8 @@ export const MyCarsList = () => {
     const navigation = useNavigation();
 
     const [cars, setCars] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filteredCars, setFilteredCars] = useState([]);
 
     useEffect(() => {
         const fetchCustomerCars = async () => {
@@ -61,10 +63,16 @@ export const MyCarsList = () => {
                     manufacturer: car.BrandName,
                     image: { uri: `https://api.mycarsbuddy.com/Images${car.VehicleImage}` },
                     vehicleNumber: car.VehicleNumber,
+                    isPrimary: car.IsPrimary,
                 }));
 
                 setCars(formattedCars);
+                setFilteredCars(formattedCars);
                 console.log("Fetched cars:", formattedCars);
+                if (formattedCars.length === 1 && !formattedCars[0].isPrimary) {
+                    await makeCarPrimary(formattedCars[0].id);
+                    formattedCars[0].isPrimary = true;
+                }
 
             } catch (error) {
                 console.error('Error fetching car list:', error);
@@ -73,6 +81,45 @@ export const MyCarsList = () => {
 
         fetchCustomerCars();
     }, []);
+
+    const makeCarPrimary = async (vehicleId) => {
+        try {
+            const token = await getToken();
+            await axios.post(
+                `${API_BASE_URL}CustomerVehicles/primary-vehicle?vehicleId=${vehicleId}`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            const updatedCars = cars.map(car => ({
+                ...car,
+                isPrimary: car.id === vehicleId,
+            }));
+            setCars(updatedCars);
+        } catch (error) {
+            console.error('Error setting primary car:', error);
+        }
+    };
+
+    const handleSearch = (query) => {
+        setSearchQuery(query);
+        if (!query.trim()) {
+            setFilteredCars(cars);
+            return;
+        }
+
+        const filtered = cars.filter(car =>
+            car.vehicleNumber.toLowerCase().includes(query.toLowerCase()) ||
+            car.model.toLowerCase().includes(query.toLowerCase()) ||
+            car.manufacturer.toLowerCase().includes(query.toLowerCase()) ||
+            car.fuel.toLowerCase().includes(query.toLowerCase())
+        );
+        setFilteredCars(filtered);
+    };
+
 
     const renderCar = ({ item }) => (
         <View style={styles.carCard}>
@@ -93,18 +140,35 @@ export const MyCarsList = () => {
                 </View>
             </View>
             <View style={{ height: 16 }} />
-            <TouchableOpacity style={styles.detailsButton}>
-                <CustomText
-                    style={{ color: '#fff' }}
-                    onPress={() => navigation.navigate('MyCarDetails', {
-                        vehicleId: item.id,
-                        model: {
-                            name: `${item.manufacturer} ${item.model}`,
-                            image: item.image.uri,
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <TouchableOpacity style={styles.detailsButton}>
+                    <CustomText
+                        style={{ color: '#fff' }}
+                        onPress={() =>
+                            navigation.navigate('MyCarDetails', {
+                                vehicleId: item.id,
+                                model: {
+                                    name: `${item.manufacturer} ${item.model}`,
+                                    image: item.image.uri,
+                                },
+                            })
                         }
-                    })}>View Details
-                </CustomText>
-            </TouchableOpacity>
+                    >
+                        View Details
+                    </CustomText>
+                </TouchableOpacity>
+
+                {item.isPrimary ? (
+                    <CustomText style={styles.primaryBadge}>Primary Car</CustomText>
+                ) : (
+                    <TouchableOpacity
+                        onPress={() => makeCarPrimary(item.id)}
+                        style={styles.makePrimaryBtn}
+                    >
+                        <CustomText style={{ color: '#fff' }}>Make Primary</CustomText>
+                    </TouchableOpacity>
+                )}
+            </View>
         </View>
 
     );
@@ -127,7 +191,11 @@ export const MyCarsList = () => {
 
                     <View style={styles.header}>
                         <View style={{ flex: 1 }}>
-                            <SearchBox />
+                            <SearchBox value={searchQuery}
+                                onChangeText={(text) => {
+                                    setSearchQuery(text);
+                                    handleSearch(text);
+                                }} />
                         </View>
                         <TouchableOpacity
                             onPress={() => navigation.navigate('SelectCarBrand')}
@@ -140,7 +208,7 @@ export const MyCarsList = () => {
 
                     {/* Car List */}
                     <FlatList
-                        data={cars}
+                        data={filteredCars}
                         keyExtractor={(item) => item.id}
                         renderItem={renderCar}
                         contentContainerStyle={{ paddingBottom: 40 }}
@@ -205,11 +273,6 @@ const styles = StyleSheet.create({
         flex: 1,
         position: 'relative',
     },
-    label: {
-        fontSize: 12,
-        fontWeight: 'bold',
-        color: '#666',
-    },
     value: {
         fontSize: 14,
         marginBottom: 6,
@@ -217,7 +280,7 @@ const styles = StyleSheet.create({
     },
     detailsButton: {
         position: 'absolute',
-        bottom: -17,
+        bottom: -22,
         left: '80%',
         transform: [{ translateX: -60 }],
         backgroundColor: color.secondary,
@@ -237,17 +300,37 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     emptyText: {
-        fontSize: 16,
+        ...globalStyles.f12Bold,
+        color: color.black,
         marginBottom: 16,
     },
     addButton: {
-        backgroundColor: '#007BFF',
+        backgroundColor: color.secondary,
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 6,
     },
     addButtonText: {
         color: '#fff',
-        fontWeight: 'bold',
+        ...globalStyles.f12Bold,
+        marginBottom: 1
     },
+    primaryBadge: {
+        backgroundColor: '#28a745',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 20,
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 12,
+    },
+
+    makePrimaryBtn: {
+        backgroundColor: '#007BFF',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 20,
+        alignSelf: 'flex-end',
+    },
+
 });
