@@ -20,8 +20,6 @@ const CouponsList = () => {
             const res = await axios.get('https://api.mycarsbuddy.com/api/Coupons');
             const active = res.data.filter(c => c.IsActive && c.Status);
             setCoupons(active);
-            console.log('coupons', active);
-
         } catch (err) {
             console.error(err);
         } finally {

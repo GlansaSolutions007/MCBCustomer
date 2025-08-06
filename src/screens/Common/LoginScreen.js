@@ -47,16 +47,16 @@ export default function LoginScreen() {
   const baseUrl = API_BASE_URL;
 
   const handleSendOtp = async () => {
-    if (!loginId) {
-      setTitle("Missing Input");
-      setMessage("Please enter your email or phone number.");
+    if (!loginId || !/^[6-9]\d{9}$/.test(loginId)) {
+      setTitle("Invalid Input");
+      setMessage("Please enter a valid 10-digit phone number.");
       setStatus("error");
       setShowAlert(true);
       return;
     }
 
     setLoading(true);
-    console.log("base url:", baseUrl );
+    console.log("base url:", baseUrl);
     try {
       const response = await fetch(`${baseUrl}Auth/send-otp`, {
         method: "POST",
@@ -67,7 +67,7 @@ export default function LoginScreen() {
       if (response.ok) {
         setOtpSent(true);
         setTitle("OTP Sent");
-        setMessage("Please check your email or phone for the OTP.");
+        setMessage("Please check your phone for the OTP.");
         setStatus("success");
       } else {
         const errorText = await response.text();
@@ -123,7 +123,7 @@ export default function LoginScreen() {
         await AsyncStorage.setItem('authToken', result.token);
         await AsyncStorage.setItem('userData', JSON.stringify({
           custID: result.custID,
-          email: result.email,
+          phone: loginId,
           name: result.name,
         }));
 
@@ -142,7 +142,6 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
-
 
   useEffect(() => {
     const showSub = Keyboard.addListener(
@@ -189,7 +188,7 @@ export default function LoginScreen() {
         )}
 
         <TextInput
-          placeholder="Enter your email"
+          placeholder="Enter Your Phone Number"
           placeholderTextColor={color.textInputDark}
           value={loginId}
           onChangeText={setLoginId}

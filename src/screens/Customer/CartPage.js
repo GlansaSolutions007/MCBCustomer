@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     View,
     Text,
@@ -13,7 +13,8 @@ import {
     FlatList,
     Pressable,
     TouchableWithoutFeedback,
-    ImageBackground
+    ImageBackground,
+    Alert
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { color } from "../../styles/theme";
@@ -21,7 +22,7 @@ import globalStyles from "../../styles/globalStyles";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Entypo from '@expo/vector-icons/Entypo';
 import CustomText from "../../components/CustomText";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCart } from "../../contexts/CartContext";
 import Config from "react-native-config";
@@ -30,29 +31,38 @@ import { RAZORPAY_KEY } from "@env";
 import bg from '../../../assets/images/info.png'
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useCoupon } from "../../contexts/CouponContext";
-
-const addressList = [
-    {
-        id: '1',
-        label: '#B1 Spaces & More Business Park',
-        address: '#M3 Dr.No.-#1-89/A/8, C/2, Vittal Rao Nagar Rd, Madhapur, Telangana 500081',
-    },
-    {
-        id: '2',
-        label: '#Madhapur',
-        address: '#M3 Dr.No.-#1-89/A/8, C/2, Vittal Rao Nagar Rd, Madhapur, Telangana 500081',
-    },
-    {
-        id: '3',
-        label: 'Nampally',
-        address: '#M3 Dr.No.-#1-89/A/8, C/2, Vittal Rao Nagar Rd, Madhapur, Telangana 500081',
-    },
-
-];
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { getToken } from "../../utils/token";
+import { API_BASE_URL } from "@env";
+import moment from "moment";
+import CustomAlert from "../../components/CustomAlert";
 
 
 const CartPage = () => {
     const [addressModalVisible, setAddressModalVisible] = useState(false);
+    const [addressList, setAddressList] = useState([]);
+    const [primaryAddress, setPrimaryAddress] = useState(null);
+    const [vehicleId, setVehicleId] = useState(null);
+    const [instructions, setInstructions] = useState('');
+    const [scheduledDate, setScheduledDate] = useState(null);
+    const [scheduledTimeLabel, setScheduledTimeLabel] = useState(null);
+    const [customerDetailsExpanded, setCustomerDetailsExpanded] = useState(false);
+    const [customerName, setCustomerName] = useState('');
+    const [customerPhone, setCustomerPhone] = useState('');
+    const [customerEmail, setCustomerEmail] = useState('');
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertStatus, setAlertStatus] = useState("info"); // 'success', 'error', 'info'
+    const [alertTitle, setAlertTitle] = useState("");
+    const [alertMessage, setAlertMessage] = useState("");
+
+    const showCustomAlert = (status, title, message) => {
+        setAlertStatus(status);
+        setAlertTitle(title);
+        setAlertMessage(message);
+        setAlertVisible(true);
+    };
+
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
 
@@ -60,22 +70,196 @@ const CartPage = () => {
 
     const { appliedCoupon, setAppliedCoupon } = useCoupon();
 
+    useEffect(() => {
+        const loadPhone = async () => {
+            const userData = await AsyncStorage.getItem('userData');
+            const user = JSON.parse(userData);
+            if (user?.phone) {
+                setCustomerPhone(user.phone);
+            }
+        };
+        loadPhone();
+    }, []);
+
+    useEffect(() => {
+        const getPrimaryVehicle = async () => {
+            const id = await AsyncStorage.getItem('primaryVehicleId');
+            setVehicleId(id);
+        };
+        getPrimaryVehicle();
+
+    }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            const loadSchedule = async () => {
+                try {
+                    const date = await AsyncStorage.getItem('selectedDate');
+                    const timeLabel = await AsyncStorage.getItem('selectedTimeSlotLabel');
+                    if (date && timeLabel) {
+                        setScheduledDate(date);
+                        setScheduledTimeLabel(timeLabel);
+                    } else {
+                        setScheduledDate(null);
+                        setScheduledTimeLabel(null);
+                    }
+                } catch (e) {
+                    console.error("Error loading schedule:", e);
+                }
+            };
+
+            loadSchedule();
+        }, [])
+    );
+
+    const fetchAddresses = async () => {
+        try {
+            const userData = await AsyncStorage.getItem('userData');
+            const parsedData = JSON.parse(userData);
+            const custID = parsedData?.custID;
+
+            if (!custID) return;
+
+            const response = await axios.get(`${API_BASE_URL}CustomerAddresses/custid?custid=${custID}`);
+            const allAddresses = response.data;
+
+            setAddressList(allAddresses);
+
+            const primary = allAddresses.find(addr => addr.IsPrimary);
+            if (primary) setPrimaryAddress(primary);
+
+        } catch (error) {
+            console.error("Failed to fetch addresses:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchAddresses();
+    }, []);
+
+    const makePrimaryAddress = async (addressId) => {
+        try {
+            await axios.post(`${API_BASE_URL}CustomerAddresses/primary-address?AddressId=${addressId}`);
+            setAddressModalVisible(false);
+            fetchAddresses();
+        } catch (err) {
+            console.error("Failed to set primary address:", err);
+        }
+    };
+
     let discountAmount = 0;
 
     const totalServiceAmount = cartItems.reduce((sum, item) => sum + item.price, 0);
     const originalAmount = cartItems.reduce((sum, item) => sum + item.originalPrice, 0);
     const savedAmount = originalAmount - totalServiceAmount;
-    const gst = Math.round(totalServiceAmount * 0.18); // assuming 18% GST
+    const gst = Math.round(totalServiceAmount * 0.18);
+    let couponCode = null;
 
     if (appliedCoupon) {
+        couponCode = appliedCoupon.Code;
+        couponId = appliedCoupon.CouponID;
+
         if (appliedCoupon.DiscountType === 'FixedAmount') {
             discountAmount = appliedCoupon.DiscountValue;
+
         } else if (appliedCoupon.DiscountType === 'Percentage') {
-            discountAmount = Math.round(totalServiceAmount * (appliedCoupon.DiscountValue / 100));
+            let calculated = (totalServiceAmount * appliedCoupon.DiscountValue) / 100;
+
+            if (
+                appliedCoupon.MaxDisAmount !== null &&
+                appliedCoupon.MaxDisAmount > 0
+            ) {
+                discountAmount = Math.min(calculated, appliedCoupon.MaxDisAmount);
+            } else {
+                discountAmount = calculated;
+            }
+
+            discountAmount = Math.round(discountAmount);
+
         }
     }
 
     const finalAmount = totalServiceAmount + gst - discountAmount;
+
+    const postBooking = async (paymentId) => {
+        try {
+            const userData = await AsyncStorage.getItem('userData');
+            const user = JSON.parse(userData);
+            const token = getToken();
+            // console.log('user', user);
+            // console.log('add', primaryAddress);
+            // console.log('vehi', vehicleId);
+            // console.log('date', scheduledDate, scheduledTimeLabel);
+
+            if (!user || !primaryAddress || !vehicleId || !scheduledDate || !scheduledTimeLabel) {
+                showCustomAlert("error", "Missing information", "Please ensure all booking details are filled.");
+                return;
+            }
+
+            const bookingPayload = {
+                custID: user.custID,
+                CustFullName: customerName || "Customer",
+                CustPhoneNumber: customerPhone,
+                CustEmail: customerEmail,
+                StateID: primaryAddress.StateID,
+                CityID: primaryAddress.CityID,
+                Pincode: primaryAddress.Pincode,
+                FullAddress: `${primaryAddress.AddressLine1}, ${primaryAddress.AddressLine2}`,
+                Longitude: primaryAddress.Longitude,
+                Latitude: primaryAddress.Latitude,
+                PackageIds: cartItems.map(item => item.id).join(','),
+                PackagePrice: totalServiceAmount,
+                TotalPrice: finalAmount,
+                CouponCode: couponCode,
+                DiscountAmount: discountAmount,
+                // BookingFrom: "app",
+                PaymentMethod: "razorpay",
+                Notes: instructions || "",
+                BookingDate: scheduledDate,
+                TimeSlot: scheduledTimeLabel,
+                IsOthers: false,
+                OthersFullName: '',
+                OthersPhoneNumber: '',
+                // CreatedBy: 'user.custID',
+                IsActive: true,
+                // Images: '',
+                VechicleId: vehicleId
+            };
+
+            const formData = new FormData();
+            Object.entries(bookingPayload).forEach(([key, value]) => {
+                formData.append(key, value?.toString());
+            });
+
+            console.log("📦 Booking Payload as FormData:");
+            for (let pair of formData.entries()) {
+                console.log(`${pair[0]}: ${pair[1]}`);
+            }
+
+            const response = await axios.post(
+                `${API_BASE_URL}Bookings/insert-booking`,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        Authorization: `Bearer ${token}`
+                    },
+                }
+            );
+
+            console.log("✅ Booking successful:", response.data);
+            showCustomAlert(
+                "success",
+                "Payment & Booking Successful",
+                `Payment ID: ${paymentId}\nYour booking is confirmed!`
+            );
+            await AsyncStorage.removeItem('selectedDate');
+            await AsyncStorage.removeItem('selectedTimeSlotLabel');
+        } catch (error) {
+            console.error("❌ Booking failed:", error?.response || error);
+            showCustomAlert("error", "Booking Failed", "Something went wrong while booking. Please try again.");
+        }
+    };
 
     const handlePayment = () => {
         const options = {
@@ -96,14 +280,14 @@ const CartPage = () => {
         RazorpayCheckout.open(options)
             .then((data) => {
                 console.log(`Success: ${data.razorpay_payment_id}`);
-                Alert.alert("Payment Successful", `Payment ID: ${data.razorpay_payment_id}`);
+                // showCustomAlert("success", "Payment Successful", `Payment ID: ${data.razorpay_payment_id}`);
+                postBooking(data.razorpay_payment_id);
             })
             .catch((error) => {
                 console.log(`Error: ${error.description}`);
-                Alert.alert("Payment Failed", error.description);
+                showCustomAlert("error", "Payment Failed", error.description);
             });
     };
-
 
     return (
         <View style={[styles.container, { paddingBottom: insets.bottom + 1 }]}>
@@ -122,9 +306,13 @@ const CartPage = () => {
                     style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
                 >
                     <View style={{ flex: 1 }}>
-                        <CustomText style={styles.headerTitle}>Glansa Solutions</CustomText>
-                        <CustomText style={styles.headerSubtitle}>
-                            4031 Space E, Metro Business Park #4031 Dr No 6-95, GVR Colony...
+                        <CustomText style={styles.headerTitle}>{primaryAddress
+                            ? `${primaryAddress.AddressLine1}`
+                            : "Choose delivery address"}</CustomText>
+                        <CustomText numberOfLines={1} style={styles.headerSubtitle}>
+                            {primaryAddress
+                                ? `${primaryAddress.AddressLine2}, ${primaryAddress.CityName},${primaryAddress.StateName},${primaryAddress.Pincode}`
+                                : "Choose delivery address"}
                         </CustomText>
                     </View>
                     <Feather name="chevron-down" size={20} color="black" />
@@ -136,46 +324,53 @@ const CartPage = () => {
                 {cartItems.length === 0 ? (
                     <CustomText style={{ textAlign: 'center', margin: 20, color: "black" }}>Your cart is empty</CustomText>
                 ) : (
-                    cartItems.map((item) => (
-                        <View key={item.id} style={styles.card}>
-                            <View style={styles.serviceHeader}>
-                                <Image
-                                    source={{ uri: `https://api.mycarsbuddy.com/Images/${item.image}` }}
-                                    style={styles.serviceImage}
-                                />
+                    <View style={styles.card}>
+                        {cartItems.map((item, index) => (
+                            <View key={item.id}>
+                                <View style={styles.serviceHeader}>
+                                    <Image
+                                        source={{ uri: `https://api.mycarsbuddy.com/Images/${item.image}` }}
+                                        style={styles.serviceImage}
+                                    />
 
-                                <View style={{ flex: 1, justifyContent: 'center' }}>
-                                    <CustomText style={styles.serviceTitle}>{item.title}</CustomText>
+                                    <View style={{ flex: 1, justifyContent: 'center' }}>
+                                        <CustomText style={styles.serviceTitle}>{item.title}</CustomText>
 
-                                    <TouchableOpacity
-                                        onPress={() => removeFromCart(item.id)}
-                                        style={{
-                                            marginTop: 4,
-                                            alignSelf: 'flex-start',
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                        }}
-                                    >
-                                        <Ionicons name="trash-outline" size={16} color="#c62828" />
-                                        <Text style={{ color: '#c62828', marginLeft: 2, ...globalStyles.f10Regular }}>Remove</Text>
-                                    </TouchableOpacity>
+                                        <TouchableOpacity
+                                            onPress={() => removeFromCart(item.id)}
+                                            style={{
+                                                marginTop: 4,
+                                                alignSelf: 'flex-start',
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
+                                            }}
+                                        >
+                                            <Ionicons name="trash-outline" size={16} color="#c62828" />
+                                            <Text style={{ color: '#c62828', marginLeft: 2, ...globalStyles.f10Regular }}>
+                                                Remove
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    <View style={{ alignItems: 'flex-end' }}>
+                                        <CustomText style={styles.originalPrice}>₹{item.originalPrice}</CustomText>
+                                        <CustomText style={styles.discountedPrice}>₹{item.price}</CustomText>
+                                    </View>
                                 </View>
 
-                                <View style={{ alignItems: 'flex-end' }}>
-                                    <CustomText style={styles.originalPrice}>₹{item.originalPrice}</CustomText>
-                                    <CustomText style={styles.discountedPrice}>₹{item.price}</CustomText>
-                                </View>
+                                {index < cartItems.length - 1 && (
+                                    <View style={{ height: 1, backgroundColor: '#eee', marginVertical: 10 }} />
+                                )}
                             </View>
+                        ))}
 
-                            <View style={styles.savingsBox}>
-                                <CustomText style={styles.savingsText}>
-                                    + ₹{item.originalPrice - item.price} saved on this service!
-                                </CustomText>
-                            </View>
+                        <View style={styles.savingsBox}>
+                            <CustomText style={styles.savingsText}>
+                                + ₹{cartItems.reduce((sum, item) => sum + (item.originalPrice - item.price), 0)} saved on these services!
+                            </CustomText>
                         </View>
+                    </View>
 
-
-                    ))
                 )}
 
                 <View style={{ marginHorizontal: 16, marginTop: 20 }}>
@@ -225,27 +420,99 @@ const CartPage = () => {
                     </TouchableOpacity>
                 </View>
 
+                {scheduledDate && scheduledTimeLabel && (
+                    <View style={[styles.card, {
+                        marginTop: 12,
+                        paddingVertical: 10,
+                        paddingHorizontal: 20,
+                        borderRadius: 10,
+                    }
+                    ]}>
+                        <CustomText style={[globalStyles.f14Bold, { color: color.secondary }]}>
+                            Scheduled for:
+                        </CustomText>
+                        <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>
+                            {moment(scheduledDate).format('Do MMMM, YYYY')} at {scheduledTimeLabel}
+                        </CustomText>
+                    </View>
+                )}
 
-                {/* Add More Services */}
-                <View style={styles.card}>
-                    <CustomText style={styles.sectionTitle}>Add More Services</CustomText>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        {[1, 2, 3].map((i) => (
-                            <View key={i} style={styles.moreServiceCard}>
-                                <Image
-                                    source={require('../../../assets/images/exteriorservice.png')}
-                                    style={styles.moreServiceImage}
-                                />
-                                <TouchableOpacity style={styles.plusIcon}>
-                                    <Entypo name="squared-plus" size={24} color={color.secondary} />
-                                </TouchableOpacity>
-                                <CustomText style={styles.moreServiceText}>
-                                    Seat Vacuuming & Stain Treatment
-                                </CustomText>
-                                <CustomText style={styles.moreServicePrice}>₹100</CustomText>
-                            </View>
-                        ))}
-                    </ScrollView>
+                {/* Choose Address Section */}
+                <View style={[styles.card, { marginTop: 16 }]}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <CustomText style={styles.sectionTitle}>Service Address</CustomText>
+                        <TouchableOpacity onPress={() => setAddressModalVisible(true)}>
+                            <CustomText style={[globalStyles.f10Bold, { color: color.muted, marginTop: 5 }]}>change</CustomText>
+                        </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity
+                        onPress={() => setAddressModalVisible(true)}
+                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+                    >
+                        <View style={{ flex: 1 }}>
+                            <CustomText style={[globalStyles.f14Bold, { color: color.black }]}>
+                                {primaryAddress
+                                    ? primaryAddress.AddressLine1
+                                    : "Choose delivery address"}
+                            </CustomText>
+                            <CustomText
+                                numberOfLines={1}
+                                style={[globalStyles.f12Regular, { color: color.muted }]}
+                            >
+                                {primaryAddress
+                                    ? `${primaryAddress.AddressLine2}, ${primaryAddress.CityName}, ${primaryAddress.StateName}, ${primaryAddress.Pincode}`
+                                    : "Select from your saved addresses or add new address"}
+                            </CustomText>
+                        </View>
+                        <Feather name="chevron-right" size={20} color={color.muted} style={{ marginLeft: 10 }} />
+                    </TouchableOpacity>
+                </View>
+
+                {/* Customer Details Section */}
+                <View style={[styles.card, { marginTop: 16 }]}>
+                    <TouchableOpacity
+                        onPress={() => setCustomerDetailsExpanded(!customerDetailsExpanded)}
+                        style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+                    >
+                        <CustomText style={styles.sectionTitle}>Customer Details</CustomText>
+                        <Feather
+                            name={customerDetailsExpanded ? "chevron-up" : "chevron-down"}
+                            size={20}
+                            color={color.muted}
+                        />
+                    </TouchableOpacity>
+
+                    {customerDetailsExpanded && (
+                        <View style={{ marginTop: 12 }}>
+                            {/* Full Name */}
+                            <TextInput
+                                value={customerName}
+                                onChangeText={setCustomerName}
+                                placeholder="Enter Full Name"
+                                style={styles.input}
+                                placeholderTextColor={color.muted}
+                            />
+
+                            {/* Phone Number (read-only) */}
+                            <TextInput
+                                value={customerPhone}
+                                editable={false}
+                                style={[styles.input, { backgroundColor: '#f2f2f2ff', color: color.muted }]}
+                                placeholder="Phone Number"
+                            />
+
+                            {/* Email */}
+                            <TextInput
+                                value={customerEmail}
+                                onChangeText={setCustomerEmail}
+                                placeholder="Enter Email"
+                                style={styles.input}
+                                placeholderTextColor={color.muted}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                            />
+                        </View>
+                    )}
                 </View>
 
                 {/* Coupon Section */}
@@ -308,7 +575,6 @@ const CartPage = () => {
                     ) : null}
                 </View>
 
-
                 {/* Instructions */}
                 <View style={styles.card}>
                     <CustomText style={styles.sectionTitle}>Instructions</CustomText>
@@ -318,6 +584,8 @@ const CartPage = () => {
                         maxLength={100}
                         multiline={true}
                         placeholderTextColor="grey"
+                        value={instructions}
+                        onChangeText={setInstructions}
                     />
                     <CustomText style={styles.textLimit}>100/100</CustomText>
                 </View>
@@ -411,30 +679,44 @@ const CartPage = () => {
 
                                 {/* Address List */}
                                 <FlatList
-                                    data={addressList}
-                                    keyExtractor={(item) => item.id}
+                                    data={[...addressList].sort((a, b) => b.IsPrimary - a.IsPrimary)}
+                                    keyExtractor={(item) => item.AddressID.toString()}
                                     renderItem={({ item }) => (
                                         <TouchableOpacity
-                                            onPress={() => {
-                                                setAddressModalVisible(false);
-                                            }}
+                                            onPress={() => makePrimaryAddress(item.AddressID)}
                                             style={{ flexDirection: "row", alignItems: "flex-start", marginBottom: 14 }}
                                         >
                                             <Ionicons name="location-outline" size={20} color={color.primary} style={{ marginRight: 10, marginTop: 4 }} />
                                             <View style={{ flex: 1, marginBottom: 10 }}>
-                                                <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack]}>{item.label}</CustomText>
-                                                <CustomText style={[globalStyles.f12Regular, { color: color.muted }]}>{item.address}</CustomText>
+                                                <CustomText
+                                                    style={[
+                                                        globalStyles.f14Bold,
+                                                        item.IsPrimary ? { color: color.secondary } : globalStyles.textBlack
+                                                    ]}
+                                                >
+                                                    {item.AddressLine1}
+                                                </CustomText>
+                                                <CustomText style={[globalStyles.f12Regular, { color: color.muted }]}>
+                                                    {item.AddressLine2}, {item.CityName}, {item.StateName}, {item.Pincode}
+                                                </CustomText>
                                             </View>
                                         </TouchableOpacity>
                                     )}
                                 />
+
                             </View>
                         </TouchableWithoutFeedback>
                     </View>
                 </TouchableWithoutFeedback>
             </Modal>
 
-
+            <CustomAlert
+                visible={alertVisible}
+                status={alertStatus}
+                title={alertTitle}
+                message={alertMessage}
+                onClose={() => setAlertVisible(false)}
+            />
         </View>
     );
 };
@@ -506,7 +788,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginBottom: 6
     },
-    appliedCoupon: { color: 'black', ...globalStyles.f12Bold, marginRight:6, marginBottom:2 },
+    appliedCoupon: { color: 'black', ...globalStyles.f12Bold, marginRight: 6, marginBottom: 2 },
     textInput: {
         borderWidth: 1,
         borderColor: "#ccc",
@@ -553,14 +835,23 @@ const styles = StyleSheet.create({
 
     payNowText: {
         color: "white",
-        fontWeight: "bold",
-        fontSize: 16,
+        ...globalStyles.f12Bold
     },
 
     divider: {
         height: 1,
         backgroundColor: "#e0e0e07a", // light grey separator
         marginVertical: 8,
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        ...globalStyles.f10Bold,
+        marginTop: 10,
+        color: '#000',
     },
 });
 

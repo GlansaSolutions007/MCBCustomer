@@ -24,8 +24,8 @@ export default function CustomerTabNavigator({ navigation }) {
       screenOptions={({ route }) => ({
         headerShown: true,
         header: () => (
-          <CustomHeader/>
-        ),       
+          <CustomHeader />
+        ),
         tabBarShowLabel: true,
         tabBarActiveTintColor: color.primary,
         tabBarInactiveTintColor: "#8e8e93",
@@ -85,7 +85,7 @@ export default function CustomerTabNavigator({ navigation }) {
               iconName = "calendar-outline";
               break;
             case "My Services":
-              iconName = "construct-outline";
+              iconName = "calendar-outline";
               break;
             case "Profile":
               iconName = "person-circle-outline";
@@ -106,9 +106,9 @@ export default function CustomerTabNavigator({ navigation }) {
       <Tab.Screen
         name="My Cars"
         component={MyCarsList}
-       
+        options={{ unmountOnBlur: true }}
       />
-      <Tab.Screen name="Book Service" component={BookServiceScreen} />
+      {/* <Tab.Screen name="Book Service" component={BookServiceScreen} /> */}
       <Tab.Screen name="My Services" component={ServiceList} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>

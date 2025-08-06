@@ -188,6 +188,8 @@ const styles = {
     imageBackground: {
         height: 350,
         resizeMode: 'cover',
+        borderBottomLeftRadius: 20,
+        borderBottomRightRadius: 20,
     },
     overlay: {
         flex: 1,

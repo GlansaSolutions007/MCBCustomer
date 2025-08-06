@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     View,
     Text,
@@ -17,7 +17,10 @@ import { color } from '../../styles/theme';
 import globalStyles from '../../styles/globalStyles';
 import Entypo from '@expo/vector-icons/Entypo';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import axios from 'axios';
+import { API_BASE_URL } from "@env"
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const timeSlots = [
     '10:00 AM',
@@ -36,7 +39,10 @@ const SchedulePage = () => {
     const [currentWeekStart, setCurrentWeekStart] = useState(today.clone());
     const [selectedDate, setSelectedDate] = useState(today.clone());
     const [selectedTime, setSelectedTime] = useState(null);
+    const [timeSlots, setTimeSlots] = useState([]);
     const insets = useSafeAreaInsets();
+
+    const navigation = useNavigation();
 
     const getWeekDates = () => {
         return [...Array(7)].map((_, i) => currentWeekStart.clone().add(i, 'days'));
@@ -68,8 +74,25 @@ const SchedulePage = () => {
     const { selectedServices } = route.params || {};
 
     console.log(selectedServices);
-    
 
+    const fetchTimeSlots = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}TimeSlot`);
+            const slots = response.data
+                .filter(slot => slot.Status)
+                .map(slot => ({
+                    ...slot,
+                    label: `${moment(slot.StartTime, 'HH:mm:ss').format('hh:mm A')} - ${moment(slot.EndTime, 'HH:mm:ss').format('hh:mm A')}`,
+                }));
+            setTimeSlots(slots);
+        } catch (error) {
+            console.error('Failed to fetch time slots:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchTimeSlots();
+    }, []);
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['bottom']}>
@@ -154,16 +177,19 @@ const SchedulePage = () => {
                         >
                             {timeSlots.map((slot) => (
                                 <TouchableOpacity
-                                    key={slot}
+                                    key={slot.TsID}
                                     style={[
                                         styles.timeSlot,
-                                        selectedTime === slot && styles.selectedTimeSlot,
+                                        selectedTime === slot.TsID && styles.selectedTimeSlot,
                                     ]}
-                                    onPress={() => setSelectedTime(slot)}
+                                    onPress={() => setSelectedTime(slot.TsID)}
                                 >
-                                    <CustomText style={[{ color: selectedTime === slot ? 'white' : color.secondary }, globalStyles.f10Bold]}>{slot}</CustomText>
+                                    <CustomText style={[{ color: selectedTime === slot.TsID ? 'white' : color.secondary }, globalStyles.f10Bold]}>
+                                        {slot.label}
+                                    </CustomText>
                                 </TouchableOpacity>
                             ))}
+
                         </ScrollView>
 
                         {/* Scroll Arrow */}
@@ -199,7 +225,7 @@ const SchedulePage = () => {
                                 </CustomText>
                             </View>
                             <CustomText style={styles.scheduledText}>
-                                {selectedTime || '--:--'}
+                                {timeSlots.find(t => t.TsID === selectedTime)?.label || '--:--'}
                             </CustomText>
                         </View>
                     </View>
@@ -217,7 +243,7 @@ const SchedulePage = () => {
                             <View style={styles.detailRow}>
                                 <MaterialCommunityIcons name="clock-outline" size={18} color="#444" />
                                 <CustomText style={styles.detailLabel}>Estimated Hours</CustomText>
-                                <CustomText style={styles.detailValue}>{item.estimatedMins}</CustomText> 
+                                <CustomText style={styles.detailValue}>{item.estimatedMins}</CustomText>
                             </View>
                             <View style={styles.detailRow}>
                                 <MaterialCommunityIcons name="currency-inr" size={18} color="#444" />
@@ -227,7 +253,7 @@ const SchedulePage = () => {
                         </View>
                     ))}
 
-                    <View style={styles.card}>
+                    {/* <View style={styles.card}>
                         <CustomText style={[styles.sectionTitle, globalStyles.mb2]}>Add More Services</CustomText>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                             {[1, 2, 3, 4].map((i) => (
@@ -246,7 +272,7 @@ const SchedulePage = () => {
                                 </View>
                             ))}
                         </ScrollView>
-                    </View>
+                    </View> */}
                     <TouchableOpacity
                         style={{
                             backgroundColor: '#000',
@@ -257,8 +283,23 @@ const SchedulePage = () => {
                             justifyContent: 'center',
                             marginTop: 50,
                         }}
-                        onPress={() => {
-                            // your hotline action
+                        onPress={async () => {
+                            if (!selectedDate || !selectedTime) {
+                                Alert.alert("Incomplete", "Please select both date and time.");
+                                return;
+                            }
+
+                            const selectedSlot = timeSlots.find(t => t.TsID === selectedTime);
+
+                            try {
+                                await AsyncStorage.setItem('selectedDate', selectedDate.format('YYYY-MM-DD'));
+                                await AsyncStorage.setItem('selectedTimeSlotId', selectedTime.toString());
+                                await AsyncStorage.setItem('selectedTimeSlotLabel', selectedSlot.label);
+
+                                navigation.navigate('Cart');
+                            } catch (e) {
+                                console.error("Failed to save schedule:", e);
+                            }
                         }}
                     >
                         <Ionicons name="calendar" size={26} color='#fff' style={{ marginRight: 8 }} />

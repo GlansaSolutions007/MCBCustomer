@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     Text,
     View,
@@ -8,10 +8,8 @@ import {
     StyleSheet,
     TextInput,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import globalStyles from '../../styles/globalStyles';
-import sampleCar from '../../../assets/images/xuv-3xo-exterior-right-front-three-quarter-34.webp';
-import carIconPlus from '../../../assets/images/My Car.png';
 import SearchBox from '../../components/SearchBox';
 import { color } from '../../styles/theme';
 import CustomText from '../../components/CustomText';
@@ -28,60 +26,67 @@ export const MyCarsList = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredCars, setFilteredCars] = useState([]);
 
-    useEffect(() => {
-        const fetchCustomerCars = async () => {
-            try {
-                const token = await getToken();
-                const userData = await AsyncStorage.getItem('userData');
-                const parsedData = JSON.parse(userData);
-                const custID = parsedData?.custID;
+    useFocusEffect(
+        useCallback(() => {
+            const fetchCustomerCars = async () => {
+                try {
+                    const token = await getToken();
+                    const userData = await AsyncStorage.getItem('userData');
+                    const parsedData = JSON.parse(userData);
+                    const custID = parsedData?.custID;
 
-                if (!custID || !token) {
-                    console.warn("Customer ID or token missing");
-                    return;
-                }
-
-                const response = await axios.get(
-                    `${API_BASE_URL}CustomerVehicles/CustId?CustId=${custID}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
+                    if (!custID || !token) {
+                        console.warn("Customer ID or token missing");
+                        return;
                     }
-                );
 
-                const carList = response.data;
+                    const response = await axios.get(
+                        `${API_BASE_URL}CustomerVehicles/CustId?CustId=${custID}`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                            },
+                        }
+                    );
 
-                const normalizedList = carList
-                    ? (Array.isArray(carList) ? carList : [carList])
-                    : [];
+                    const carList = response.data;
 
-                const formattedCars = normalizedList.map((car) => ({
-                    id: car.VehicleID.toString(),
-                    model: car.ModelName,
-                    fuel: car.FuelTypeName,
-                    manufacturer: car.BrandName,
-                    image: { uri: `https://api.mycarsbuddy.com/Images${car.VehicleImage}` },
-                    vehicleNumber: car.VehicleNumber,
-                    isPrimary: car.IsPrimary,
-                }));
+                    const normalizedList = carList
+                        ? (Array.isArray(carList) ? carList : [carList])
+                        : [];
 
-                setCars(formattedCars);
-                setFilteredCars(formattedCars);
-                console.log("Fetched cars:", formattedCars);
-                if (formattedCars.length === 1 && !formattedCars[0].isPrimary) {
-                    await makeCarPrimary(formattedCars[0].id);
-                    formattedCars[0].isPrimary = true;
+                    const formattedCars = normalizedList.map((car) => ({
+                        id: car.VehicleID.toString(),
+                        model: car.ModelName,
+                        fuel: car.FuelTypeName,
+                        manufacturer: car.BrandName,
+                        image: { uri: `https://api.mycarsbuddy.com/Images${car.VehicleImage}` },
+                        vehicleNumber: car.VehicleNumber,
+                        isPrimary: car.IsPrimary,
+                    }));
+
+                    setCars(formattedCars);
+                    setFilteredCars(formattedCars);
+
+                    const primaryCar = formattedCars.find(car => car.isPrimary);
+                    if (primaryCar) {
+                        await AsyncStorage.setItem('primaryVehicleId', primaryCar.id);
+                    }
+
+                    if (formattedCars.length === 1 && !formattedCars[0].isPrimary) {
+                        await makeCarPrimary(formattedCars[0].id);
+                        formattedCars[0].isPrimary = true;
+                    }
+
+                } catch (error) {
+                    console.error('Error fetching car list:', error);
                 }
+            };
 
-            } catch (error) {
-                console.error('Error fetching car list:', error);
-            }
-        };
+            fetchCustomerCars();
 
-        fetchCustomerCars();
-    }, []);
-
+        }, [])
+    );
     const makeCarPrimary = async (vehicleId) => {
         try {
             const token = await getToken();
@@ -99,6 +104,8 @@ export const MyCarsList = () => {
                 isPrimary: car.id === vehicleId,
             }));
             setCars(updatedCars);
+
+            await AsyncStorage.setItem('primaryVehicleId', vehicleId);
         } catch (error) {
             console.error('Error setting primary car:', error);
         }

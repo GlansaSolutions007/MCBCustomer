@@ -152,7 +152,7 @@ const InteriorService = () => {
 
   const fetchPackages = async (subCategoryId, brandId = '', modelId = '', fuelId = '') => {
     try {
-      console.log(categoryId, subCategoryId, brandId, modelId, fuelId, 'Fetching packages for category and subcategory');
+      // console.log(categoryId, subCategoryId, brandId, modelId, fuelId, 'Fetching packages for category and subcategory');
       setLoading(true);
       const response = await axios.get(
         `${API_BASE_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?categoryId=${categoryId}&subCategoryId=${subCategoryId}&BrandId=${brandId || ''}&ModelId=${modelId || ''}&fuelTypeId=${fuelId || ''}`, {
@@ -161,7 +161,7 @@ const InteriorService = () => {
         },
       }
       );
-      console.log("Packkkkkk", response);
+      // console.log("Packkkkkk", response);
 
 
       const rawData = response.data;
@@ -179,7 +179,7 @@ const InteriorService = () => {
         estimatedMins: pkg.EstimatedDurationMinutes,
         desc: pkg.Description,
       }));
-      console.log('Fetched packages:', formatted);
+      // console.log('Fetched packages:', formatted);
       setPackages(formatted);
       fadeIn();
     } catch (error) {
@@ -268,7 +268,7 @@ const InteriorService = () => {
             <View style={styles.searchContainer}>
               <View style={styles.textContainer}>
                 <CustomText style={[globalStyles.textWhite, globalStyles.f32Bold]}>
-                  Interior Services
+                  {categoryName}
                 </CustomText>
                 <CustomText style={[globalStyles.textWhite, globalStyles.f12Regular]}>
                   Here you can find the suitable packages for your car
