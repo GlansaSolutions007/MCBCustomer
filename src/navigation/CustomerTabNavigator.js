@@ -84,7 +84,7 @@ export default function CustomerTabNavigator({ navigation }) {
             case "Book Service":
               iconName = "calendar-outline";
               break;
-            case "My Services":
+            case "My Bookings":
               iconName = "calendar-outline";
               break;
             case "Profile":
@@ -109,7 +109,7 @@ export default function CustomerTabNavigator({ navigation }) {
         options={{ unmountOnBlur: true }}
       />
       {/* <Tab.Screen name="Book Service" component={BookServiceScreen} /> */}
-      <Tab.Screen name="My Services" component={ServiceList} />
+      <Tab.Screen name="My Bookings" component={ServiceList} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );

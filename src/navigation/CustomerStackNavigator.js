@@ -15,6 +15,7 @@ import ConfirmAddressPage from "../screens/Customer/ConfirmAddressPage";
 import ServiceInnerPage from "../screens/Customer/ServiceInnerPage";
 import SchedulePage from "../screens/Customer/SchedulePage";
 import CouponsList from "../screens/Customer/Coupons";
+import BookingsInnerPage from "../screens/Customer/BookingsInnerPage";
 
 const Stack = createNativeStackNavigator();
 
@@ -86,6 +87,7 @@ export default function CustomerStackNavigator() {
           component={CouponsList}
           options={{ title: "Coupon List" }}
         />
+        <Stack.Screen name="BookingsInnerPage" component={BookingsInnerPage} options={{ title: "Booking Details" }} />
       </Stack.Navigator>
     </CartProvider>
   );

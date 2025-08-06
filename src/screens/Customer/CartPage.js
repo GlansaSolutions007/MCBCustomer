@@ -316,7 +316,7 @@ const CartPage = () => {
 
                     setTimeout(() => {
                         clearCart();
-                        navigation.navigate('CustomerTabNavigator', { screen: 'My Services' });
+                        navigation.navigate('CustomerTabNavigator', { screen: 'My Bookings' });
                     }, 2000);
                 } catch (error) {
                     console.error("Payment confirmation failed:", error?.response || error);
