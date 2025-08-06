@@ -27,7 +27,6 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import Logo from '../../../assets/Logo/my car buddy-02 yellow-01.png'
 import BgImage from '../../../assets/images/loginbg2.png'
 import { API_BASE_URL } from "@env";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
   const { login } = useAuth();
@@ -42,9 +41,28 @@ export default function LoginScreen() {
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [timer, setTimer] = useState(0);
+  const [resendDisabled, setResendDisabled] = useState(true);
+
   const navigation = useNavigation();
 
   const baseUrl = API_BASE_URL;
+
+  const startResendTimer = () => {
+    setTimer(30); // 30 seconds cooldown
+    setResendDisabled(true);
+
+    const interval = setInterval(() => {
+      setTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setResendDisabled(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const handleSendOtp = async () => {
     if (!loginId || !/^[6-9]\d{9}$/.test(loginId)) {
@@ -56,7 +74,6 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
-    console.log("base url:", baseUrl);
     try {
       const response = await fetch(`${baseUrl}Auth/send-otp`, {
         method: "POST",
@@ -69,13 +86,16 @@ export default function LoginScreen() {
         setTitle("OTP Sent");
         setMessage("Please check your phone for the OTP.");
         setStatus("success");
+        startResendTimer();
       } else {
         const errorText = await response.text();
         throw new Error(errorText);
       }
     } catch (error) {
+      console.log('error:',error.message);
+      
       setTitle("Send OTP Failed");
-      setMessage("Something went wrong." || error.message);
+      setMessage(error.message || "Something went wrong.");
       setStatus("error");
     } finally {
       setShowAlert(true);
@@ -114,21 +134,14 @@ export default function LoginScreen() {
       console.log("Device Token:", DeviceToken);
 
       if (response.ok && result?.success) {
-        login({
-          email: result.email,
+        await login({
           token: result.token,
+          custID: result.custID,
+          name: result.name,
+          phone: loginId,
           DeviceToken,
           DeviceId,
         });
-        await AsyncStorage.setItem('authToken', result.token);
-        await AsyncStorage.setItem('userData', JSON.stringify({
-          custID: result.custID,
-          phone: loginId,
-          name: result.name,
-        }));
-
-        console.log("Login successful:", result);
-
         navigation.replace("CustomerTabs");
       } else {
         throw new Error(result?.message || "Invalid OTP.");
@@ -218,6 +231,20 @@ export default function LoginScreen() {
             {loading ? "Please wait..." : otpSent ? "Verify OTP" : "Send OTP"}
           </CustomText>
         </TouchableOpacity>
+        {otpSent && (
+          <TouchableOpacity
+            onPress={handleSendOtp}
+            disabled={resendDisabled}
+            style={[
+              styles.resendButton,
+              { backgroundColor: resendDisabled ? "#aaa" : color.white },
+            ]}
+          >
+            <CustomText style={styles.resendButtonText}>
+              {resendDisabled ? `Resend OTP in ${timer}s` : "Resend OTP"}
+            </CustomText>
+          </TouchableOpacity>
+        )}
         {!keyboardVisible && (
           <>
             <View style={[globalStyles.flexrow, globalStyles.alineItemscenter, globalStyles.justifysb, globalStyles.mt1]}>
@@ -227,19 +254,19 @@ export default function LoginScreen() {
                   <CustomText style={globalStyles.textWhite}>Sign Up</CustomText>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity>
+              {/* <TouchableOpacity>
                 <CustomText style={globalStyles.textWhite}>
                   Forgot Password?
                 </CustomText>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
 
-            <TouchableOpacity style={styles.googleButton}>
+            {/* <TouchableOpacity style={styles.googleButton}>
               <Ionicons name="logo-google" size={20} color="#000" />
               <CustomText style={styles.googleText}>
                 Sign in with Google
               </CustomText>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </>
         )}
       </View>
@@ -460,5 +487,15 @@ const styles = StyleSheet.create({
   ctaButtonText: {
     color: color.white,
     fontSize: 14,
+  },
+  resendButton: {
+    marginTop: 15,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  resendButtonText: {
+    fontSize: 14,
+    color: color.black,
   },
 });

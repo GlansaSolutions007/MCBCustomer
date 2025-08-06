@@ -44,6 +44,7 @@ export const MyCarDetails = () => {
     const [vehicleNumberError, setVehicleNumberError] = useState(false);
     const [transmissionError, setTransmissionError] = useState(false);
     const [isViewOnly, setIsViewOnly] = useState(false);
+    const [model, setModel] = useState(null);
 
     const transmissionOptions = [
         { label: 'Automatic', value: 'Automatic' },
@@ -51,11 +52,19 @@ export const MyCarDetails = () => {
     ];
 
     const route = useRoute();
-    const [model, setModel] = useState(null);
 
     useEffect(() => {
-        if (route.params?.model) {
-            setModel(route.params.model);
+        // Initialize state with passed navigation parameters
+        if (route.params) {
+            setModel(route.params.model || null);
+            setVehicleNumber(route.params.vehicleNumber || '');
+            setTransmission(route.params.transmission || '');
+            setEngineType(route.params.engineType || '');
+            setKilometersDriven(route.params.kilometersDriven || '');
+            setYearOfPurchase(
+                route.params.yearOfPurchase ? new Date(route.params.yearOfPurchase) : null
+            );
+            setIsViewOnly(!!route.params.vehicleId);
         }
     }, [route.params]);
 
@@ -122,34 +131,6 @@ export const MyCarDetails = () => {
             console.error("Error submitting car:", error);
         }
     };
-
-    useEffect(() => {
-        const fetchCarDetails = async () => {
-            if (!route.params?.vehicleId) return;
-            try {
-                const token = await getToken();
-                const response = await axios.get(
-                    `${API_BASE_URL}CustomerVehicles/CustVehicleId?CustVehicleId=${route.params.vehicleId}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    }
-                );
-                const data = response.data;
-                setVehicleNumber(data.VehicleNumber);
-                setYearOfPurchase(new Date(`${data.YearOfPurchase}-01-01`));
-                setTransmission(data.TransmissionType);
-                setEngineType(data.EngineType);
-                setKilometersDriven(data.KilometersDriven);
-                setIsViewOnly(true);
-
-            } catch (err) {
-                console.error("Error fetching vehicle details:", err);
-            }
-        };
-        fetchCarDetails();
-    }, []);
 
     const navigation = useNavigation();
 
@@ -221,7 +202,7 @@ export const MyCarDetails = () => {
                                         <TouchableOpacity onPress={() => setShowYearPicker(true)}>
                                             <TextInput
                                                 value={formatDate(yearOfPurchase)}
-                                                placeholder="DD/MM/YYYY"
+                                                placeholder="YYYY"
                                                 style={styles.input}
                                                 placeholderTextColor="#888"
                                                 editable={false}
@@ -290,13 +271,17 @@ export const MyCarDetails = () => {
                                 />
                                 {!isViewOnly && (
                                     <View style={styles.privacyContainer}>
-                                        <View style={styles.privacyRow}>
+                                        <TouchableOpacity
+                                            style={styles.privacyRow}
+                                            onPress={() => setPrivacyAccepted(prev => !prev)}
+                                            activeOpacity={0.7}
+                                        >
                                             <Checkbox
                                                 value={privacyAccepted}
                                                 onValueChange={setPrivacyAccepted}
                                             />
                                             <CustomText style={styles.privacyText}>I accept the Privacy Policy</CustomText>
-                                        </View>
+                                        </TouchableOpacity>
                                     </View>
                                 )}
                                 {!isViewOnly && (

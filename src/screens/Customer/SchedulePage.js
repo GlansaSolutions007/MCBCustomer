@@ -22,24 +22,14 @@ import axios from 'axios';
 import { API_BASE_URL } from "@env"
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const timeSlots = [
-    '10:00 AM',
-    '11:00 AM',
-    '12:00 AM',
-    '01:00 PM',
-    '02:00 PM',
-    '03:00 PM',
-    '04:00 PM',
-    '05:00 PM',
-    '06:00 PM'
-];
-
 const SchedulePage = () => {
     const today = moment().startOf('day');
     const [currentWeekStart, setCurrentWeekStart] = useState(today.clone());
     const [selectedDate, setSelectedDate] = useState(today.clone());
     const [selectedTime, setSelectedTime] = useState(null);
     const [timeSlots, setTimeSlots] = useState([]);
+    const [timeError, setTimeError] = useState('');
+
     const insets = useSafeAreaInsets();
 
     const navigation = useNavigation();
@@ -182,7 +172,10 @@ const SchedulePage = () => {
                                         styles.timeSlot,
                                         selectedTime === slot.TsID && styles.selectedTimeSlot,
                                     ]}
-                                    onPress={() => setSelectedTime(slot.TsID)}
+                                    onPress={() => {
+                                        setSelectedTime(slot.TsID);
+                                        setTimeError(''); 
+                                    }}
                                 >
                                     <CustomText style={[{ color: selectedTime === slot.TsID ? 'white' : color.secondary }, globalStyles.f10Bold]}>
                                         {slot.label}
@@ -191,6 +184,8 @@ const SchedulePage = () => {
                             ))}
 
                         </ScrollView>
+
+
 
                         {/* Scroll Arrow */}
                         <TouchableOpacity
@@ -206,29 +201,36 @@ const SchedulePage = () => {
                         </TouchableOpacity>
                     </View>
 
-                    <View style={{ marginTop: 20 }}>
-                        {/* Heading */}
-                        <CustomText style={[globalStyles.f16Bold, globalStyles.secondary]}>
-                            Your Schedule
+                    {timeError ? (
+                        <CustomText style={{ color: 'red', marginTop: 8, marginLeft: 4 }}>
+                            {timeError}
                         </CustomText>
+                    ) : null}
 
-                        {/* Scheduled Info Row */}
-                        <View style={styles.scheduledRow}>
-                            <View style={{
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                gap: 2
-                            }}>
-                                <MaterialCommunityIcons name="calendar" size={20} color="#444" />
+                    {selectedTime && (
+                        <View style={{ marginTop: 20 }}>
+                            <CustomText style={[globalStyles.f16Bold, globalStyles.secondary]}>
+                                Your Schedule
+                            </CustomText>
+
+                            <View style={styles.scheduledRow}>
+                                <View style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    gap: 2
+                                }}>
+                                    <MaterialCommunityIcons name="calendar" size={20} color="#444" />
+                                    <CustomText style={styles.scheduledText}>
+                                        {selectedDate.format('Do MMMM, YYYY')}
+                                    </CustomText>
+                                </View>
                                 <CustomText style={styles.scheduledText}>
-                                    {selectedDate.format('Do MMMM,YYYY')}
+                                    {timeSlots.find(t => t.TsID === selectedTime)?.label}
                                 </CustomText>
                             </View>
-                            <CustomText style={styles.scheduledText}>
-                                {timeSlots.find(t => t.TsID === selectedTime)?.label || '--:--'}
-                            </CustomText>
                         </View>
-                    </View>
+                    )}
+
 
                     <CustomText style={styles.sectionTitle}>Selected Services</CustomText>
                     {selectedServices?.map((item) => (
@@ -253,26 +255,6 @@ const SchedulePage = () => {
                         </View>
                     ))}
 
-                    {/* <View style={styles.card}>
-                        <CustomText style={[styles.sectionTitle, globalStyles.mb2]}>Add More Services</CustomText>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                            {[1, 2, 3, 4].map((i) => (
-                                <View key={i} style={styles.moreServiceCard}>
-                                    <Image
-                                        source={require('../../../assets/images/exteriorservice.png')}
-                                        style={styles.moreServiceImage}
-                                    />
-                                    <TouchableOpacity style={styles.plusIcon}>
-                                        <Entypo name="squared-plus" size={24} color={color.secondary} />
-                                    </TouchableOpacity>
-                                    <CustomText style={styles.moreServiceText}>
-                                        Seat Vacuuming & Stain Treatment
-                                    </CustomText>
-                                    <CustomText style={styles.moreServicePrice}>₹100</CustomText>
-                                </View>
-                            ))}
-                        </ScrollView>
-                    </View> */}
                     <TouchableOpacity
                         style={{
                             backgroundColor: '#000',
@@ -284,9 +266,11 @@ const SchedulePage = () => {
                             marginTop: 50,
                         }}
                         onPress={async () => {
-                            if (!selectedDate || !selectedTime) {
-                                Alert.alert("Incomplete", "Please select both date and time.");
+                            if (!selectedTime) {
+                                setTimeError('Please select an available time slot.');
                                 return;
+                            } else {
+                                setTimeError('');
                             }
 
                             const selectedSlot = timeSlots.find(t => t.TsID === selectedTime);

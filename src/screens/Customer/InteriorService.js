@@ -130,8 +130,12 @@ const InteriorService = () => {
   const makeCarPrimary = async (vehicleId) => {
     try {
       const token = await getToken();
+      const userData = await AsyncStorage.getItem('userData');
+      const parsedData = JSON.parse(userData);
+      const custID = parsedData?.custID;
+
       await axios.post(
-        `${API_BASE_URL}CustomerVehicles/primary-vehicle?vehicleId=${vehicleId}`,
+        `${API_BASE_URL}CustomerVehicles/primary-vehicle?vehicleId=${vehicleId}&custid=${custID}`,
         {},
         {
           headers: {
@@ -152,7 +156,7 @@ const InteriorService = () => {
 
   const fetchPackages = async (subCategoryId, brandId = '', modelId = '', fuelId = '') => {
     try {
-      // console.log(categoryId, subCategoryId, brandId, modelId, fuelId, 'Fetching packages for category and subcategory');
+      console.log(categoryId, subCategoryId, brandId, modelId, fuelId, 'Fetching packages for category and subcategory');
       setLoading(true);
       const response = await axios.get(
         `${API_BASE_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?categoryId=${categoryId}&subCategoryId=${subCategoryId}&BrandId=${brandId || ''}&ModelId=${modelId || ''}&fuelTypeId=${fuelId || ''}`, {
@@ -162,7 +166,6 @@ const InteriorService = () => {
       }
       );
       // console.log("Packkkkkk", response);
-
 
       const rawData = response.data;
       const dataArray = Array.isArray(rawData) ? rawData : [rawData];

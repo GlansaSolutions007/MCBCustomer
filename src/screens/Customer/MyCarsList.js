@@ -7,6 +7,7 @@ import {
     Image,
     StyleSheet,
     TextInput,
+    ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import globalStyles from '../../styles/globalStyles';
@@ -25,10 +26,13 @@ export const MyCarsList = () => {
     const [cars, setCars] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredCars, setFilteredCars] = useState([]);
+    const [loading, setLoading] = useState(true);
+
 
     useFocusEffect(
         useCallback(() => {
             const fetchCustomerCars = async () => {
+                setLoading(true);
                 try {
                     const token = await getToken();
                     const userData = await AsyncStorage.getItem('userData');
@@ -63,6 +67,10 @@ export const MyCarsList = () => {
                         image: { uri: `https://api.mycarsbuddy.com/Images${car.VehicleImage}` },
                         vehicleNumber: car.VehicleNumber,
                         isPrimary: car.IsPrimary,
+                        yearOfPurchase: car.YearOfPurchase, // Add YearOfPurchase
+                        transmission: car.TransmissionType, // Add TransmissionType
+                        engineType: car.EngineType, // Add EngineType
+                        kilometersDriven: car.KilometersDriven, // Add KilometersDriven
                     }));
 
                     setCars(formattedCars);
@@ -80,6 +88,8 @@ export const MyCarsList = () => {
 
                 } catch (error) {
                     console.error('Error fetching car list:', error);
+                } finally {
+                    setLoading(false);
                 }
             };
 
@@ -90,9 +100,13 @@ export const MyCarsList = () => {
     const makeCarPrimary = async (vehicleId) => {
         try {
             const token = await getToken();
+            const userData = await AsyncStorage.getItem('userData');
+            const parsedData = JSON.parse(userData);
+            const custID = parsedData?.custID;
+
             await axios.post(
-                `${API_BASE_URL}CustomerVehicles/primary-vehicle?vehicleId=${vehicleId}`,
-                {},
+                `${API_BASE_URL}CustomerVehicles/primary-vehicle?vehicleId=${vehicleId}&custid=${custID}`,
+                null,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -104,7 +118,7 @@ export const MyCarsList = () => {
                 isPrimary: car.id === vehicleId,
             }));
             setCars(updatedCars);
-
+            setFilteredCars(updatedCars);
             await AsyncStorage.setItem('primaryVehicleId', vehicleId);
         } catch (error) {
             console.error('Error setting primary car:', error);
@@ -155,9 +169,16 @@ export const MyCarsList = () => {
                             navigation.navigate('MyCarDetails', {
                                 vehicleId: item.id,
                                 model: {
-                                    name: `${item.manufacturer} ${item.model}`,
+                                    name: item.model,
                                     image: item.image.uri,
                                 },
+                                vehicleNumber: item.vehicleNumber,
+                                fuelType: item.fuel,
+                                manufacturer: item.manufacturer,
+                                yearOfPurchase: item.yearOfPurchase, 
+                                transmission: item.transmission, 
+                                engineType: item.engineType, 
+                                kilometersDriven: item.kilometersDriven,
                             })
                         }
                     >
@@ -182,7 +203,12 @@ export const MyCarsList = () => {
 
     return (
         <View style={[globalStyles.container, { backgroundColor: '#fff' }]}>
-            {cars.length === 0 ? (
+            {loading ? (
+                <View style={styles.centered}>
+                    <ActivityIndicator size="large" color={color.secondary} />
+                    <CustomText style={{ marginTop: 10 }}>Loading your cars...</CustomText>
+                </View>
+            ) : cars.length === 0 ? (
                 <View style={styles.centered}>
                     <CustomText style={styles.emptyText}>Please add your car</CustomText>
                     <TouchableOpacity
@@ -195,7 +221,6 @@ export const MyCarsList = () => {
             ) : (
                 <>
                     {/* Header */}
-
                     <View style={styles.header}>
                         <View style={{ flex: 1 }}>
                             <SearchBox value={searchQuery}
@@ -211,7 +236,6 @@ export const MyCarsList = () => {
                             <MaterialCommunityIcons name="car-info" size={28} color="white" />
                         </TouchableOpacity>
                     </View>
-
 
                     {/* Car List */}
                     <FlatList

@@ -66,7 +66,7 @@ const CartPage = () => {
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
 
-    const { cartItems, removeFromCart } = useCart();
+    const { cartItems, removeFromCart, clearCart } = useCart();
 
     const { appliedCoupon, setAppliedCoupon } = useCoupon();
 
@@ -181,7 +181,7 @@ const CartPage = () => {
 
     const finalAmount = totalServiceAmount + gst - discountAmount;
 
-    const postBooking = async (paymentId) => {
+    const postBooking = async () => {
         try {
             const userData = await AsyncStorage.getItem('userData');
             const user = JSON.parse(userData);
@@ -248,44 +248,84 @@ const CartPage = () => {
             );
 
             console.log("✅ Booking successful:", response.data);
-            showCustomAlert(
-                "success",
-                "Payment & Booking Successful",
-                `Payment ID: ${paymentId}\nYour booking is confirmed!`
+            handlePayment(
+                response.data.razorpay.orderID,
+                response.data.bookingID
             );
-            await AsyncStorage.removeItem('selectedDate');
-            await AsyncStorage.removeItem('selectedTimeSlotLabel');
         } catch (error) {
             console.error("❌ Booking failed:", error?.response || error);
             showCustomAlert("error", "Booking Failed", "Something went wrong while booking. Please try again.");
         }
     };
 
-    const handlePayment = () => {
+    const handlePayment = (orderid, bookingID) => {
         const options = {
             description: 'MyCarBuddy Service Payment',
             image: 'https://mycarsbuddy.com/logo.png',
             currency: 'INR',
             key: RAZORPAY_KEY,
+            order_id: orderid,
             amount: finalAmount * 100,
             name: 'MyCarBuddy',
             prefill: {
-                email: 'test@example.com',
-                contact: '9999999999',
-                name: 'Test User'
+                email: customerEmail || 'test@example.com',
+                contact: customerPhone || '9999999999',
+                name: customerName || 'Test User'
             },
             theme: { color: color.primary }
         };
 
         RazorpayCheckout.open(options)
-            .then((data) => {
-                console.log(`Success: ${data.razorpay_payment_id}`);
-                // showCustomAlert("success", "Payment Successful", `Payment ID: ${data.razorpay_payment_id}`);
-                postBooking(data.razorpay_payment_id);
+            .then(async (data) => {
+                console.log("Payment success data:", data);
+
+                try {
+                    const token = await getToken();
+
+                    const confirmPayload = {
+                        bookingID: bookingID, // integer
+                        amountPaid: finalAmount,
+                        razorpayPaymentId: data.razorpay_payment_id,
+                        razorpayOrderId: data.razorpay_order_id,
+                        razorpaySignature: data.razorpay_signature,
+                    };
+
+                    console.log("Confirm payment JSON payload:", confirmPayload);
+
+                    const confirmResponse = await axios.post(
+                        `${API_BASE_URL}Bookings/confirm-Payment`,
+                        confirmPayload,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        }
+                    );
+
+                    console.log("Confirm payment API response:", confirmResponse.data);
+
+                    showCustomAlert(
+                        "success",
+                        "Payment Successful",
+                        `Payment ID: ${data.razorpay_payment_id}\nYour booking is confirmed!`
+                    );
+
+                    await AsyncStorage.removeItem('selectedDate');
+                    await AsyncStorage.removeItem('selectedTimeSlotLabel');
+
+                    setTimeout(() => {
+                        clearCart();
+                        navigation.navigate('CustomerTabNavigator', { screen: 'My Services' });
+                    }, 2000);
+                } catch (error) {
+                    console.error("Payment confirmation failed:", error?.response || error);
+                    showCustomAlert("error", "Payment Confirmation Failed", "Your payment succeeded, but confirmation failed. Please contact support.");
+                }
             })
             .catch((error) => {
-                console.log(`Error: ${error.description}`);
-                showCustomAlert("error", "Payment Failed", error.description);
+                console.log(`Error: ${error.data.message}`);
+                showCustomAlert("error", "Payment Failed", error.data.message);
             });
     };
 
@@ -320,396 +360,400 @@ const CartPage = () => {
             </View>
 
             {/* Content Scrollable */}
-            <ScrollView showsVerticalScrollIndicator={false}>
-                {cartItems.length === 0 ? (
-                    <CustomText style={{ textAlign: 'center', margin: 20, color: "black" }}>Your cart is empty</CustomText>
-                ) : (
-                    <View style={styles.card}>
-                        {cartItems.map((item, index) => (
-                            <View key={item.id}>
-                                <View style={styles.serviceHeader}>
-                                    <Image
-                                        source={{ uri: `https://api.mycarsbuddy.com/Images/${item.image}` }}
-                                        style={styles.serviceImage}
+            {cartItems.length === 0 ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <CustomText style={{ textAlign: 'center', margin: 20, color: 'black' }}>
+                        Your cart is empty
+                    </CustomText>
+                </View>
+            ) : (
+                <>
+                    <ScrollView showsVerticalScrollIndicator={false}>
+
+                        <View style={styles.card}>
+                            {cartItems.map((item, index) => (
+                                <View key={item.id}>
+                                    <View style={styles.serviceHeader}>
+                                        <Image
+                                            source={{ uri: `https://api.mycarsbuddy.com/Images/${item.image}` }}
+                                            style={styles.serviceImage}
+                                        />
+
+                                        <View style={{ flex: 1, justifyContent: 'center' }}>
+                                            <CustomText style={styles.serviceTitle}>{item.title}</CustomText>
+
+                                            <TouchableOpacity
+                                                onPress={() => removeFromCart(item.id)}
+                                                style={{
+                                                    marginTop: 4,
+                                                    alignSelf: 'flex-start',
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
+                                                }}
+                                            >
+                                                <Ionicons name="trash-outline" size={16} color="#c62828" />
+                                                <Text style={{ color: '#c62828', marginLeft: 2, ...globalStyles.f10Regular }}>
+                                                    Remove
+                                                </Text>
+                                            </TouchableOpacity>
+                                        </View>
+
+                                        <View style={{ alignItems: 'flex-end' }}>
+                                            <CustomText style={styles.originalPrice}>₹{item.originalPrice}</CustomText>
+                                            <CustomText style={styles.discountedPrice}>₹{item.price}</CustomText>
+                                        </View>
+                                    </View>
+
+                                    {index < cartItems.length - 1 && (
+                                        <View style={{ height: 1, backgroundColor: '#eee', marginVertical: 10 }} />
+                                    )}
+                                </View>
+                            ))}
+
+                            <View style={styles.savingsBox}>
+                                <CustomText style={styles.savingsText}>
+                                    + ₹{cartItems.reduce((sum, item) => sum + (item.originalPrice - item.price), 0)} saved on these services!
+                                </CustomText>
+                            </View>
+                        </View>
+
+                        <View style={{ marginHorizontal: 16, marginTop: 20 }}>
+                            <View style={{ borderRadius: 16, overflow: 'hidden' }}>
+                                <ImageBackground
+                                    source={bg}
+                                    resizeMode="cover"
+                                    style={{
+                                        height: 150,
+                                        justifyContent: 'center',
+                                        paddingHorizontal: 20,
+                                    }}
+                                >
+                                    <View style={{ justifyContent: 'center', alignItems: 'center', marginBottom: 40 }}>
+                                        <CustomText style={[{ color: 'white' }, globalStyles.f20Bold]}>
+                                            Hey, Buddy... Busy?
+                                        </CustomText>
+                                        <CustomText style={[{ color: 'white' }, globalStyles.f20Bold]}>
+                                            Schedule right now
+                                        </CustomText>
+                                    </View>
+                                </ImageBackground>
+                            </View>
+
+                            <TouchableOpacity
+                                style={{
+                                    marginTop: -44,
+                                    alignSelf: 'center',
+                                    backgroundColor: 'white',
+                                    paddingHorizontal: 64,
+                                    paddingVertical: 10,
+                                    borderTopLeftRadius: 8,
+                                    borderTopRightRadius: 8,
+                                    elevation: 5,
+                                    shadowColor: '#000',
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 4,
+                                }}
+                                onPress={() => {
+                                    navigation.navigate('Schedule', { selectedServices: cartItems })
+                                }}
+                            >
+                                <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack]}>
+                                    Choose Date
+                                </CustomText>
+                            </TouchableOpacity>
+                        </View>
+
+                        {scheduledDate && scheduledTimeLabel && (
+                            <View style={[styles.card, {
+                                marginTop: 12,
+                                paddingVertical: 10,
+                                paddingHorizontal: 20,
+                                borderRadius: 10,
+                            }
+                            ]}>
+                                <CustomText style={[globalStyles.f14Bold, { color: color.secondary }]}>
+                                    Scheduled for:
+                                </CustomText>
+                                <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>
+                                    {moment(scheduledDate).format('Do MMMM, YYYY')} at {scheduledTimeLabel}
+                                </CustomText>
+                            </View>
+                        )}
+
+                        {/* Choose Address Section */}
+                        <View style={[styles.card, { marginTop: 16 }]}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <CustomText style={styles.sectionTitle}>Service Address</CustomText>
+                                <TouchableOpacity onPress={() => setAddressModalVisible(true)}>
+                                    <CustomText style={[globalStyles.f10Bold, { color: color.muted, marginTop: 5 }]}>change</CustomText>
+                                </TouchableOpacity>
+                            </View>
+                            <TouchableOpacity
+                                onPress={() => setAddressModalVisible(true)}
+                                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+                            >
+                                <View style={{ flex: 1 }}>
+                                    <CustomText style={[globalStyles.f14Bold, { color: color.black }]}>
+                                        {primaryAddress
+                                            ? primaryAddress.AddressLine1
+                                            : "Choose delivery address"}
+                                    </CustomText>
+                                    <CustomText
+                                        numberOfLines={1}
+                                        style={[globalStyles.f12Regular, { color: color.muted }]}
+                                    >
+                                        {primaryAddress
+                                            ? `${primaryAddress.AddressLine2}, ${primaryAddress.CityName}, ${primaryAddress.StateName}, ${primaryAddress.Pincode}`
+                                            : "Select from your saved addresses or add new address"}
+                                    </CustomText>
+                                </View>
+                                <Feather name="chevron-right" size={20} color={color.muted} style={{ marginLeft: 10 }} />
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Customer Details Section */}
+                        <View style={[styles.card, { marginTop: 16 }]}>
+                            <TouchableOpacity
+                                onPress={() => setCustomerDetailsExpanded(!customerDetailsExpanded)}
+                                style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+                            >
+                                <CustomText style={styles.sectionTitle}>Customer Details</CustomText>
+                                <Feather
+                                    name={customerDetailsExpanded ? "chevron-up" : "chevron-down"}
+                                    size={20}
+                                    color={color.muted}
+                                />
+                            </TouchableOpacity>
+
+                            {customerDetailsExpanded && (
+                                <View style={{ marginTop: 12 }}>
+                                    {/* Full Name */}
+                                    <TextInput
+                                        value={customerName}
+                                        onChangeText={setCustomerName}
+                                        placeholder="Enter Full Name"
+                                        style={styles.input}
+                                        placeholderTextColor={color.muted}
                                     />
 
-                                    <View style={{ flex: 1, justifyContent: 'center' }}>
-                                        <CustomText style={styles.serviceTitle}>{item.title}</CustomText>
+                                    {/* Phone Number (read-only) */}
+                                    <TextInput
+                                        value={customerPhone}
+                                        editable={false}
+                                        style={[styles.input, { backgroundColor: '#f2f2f2ff', color: color.muted }]}
+                                        placeholder="Phone Number"
+                                    />
 
-                                        <TouchableOpacity
-                                            onPress={() => removeFromCart(item.id)}
-                                            style={{
-                                                marginTop: 4,
-                                                alignSelf: 'flex-start',
-                                                flexDirection: 'row',
-                                                alignItems: 'center',
-                                            }}
-                                        >
-                                            <Ionicons name="trash-outline" size={16} color="#c62828" />
-                                            <Text style={{ color: '#c62828', marginLeft: 2, ...globalStyles.f10Regular }}>
-                                                Remove
-                                            </Text>
-                                        </TouchableOpacity>
-                                    </View>
+                                    {/* Email */}
+                                    <TextInput
+                                        value={customerEmail}
+                                        onChangeText={setCustomerEmail}
+                                        placeholder="Enter Email"
+                                        style={styles.input}
+                                        placeholderTextColor={color.muted}
+                                        keyboardType="email-address"
+                                        autoCapitalize="none"
+                                    />
+                                </View>
+                            )}
+                        </View>
 
-                                    <View style={{ alignItems: 'flex-end' }}>
-                                        <CustomText style={styles.originalPrice}>₹{item.originalPrice}</CustomText>
-                                        <CustomText style={styles.discountedPrice}>₹{item.price}</CustomText>
-                                    </View>
+                        {/* Coupon Section */}
+                        <View style={styles.cardSecondary}>
+                            <CustomText style={styles.sectionTitleSec}>Get Discount</CustomText>
+
+                            <View style={styles.rowBetween}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <MaterialCommunityIcons name="tag-outline" size={16} color="white" style={{ marginRight: 6 }} />
+                                    <CustomText style={[globalStyles.f12Bold, globalStyles.textWhite]}>
+                                        {appliedCoupon ? 'Coupon Applied' : 'Apply coupon'}
+                                    </CustomText>
                                 </View>
 
-                                {index < cartItems.length - 1 && (
-                                    <View style={{ height: 1, backgroundColor: '#eee', marginVertical: 10 }} />
-                                )}
-                            </View>
-                        ))}
-
-                        <View style={styles.savingsBox}>
-                            <CustomText style={styles.savingsText}>
-                                + ₹{cartItems.reduce((sum, item) => sum + (item.originalPrice - item.price), 0)} saved on these services!
-                            </CustomText>
-                        </View>
-                    </View>
-
-                )}
-
-                <View style={{ marginHorizontal: 16, marginTop: 20 }}>
-                    <View style={{ borderRadius: 16, overflow: 'hidden' }}>
-                        <ImageBackground
-                            source={bg}
-                            resizeMode="cover"
-                            style={{
-                                height: 150,
-                                justifyContent: 'center',
-                                paddingHorizontal: 20,
-                            }}
-                        >
-                            <View style={{ justifyContent: 'center', alignItems: 'center', marginBottom: 40 }}>
-                                <CustomText style={[{ color: 'white' }, globalStyles.f20Bold]}>
-                                    Hey, Buddy... Busy?
-                                </CustomText>
-                                <CustomText style={[{ color: 'white' }, globalStyles.f20Bold]}>
-                                    Schedule right now
-                                </CustomText>
-                            </View>
-                        </ImageBackground>
-                    </View>
-
-                    <TouchableOpacity
-                        style={{
-                            marginTop: -44,
-                            alignSelf: 'center',
-                            backgroundColor: 'white',
-                            paddingHorizontal: 64,
-                            paddingVertical: 10,
-                            borderTopLeftRadius: 8,
-                            borderTopRightRadius: 8,
-                            elevation: 5,
-                            shadowColor: '#000',
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.2,
-                            shadowRadius: 4,
-                        }}
-                        onPress={() => {
-                            navigation.navigate('Schedule', { selectedServices: cartItems })
-                        }}
-                    >
-                        <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack]}>
-                            Choose Date
-                        </CustomText>
-                    </TouchableOpacity>
-                </View>
-
-                {scheduledDate && scheduledTimeLabel && (
-                    <View style={[styles.card, {
-                        marginTop: 12,
-                        paddingVertical: 10,
-                        paddingHorizontal: 20,
-                        borderRadius: 10,
-                    }
-                    ]}>
-                        <CustomText style={[globalStyles.f14Bold, { color: color.secondary }]}>
-                            Scheduled for:
-                        </CustomText>
-                        <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>
-                            {moment(scheduledDate).format('Do MMMM, YYYY')} at {scheduledTimeLabel}
-                        </CustomText>
-                    </View>
-                )}
-
-                {/* Choose Address Section */}
-                <View style={[styles.card, { marginTop: 16 }]}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <CustomText style={styles.sectionTitle}>Service Address</CustomText>
-                        <TouchableOpacity onPress={() => setAddressModalVisible(true)}>
-                            <CustomText style={[globalStyles.f10Bold, { color: color.muted, marginTop: 5 }]}>change</CustomText>
-                        </TouchableOpacity>
-                    </View>
-                    <TouchableOpacity
-                        onPress={() => setAddressModalVisible(true)}
-                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
-                    >
-                        <View style={{ flex: 1 }}>
-                            <CustomText style={[globalStyles.f14Bold, { color: color.black }]}>
-                                {primaryAddress
-                                    ? primaryAddress.AddressLine1
-                                    : "Choose delivery address"}
-                            </CustomText>
-                            <CustomText
-                                numberOfLines={1}
-                                style={[globalStyles.f12Regular, { color: color.muted }]}
-                            >
-                                {primaryAddress
-                                    ? `${primaryAddress.AddressLine2}, ${primaryAddress.CityName}, ${primaryAddress.StateName}, ${primaryAddress.Pincode}`
-                                    : "Select from your saved addresses or add new address"}
-                            </CustomText>
-                        </View>
-                        <Feather name="chevron-right" size={20} color={color.muted} style={{ marginLeft: 10 }} />
-                    </TouchableOpacity>
-                </View>
-
-                {/* Customer Details Section */}
-                <View style={[styles.card, { marginTop: 16 }]}>
-                    <TouchableOpacity
-                        onPress={() => setCustomerDetailsExpanded(!customerDetailsExpanded)}
-                        style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
-                    >
-                        <CustomText style={styles.sectionTitle}>Customer Details</CustomText>
-                        <Feather
-                            name={customerDetailsExpanded ? "chevron-up" : "chevron-down"}
-                            size={20}
-                            color={color.muted}
-                        />
-                    </TouchableOpacity>
-
-                    {customerDetailsExpanded && (
-                        <View style={{ marginTop: 12 }}>
-                            {/* Full Name */}
-                            <TextInput
-                                value={customerName}
-                                onChangeText={setCustomerName}
-                                placeholder="Enter Full Name"
-                                style={styles.input}
-                                placeholderTextColor={color.muted}
-                            />
-
-                            {/* Phone Number (read-only) */}
-                            <TextInput
-                                value={customerPhone}
-                                editable={false}
-                                style={[styles.input, { backgroundColor: '#f2f2f2ff', color: color.muted }]}
-                                placeholder="Phone Number"
-                            />
-
-                            {/* Email */}
-                            <TextInput
-                                value={customerEmail}
-                                onChangeText={setCustomerEmail}
-                                placeholder="Enter Email"
-                                style={styles.input}
-                                placeholderTextColor={color.muted}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                            />
-                        </View>
-                    )}
-                </View>
-
-                {/* Coupon Section */}
-                <View style={styles.cardSecondary}>
-                    <CustomText style={styles.sectionTitleSec}>Get Discount</CustomText>
-
-                    <View style={styles.rowBetween}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <MaterialCommunityIcons name="tag-outline" size={16} color="white" style={{ marginRight: 6 }} />
-                            <CustomText style={[globalStyles.f12Bold, globalStyles.textWhite]}>
-                                {appliedCoupon ? 'Coupon Applied' : 'Apply coupon'}
-                            </CustomText>
-                        </View>
-
-                        <TouchableOpacity
-                            onPress={() => navigation.navigate('Coupons')}
-                            style={{ flexDirection: 'row', alignItems: 'center' }}
-                        >
-                            <CustomText style={[globalStyles.f10Bold, globalStyles.neutral300]}>
-                                {appliedCoupon ? 'change' : 'view coupons'}
-                            </CustomText>
-                            <Feather name="chevron-right" size={20} color="white" style={[globalStyles.mt1]} />
-                        </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.separator} />
-
-                    {appliedCoupon ? (
-                        <View style={[styles.couponBox, { flexDirection: 'row', alignItems: 'center' }]}>
-                            <MaterialCommunityIcons name="tag-outline" size={16} color="white" style={{ marginRight: 6 }} />
-                            <CustomText style={{ flex: 1, ...globalStyles.f12Bold, ...globalStyles.textWhite }}>
-                                Hurray! You saved ₹{discountAmount}
-                            </CustomText>
-                            <View style={{
-                                backgroundColor: color.yellow,
-                                paddingVertical: 6,
-                                borderRadius: 20,
-                                marginTop: 10,
-                                paddingHorizontal: 14,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                            }}>
-                                <MaterialCommunityIcons
-                                    name="tag-outline"
-                                    size={18}
-                                    color={color.black}
-                                    style={{ marginLeft: 2 }}
-                                />
-                                <CustomText style={styles.appliedCoupon}> {appliedCoupon?.Code} </CustomText>
-                                <TouchableOpacity onPress={() => setAppliedCoupon(null)}>
-                                    <MaterialCommunityIcons
-                                        name="close-circle"
-                                        size={18}
-                                        color={color.black}
-                                        style={{ marginLeft: 6 }}
-                                    />
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    ) : null}
-                </View>
-
-                {/* Instructions */}
-                <View style={styles.card}>
-                    <CustomText style={styles.sectionTitle}>Instructions</CustomText>
-                    <TextInput
-                        placeholder="e.g. Call after arrival"
-                        style={styles.textInput}
-                        maxLength={100}
-                        multiline={true}
-                        placeholderTextColor="grey"
-                        value={instructions}
-                        onChangeText={setInstructions}
-                    />
-                    <CustomText style={styles.textLimit}>100/100</CustomText>
-                </View>
-
-                {/* Price Summary */}
-                <View style={styles.card}>
-                    <View style={styles.rowBetween}>
-                        <View>
-                            <CustomText style={styles.toPay}>To Pay ₹{finalAmount}</CustomText>
-                            <CustomText style={styles.saved}>₹{savedAmount + discountAmount} saved by coupon</CustomText>
-                        </View>
-                    </View>
-                    <View style={styles.divider} />
-                    <View style={[styles.rowBetween]}>
-                        <CustomText style={{ color: color.secondary, ...globalStyles.f12Bold }}>Total Services</CustomText>
-                        <CustomText style={{ color: color.black, ...globalStyles.f12Bold }}>₹{totalServiceAmount}</CustomText>
-                    </View>
-                    <View style={styles.rowBetween}>
-                        <CustomText style={{ color: color.secondary, ...globalStyles.f12Bold }}>GST & Other Charges</CustomText>
-                        <CustomText style={{ color: color.black, ...globalStyles.f10Bold }}>₹{gst}</CustomText>
-                    </View>
-                    {appliedCoupon && (<View style={styles.rowBetween}>
-                        <CustomText style={{ color: color.secondary, ...globalStyles.f12Bold }}>Discount</CustomText>
-                        <CustomText style={{ color: color.black, ...globalStyles.f10Bold }}>- ₹{discountAmount}</CustomText>
-                    </View>)}
-
-                    <View style={styles.divider} />
-                    <View style={styles.rowBetween}>
-                        <CustomText style={styles.toPayBold}>To Pay</CustomText>
-                        <CustomText style={styles.toPayBold}>₹{finalAmount}</CustomText>
-                    </View>
-                </View>
-            </ScrollView>
-
-            {/* Pay Button */}
-            <View style={styles.footerBtnWrapper}>
-                <View style={styles.footerContent}>
-                    <CustomText style={styles.totalAmount}>₹{finalAmount}</CustomText>
-                    <TouchableOpacity style={styles.payNowBtn} onPress={handlePayment}>
-                        <CustomText style={styles.payNowText} >Pay Now</CustomText>
-                    </TouchableOpacity>
-                </View>
-            </View>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={addressModalVisible}
-                onRequestClose={() => setAddressModalVisible(false)}
-            >
-                <TouchableWithoutFeedback onPress={() => setAddressModalVisible(false)}>
-                    <View style={{
-                        flex: 1,
-                        justifyContent: "flex-end",
-                        backgroundColor: "rgba(0,0,0,0.4)"
-                    }}>
-                        {/* Prevent modal from closing when content is tapped */}
-                        <TouchableWithoutFeedback onPress={() => { }}>
-                            <View style={{
-                                backgroundColor: "white",
-                                borderTopLeftRadius: 20,
-                                borderTopRightRadius: 20,
-                                padding: 20,
-                                maxHeight: '90%'
-                            }}>
                                 <TouchableOpacity
-                                    style={{ alignSelf: "flex-end", marginBottom: 2 }}
-                                    onPress={() => setAddressModalVisible(false)}
+                                    onPress={() => navigation.navigate('Coupons')}
+                                    style={{ flexDirection: 'row', alignItems: 'center' }}
                                 >
-                                    <Ionicons name="close-circle" size={30} color="black" />
+                                    <CustomText style={[globalStyles.f10Bold, globalStyles.neutral300]}>
+                                        {appliedCoupon ? 'change' : 'view coupons'}
+                                    </CustomText>
+                                    <Feather name="chevron-right" size={20} color="white" style={[globalStyles.mt1]} />
                                 </TouchableOpacity>
-                                <CustomText style={[globalStyles.f20Bold, { color: color.secondary }, globalStyles.mb5]}>Choose your address</CustomText>
+                            </View>
 
-                                {/* Add new address */}
-                                <TouchableOpacity style={{ flexDirection: "row", alignItems: "center", marginBottom: 26 }}
-                                    onPress={() => {
-                                        setAddressModalVisible(false);
-                                        navigation.navigate("ConfirmAddressPage");
-                                    }}>
+                            <View style={styles.separator} />
+
+                            {appliedCoupon ? (
+                                <View style={[styles.couponBox, { flexDirection: 'row', alignItems: 'center' }]}>
+                                    <MaterialCommunityIcons name="tag-outline" size={16} color="white" style={{ marginRight: 6 }} />
+                                    <CustomText style={{ flex: 1, ...globalStyles.f12Bold, ...globalStyles.textWhite }}>
+                                        Hurray! You saved ₹{discountAmount}
+                                    </CustomText>
                                     <View style={{
-                                        width: 30, height: 30,
                                         backgroundColor: color.yellow,
-                                        borderRadius: 6,
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        marginRight: 10
+                                        paddingVertical: 6,
+                                        borderRadius: 20,
+                                        marginTop: 10,
+                                        paddingHorizontal: 14,
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
                                     }}>
-                                        <AntDesign name="plus" size={22} color="white" />
-                                    </View>
-                                    <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack]}>Add new address</CustomText>
-                                </TouchableOpacity>
-
-                                {/* Address List */}
-                                <FlatList
-                                    data={[...addressList].sort((a, b) => b.IsPrimary - a.IsPrimary)}
-                                    keyExtractor={(item) => item.AddressID.toString()}
-                                    renderItem={({ item }) => (
-                                        <TouchableOpacity
-                                            onPress={() => makePrimaryAddress(item.AddressID)}
-                                            style={{ flexDirection: "row", alignItems: "flex-start", marginBottom: 14 }}
-                                        >
-                                            <Ionicons name="location-outline" size={20} color={color.primary} style={{ marginRight: 10, marginTop: 4 }} />
-                                            <View style={{ flex: 1, marginBottom: 10 }}>
-                                                <CustomText
-                                                    style={[
-                                                        globalStyles.f14Bold,
-                                                        item.IsPrimary ? { color: color.secondary } : globalStyles.textBlack
-                                                    ]}
-                                                >
-                                                    {item.AddressLine1}
-                                                </CustomText>
-                                                <CustomText style={[globalStyles.f12Regular, { color: color.muted }]}>
-                                                    {item.AddressLine2}, {item.CityName}, {item.StateName}, {item.Pincode}
-                                                </CustomText>
-                                            </View>
+                                        <MaterialCommunityIcons
+                                            name="tag-outline"
+                                            size={18}
+                                            color={color.black}
+                                            style={{ marginLeft: 2 }}
+                                        />
+                                        <CustomText style={styles.appliedCoupon}> {appliedCoupon?.Code} </CustomText>
+                                        <TouchableOpacity onPress={() => setAppliedCoupon(null)}>
+                                            <MaterialCommunityIcons
+                                                name="close-circle"
+                                                size={18}
+                                                color={color.black}
+                                                style={{ marginLeft: 6 }}
+                                            />
                                         </TouchableOpacity>
-                                    )}
-                                />
+                                    </View>
+                                </View>
+                            ) : null}
+                        </View>
 
+                        {/* Instructions */}
+                        <View style={styles.card}>
+                            <CustomText style={styles.sectionTitle}>Instructions</CustomText>
+                            <TextInput
+                                placeholder="e.g. Call after arrival"
+                                style={styles.textInput}
+                                maxLength={100}
+                                multiline={true}
+                                placeholderTextColor="grey"
+                                value={instructions}
+                                onChangeText={setInstructions}
+                            />
+                            <CustomText style={styles.textLimit}>100/100</CustomText>
+                        </View>
+
+                        {/* Price Summary */}
+                        <View style={styles.card}>
+                            <View style={styles.rowBetween}>
+                                <View>
+                                    <CustomText style={styles.toPay}>To Pay ₹{finalAmount}</CustomText>
+                                    <CustomText style={styles.saved}>₹{savedAmount + discountAmount} saved by coupon</CustomText>
+                                </View>
+                            </View>
+                            <View style={styles.divider} />
+                            <View style={[styles.rowBetween]}>
+                                <CustomText style={{ color: color.secondary, ...globalStyles.f12Bold }}>Total Services</CustomText>
+                                <CustomText style={{ color: color.black, ...globalStyles.f12Bold }}>₹{totalServiceAmount}</CustomText>
+                            </View>
+                            <View style={styles.rowBetween}>
+                                <CustomText style={{ color: color.secondary, ...globalStyles.f12Bold }}>GST & Other Charges</CustomText>
+                                <CustomText style={{ color: color.black, ...globalStyles.f10Bold }}>₹{gst}</CustomText>
+                            </View>
+                            {appliedCoupon && (<View style={styles.rowBetween}>
+                                <CustomText style={{ color: color.secondary, ...globalStyles.f12Bold }}>Discount</CustomText>
+                                <CustomText style={{ color: color.black, ...globalStyles.f10Bold }}>- ₹{discountAmount}</CustomText>
+                            </View>)}
+
+                            <View style={styles.divider} />
+                            <View style={styles.rowBetween}>
+                                <CustomText style={styles.toPayBold}>To Pay</CustomText>
+                                <CustomText style={styles.toPayBold}>₹{finalAmount}</CustomText>
+                            </View>
+                        </View>
+                    </ScrollView>
+
+                    <View style={styles.footerBtnWrapper}>
+                        <View style={styles.footerContent}>
+                            <CustomText style={styles.totalAmount}>₹{finalAmount}</CustomText>
+                            <TouchableOpacity style={styles.payNowBtn} onPress={postBooking}>
+                                <CustomText style={styles.payNowText} >Pay Now</CustomText>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={addressModalVisible}
+                        onRequestClose={() => setAddressModalVisible(false)}
+                    >
+                        <TouchableWithoutFeedback onPress={() => setAddressModalVisible(false)}>
+                            <View style={{
+                                flex: 1,
+                                justifyContent: "flex-end",
+                                backgroundColor: "rgba(0,0,0,0.4)"
+                            }}>
+                                {/* Prevent modal from closing when content is tapped */}
+                                <TouchableWithoutFeedback onPress={() => { }}>
+                                    <View style={{
+                                        backgroundColor: "white",
+                                        borderTopLeftRadius: 20,
+                                        borderTopRightRadius: 20,
+                                        padding: 20,
+                                        maxHeight: '90%'
+                                    }}>
+                                        <TouchableOpacity
+                                            style={{ alignSelf: "flex-end", marginBottom: 2 }}
+                                            onPress={() => setAddressModalVisible(false)}
+                                        >
+                                            <Ionicons name="close-circle" size={30} color="black" />
+                                        </TouchableOpacity>
+                                        <CustomText style={[globalStyles.f20Bold, { color: color.secondary }, globalStyles.mb5]}>Choose your address</CustomText>
+
+                                        {/* Add new address */}
+                                        <TouchableOpacity style={{ flexDirection: "row", alignItems: "center", marginBottom: 26 }}
+                                            onPress={() => {
+                                                setAddressModalVisible(false);
+                                                navigation.navigate("ConfirmAddressPage");
+                                            }}>
+                                            <View style={{
+                                                width: 30, height: 30,
+                                                backgroundColor: color.yellow,
+                                                borderRadius: 6,
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                marginRight: 10
+                                            }}>
+                                                <AntDesign name="plus" size={22} color="white" />
+                                            </View>
+                                            <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack]}>Add new address</CustomText>
+                                        </TouchableOpacity>
+
+                                        {/* Address List */}
+                                        <FlatList
+                                            data={[...addressList].sort((a, b) => b.IsPrimary - a.IsPrimary)}
+                                            keyExtractor={(item) => item.AddressID.toString()}
+                                            renderItem={({ item }) => (
+                                                <TouchableOpacity
+                                                    onPress={() => makePrimaryAddress(item.AddressID)}
+                                                    style={{ flexDirection: "row", alignItems: "flex-start", marginBottom: 14 }}
+                                                >
+                                                    <Ionicons name="location-outline" size={20} color={color.primary} style={{ marginRight: 10, marginTop: 4 }} />
+                                                    <View style={{ flex: 1, marginBottom: 10 }}>
+                                                        <CustomText
+                                                            style={[
+                                                                globalStyles.f14Bold,
+                                                                item.IsPrimary ? { color: color.secondary } : globalStyles.textBlack
+                                                            ]}
+                                                        >
+                                                            {item.AddressLine1}
+                                                        </CustomText>
+                                                        <CustomText style={[globalStyles.f12Regular, { color: color.muted }]}>
+                                                            {item.AddressLine2}, {item.CityName}, {item.StateName}, {item.Pincode}
+                                                        </CustomText>
+                                                    </View>
+                                                </TouchableOpacity>
+                                            )}
+                                        />
+
+                                    </View>
+                                </TouchableWithoutFeedback>
                             </View>
                         </TouchableWithoutFeedback>
-                    </View>
-                </TouchableWithoutFeedback>
-            </Modal>
-
+                    </Modal>
+                </>
+            )}
             <CustomAlert
                 visible={alertVisible}
                 status={alertStatus}

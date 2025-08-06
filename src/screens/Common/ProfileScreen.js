@@ -4,16 +4,22 @@ import CustomText from '../../components/CustomText';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import globalStyles from '../../styles/globalStyles';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
+  const { logout } = useAuth();
 
   const handleRegister = () => {
-    navigation.navigate('ProfileRegister'); // Ensure 'Register' is a valid route
+    navigation.navigate('ProfileRegister'); 
   };
 
-  const handleLogout = () => {
-    navigation.navigate('Login');
+  const handleLogout = async () => {
+    await logout();
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Login" }],
+    });
   };
 
   return (
