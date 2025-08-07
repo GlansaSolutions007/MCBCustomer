@@ -67,14 +67,16 @@ export const MyCarsList = () => {
                         image: { uri: `https://api.mycarsbuddy.com/Images${car.VehicleImage}` },
                         vehicleNumber: car.VehicleNumber,
                         isPrimary: car.IsPrimary,
-                        yearOfPurchase: car.YearOfPurchase, // Add YearOfPurchase
-                        transmission: car.TransmissionType, // Add TransmissionType
-                        engineType: car.EngineType, // Add EngineType
-                        kilometersDriven: car.KilometersDriven, // Add KilometersDriven
+                        yearOfPurchase: car.YearOfPurchase, 
+                        transmission: car.TransmissionType, 
+                        engineType: car.EngineType, 
+                        kilometersDriven: car.KilometersDriven,
                     }));
 
                     setCars(formattedCars);
                     setFilteredCars(formattedCars);
+                    console.log(formattedCars);
+                    
 
                     const primaryCar = formattedCars.find(car => car.isPrimary);
                     if (primaryCar) {

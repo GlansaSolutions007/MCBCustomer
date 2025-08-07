@@ -11,6 +11,8 @@ import {
     Keyboard,
     Image,
     ImageBackground,
+    Modal,
+    FlatList,
 } from 'react-native';
 import bannerImage from '../../../assets/images/info.png'
 import globalStyles from '../../styles/globalStyles';
@@ -53,30 +55,30 @@ export const MyCarDetails = () => {
 
     const route = useRoute();
 
+    const getYearsList = () => {
+        const currentYear = new Date().getFullYear();
+        const years = [];
+        for (let i = currentYear; i >= 1980; i--) {
+            years.push(i.toString());
+        }
+        return years;
+    };
+
+    const years = getYearsList();
+
     useEffect(() => {
-        // Initialize state with passed navigation parameters
         if (route.params) {
             setModel(route.params.model || null);
             setVehicleNumber(route.params.vehicleNumber || '');
             setTransmission(route.params.transmission || '');
             setEngineType(route.params.engineType || '');
             setKilometersDriven(route.params.kilometersDriven || '');
-            setYearOfPurchase(
-                route.params.yearOfPurchase ? new Date(route.params.yearOfPurchase) : null
-            );
+            setYearOfPurchase(route.params.yearOfPurchase?.toString() || null);
             setIsViewOnly(!!route.params.vehicleId);
         }
     }, [route.params]);
 
     const { brandId, modelId, fuelId, fuelType } = route.params;
-
-    const formatDate = (date) => {
-        if (!date) return '';
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
 
     const handleSubmit = async () => {
         let hasError = false;
@@ -106,7 +108,7 @@ export const MyCarDetails = () => {
             const payload = {
                 custID: custID,
                 vehicleNumber: vehicleNumber,
-                yearOfPurchase: yearOfPurchase ? yearOfPurchase.getFullYear().toString() : "",
+                yearOfPurchase: yearOfPurchase || "",
                 engineType: engineType,
                 kilometersDriven: kilometersDriven,
                 transmissionType: transmission,
@@ -195,7 +197,7 @@ export const MyCarDetails = () => {
                                 />
 
                                 <View style={styles.row}>
-                                    <View style={{ flex: 1, marginRight: 8 }}>
+                                    {/* <View style={{ flex: 1, marginRight: 8 }}>
                                         <CustomText style={styles.label}>
                                             Year of Purchase
                                         </CustomText>
@@ -224,6 +226,57 @@ export const MyCarDetails = () => {
                                                 maximumDate={new Date()}
                                             />
                                         )}
+                                    </View> */}
+
+                                    <View style={{ flex: 1, marginRight: 8 }}>
+                                        <CustomText style={styles.label}>Year of Purchase</CustomText>
+                                        <TouchableOpacity onPress={() => setShowYearPicker(true)}>
+                                            <TextInput
+                                                value={yearOfPurchase}
+                                                placeholder="YYYY"
+                                                style={styles.input}
+                                                placeholderTextColor="#888"
+                                                editable={false}
+                                                pointerEvents="none"
+                                            />
+                                        </TouchableOpacity>
+
+                                        <Modal
+                                            visible={showYearPicker}
+                                            transparent
+                                            animationType="slide"
+                                            onRequestClose={() => setShowYearPicker(false)} // for Android back button
+                                        >
+                                            <TouchableWithoutFeedback onPress={() => setShowYearPicker(false)}>
+                                                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center' }}>
+                                                    <TouchableWithoutFeedback onPress={() => { }}>
+                                                        <View style={{
+                                                            backgroundColor: 'white',
+                                                            margin: 20,
+                                                            borderRadius: 10,
+                                                            padding: 20,
+                                                            maxHeight: 300
+                                                        }}>
+                                                            <FlatList
+                                                                data={years}
+                                                                keyExtractor={(item) => item}
+                                                                renderItem={({ item }) => (
+                                                                    <TouchableOpacity
+                                                                        onPress={() => {
+                                                                            setYearOfPurchase(item);
+                                                                            setShowYearPicker(false);
+                                                                        }}
+                                                                        style={{ padding: 15, borderBottomWidth: 1, borderBottomColor: '#ccc' }}
+                                                                    >
+                                                                        <CustomText style={globalStyles.textBlack}>{item}</CustomText>
+                                                                    </TouchableOpacity>
+                                                                )}
+                                                            />
+                                                        </View>
+                                                    </TouchableWithoutFeedback>
+                                                </View>
+                                            </TouchableWithoutFeedback>
+                                        </Modal>
                                     </View>
                                     <View style={[{ flex: 1, marginLeft: 8 }]}>
                                         <CustomText style={styles.label}>

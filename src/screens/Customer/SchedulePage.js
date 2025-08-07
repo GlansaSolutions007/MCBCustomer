@@ -174,7 +174,7 @@ const SchedulePage = () => {
                                     ]}
                                     onPress={() => {
                                         setSelectedTime(slot.TsID);
-                                        setTimeError(''); 
+                                        setTimeError('');
                                     }}
                                 >
                                     <CustomText style={[{ color: selectedTime === slot.TsID ? 'white' : color.secondary }, globalStyles.f10Bold]}>
@@ -280,7 +280,7 @@ const SchedulePage = () => {
                                 await AsyncStorage.setItem('selectedTimeSlotId', selectedTime.toString());
                                 await AsyncStorage.setItem('selectedTimeSlotLabel', selectedSlot.label);
 
-                                navigation.navigate('Cart');
+                                navigation.goBack();
                             } catch (e) {
                                 console.error("Failed to save schedule:", e);
                             }

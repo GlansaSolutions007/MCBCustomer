@@ -50,7 +50,7 @@ export default function BookingsInnerPage() {
               styles.value,
               globalStyles.f12Regular,
               {
-                color: booking.TechID === 0 ? "#FF9500" : "#333",
+                color: booking.TechID === 0 ? color.primary : "#333",
                 fontWeight: booking.TechID === 0 ? "bold" : "normal",
               },
             ]}
