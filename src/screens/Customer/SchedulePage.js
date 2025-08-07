@@ -185,8 +185,6 @@ const SchedulePage = () => {
 
                         </ScrollView>
 
-
-
                         {/* Scroll Arrow */}
                         <TouchableOpacity
                             onPress={scrollRight}

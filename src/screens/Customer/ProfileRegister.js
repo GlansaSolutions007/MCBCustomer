@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     TextInput,
@@ -11,6 +11,7 @@ import {
     TouchableWithoutFeedback,
     ImageBackground,
     Text,
+    ActivityIndicator,
 } from 'react-native';
 import CustomText from '../../components/CustomText';
 import { color } from '../../styles/theme';
@@ -20,11 +21,12 @@ import DefaultProfileImage from '../../../assets/images/profile-user.png'
 import axios from 'axios';
 import CustomAlert from '../../components/CustomAlert';
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from "@env";
 
 
 export const ProfileRegister = () => {
     const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [altPhoneNumber, setAltPhoneNumber] = useState('');
@@ -32,6 +34,8 @@ export const ProfileRegister = () => {
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertStatus, setAlertStatus] = useState('info'); // 'success' | 'error'
     const [alertMessage, setAlertMessage] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [isEditable, setIsEditable] = useState(false);
 
     const [errors, setErrors] = useState({
         firstName: '',
@@ -39,90 +43,80 @@ export const ProfileRegister = () => {
         phoneNumber: '',
     });
 
-    const handleRegister = async () => {
-        const newErrors = {
-            firstName: '',
-            email: '',
-            phoneNumber: '',
+
+    useEffect(() => {
+        const fetchCustomerData = async () => {
+            setLoading(true);
+            try {
+                const userData = await AsyncStorage.getItem('userData');
+                const parsedData = JSON.parse(userData);
+                const custID = parsedData?.custID;
+
+                const response = await axios.get(`${API_BASE_URL}Customer/Id?Id=${custID}`);
+                const data = response.data[0];
+                setFirstName(data.FullName || '');
+                setPhoneNumber(data.PhoneNumber || '');
+                setAltPhoneNumber(data.AlternateNumber || '');
+                setEmail(data.Email || '');
+                setImage(data.ProfileImage ? `https://api.mycarsbuddy.com/Images/${data.ProfileImage}` : null);
+
+            } catch (err) {
+                console.error('Failed to load profile', err);
+            } finally {
+                setLoading(false);
+            }
         };
 
-        let isValid = true;
+        fetchCustomerData();
+    }, []);
 
-        if (!firstName.trim()) {
-            newErrors.firstName = 'Full Name is required';
-            isValid = false;
-        }
-
-        if (!email.trim()) {
-            newErrors.email = 'Email is required';
-            isValid = false;
-        } else {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                newErrors.email = 'Enter a valid email';
-                isValid = false;
-            }
-        }
-
-        if (!phoneNumber.trim()) {
-            newErrors.phoneNumber = 'Phone Number is required';
-            isValid = false;
-        } else if (!/^\d{10}$/.test(phoneNumber)) {
-            newErrors.phoneNumber = 'Phone Number must be exactly 10 digits';
-            isValid = false;
-        }
-
-        setErrors(newErrors);
-        if (!isValid) return;
-
-        const formData = new FormData();
-        formData.append('FullName', firstName);
-        formData.append('PhoneNumber', phoneNumber);
-        formData.append('AlternateNumber', altPhoneNumber);
-        formData.append('Email', email);
-        formData.append('IsActive', true);
-        formData.append('ProfileImage', image ? image.split('/').pop() : '');
-
-        if (image) {
-            const fileName = image.split('/').pop();
-            const fileType = fileName.split('.').pop();
-            formData.append('ProfileImageFile', {
-                uri: image,
-                name: fileName,
-                type: `image/${fileType}`,
+    const handleUpdateProfile = async () => {
+        if (!firstName || !phoneNumber) {
+            setErrors({
+                firstName: !firstName ? 'Name is required' : '',
+                phoneNumber: !phoneNumber ? 'Phone is required' : '',
+                email: '', 
             });
+            return;
         }
 
         try {
+            const userData = await AsyncStorage.getItem('userData');
+            const parsedData = JSON.parse(userData);
+            const custID = parsedData?.custID;
+            const formData = new FormData();
+
+            formData.append("CustID", custID || "");
+            formData.append("FullName", firstName || "");
+            formData.append("Email", email || "");
+            formData.append("PhoneNumber", phoneNumber || "");
+            formData.append("AlternateNumber", altPhoneNumber || "");
+
+            if (image && (image.startsWith("file://") || image.startsWith("content://"))) {
+                formData.append("ProfileImageFile", {
+                    uri: image,
+                    name: 'profile.jpg',
+                    type: 'image/jpeg',
+                });
+            }
+
             const response = await axios.post(
-                'https://api.mycarsbuddy.com/api/Customer/InsertCustomer',
+                `${API_BASE_URL}Customer/update-customer`,
                 formData,
                 {
-                    headers: { 'Content-Type': 'multipart/form-data' },
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
                 }
             );
 
-            // Show success alert
             setAlertStatus('success');
-            setAlertMessage('Customer registered successfully');
-            setAlertVisible(true);
-
-            // Reset form
-            setFirstName('');
-            setLastName('');
-            setEmail('');
-            setPhoneNumber('');
-            setAltPhoneNumber('');
-            setImage(null);
-            setErrors({
-                firstName: '',
-                email: '',
-                phoneNumber: '',
-            });
+            setAlertMessage("Profile updated successfully!");
         } catch (error) {
-            console.error('Registration failed:', error?.response?.data || error.message);
+            console.error('Profile update error:', error);
             setAlertStatus('error');
-            setAlertMessage('Registration failed. Please try again.');
+            setAlertMessage("Failed to update profile.");
+        } finally {
             setAlertVisible(true);
         }
     };
@@ -147,6 +141,14 @@ export const ProfileRegister = () => {
         }
     };
 
+      if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={color.primary} />
+      </View>
+    );
+  }
+
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <KeyboardAvoidingView
@@ -165,21 +167,14 @@ export const ProfileRegister = () => {
                             style={styles.profileImage}
                             imageStyle={{ borderRadius: 60 }}
                         >
-                            {image && (
-                                <TouchableOpacity
-                                    style={styles.removeIcon}
-                                    onPress={() => setImage(null)}
-                                >
-                                    <Ionicons name="close-circle" size={24} color="#fff" />
-                                </TouchableOpacity>
-                            )}
                             <TouchableOpacity
                                 style={styles.cameraIcon}
-                                onPress={pickImage}
+                                onPress={isEditable ? pickImage : null}
                             >
                                 <Ionicons name="camera" size={20} color="#fff" />
                             </TouchableOpacity>
                         </ImageBackground>
+
                     </View>
 
                     <View style={styles.inputGroup}>
@@ -193,6 +188,7 @@ export const ProfileRegister = () => {
                                 setFirstName(text);
                                 setErrors((prev) => ({ ...prev, firstName: '' }));
                             }}
+                            editable={isEditable}
                         />
                         {errors.firstName ? <Text style={styles.errorText}>{errors.firstName}</Text> : null}
                     </View>
@@ -210,6 +206,7 @@ export const ProfileRegister = () => {
                                 setEmail(text);
                                 setErrors((prev) => ({ ...prev, email: '' }));
                             }}
+                            editable={isEditable}
                         />
                         {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
                     </View>
@@ -226,6 +223,7 @@ export const ProfileRegister = () => {
                                 setPhoneNumber(text);
                                 setErrors((prev) => ({ ...prev, phoneNumber: '' }));
                             }}
+                            editable={!isEditable}
                         />
                         {errors.phoneNumber ? <Text style={styles.errorText}>{errors.phoneNumber}</Text> : null}
                     </View>
@@ -239,12 +237,30 @@ export const ProfileRegister = () => {
                             keyboardType="phone-pad"
                             value={altPhoneNumber}
                             onChangeText={setAltPhoneNumber}
+                            editable={isEditable}
                         />
                     </View>
 
-                    <TouchableOpacity style={styles.submitButton} onPress={handleRegister}>
-                        <CustomText style={styles.submitText}>Save</CustomText>
-                    </TouchableOpacity>
+                    <View >
+                        {!isEditable ? (
+                            <TouchableOpacity style={styles.submitButton} onPress={() => setIsEditable(true)}>
+                                <CustomText style={styles.submitText}>Edit</CustomText>
+                            </TouchableOpacity>
+                        ) : (
+                            <>
+                                <TouchableOpacity style={styles.submitButton} onPress={handleUpdateProfile}>
+                                    <CustomText style={styles.submitText}>Save</CustomText>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.submitButton, { backgroundColor: '#ccc', marginTop: 10 }]}
+                                    onPress={() => setIsEditable(false)}
+                                >
+                                    <CustomText style={[styles.submitText, { color: '#333' }]}>Cancel</CustomText>
+                                </TouchableOpacity>
+                            </>
+                        )}
+                    </View>
 
                     <CustomAlert
                         visible={alertVisible}

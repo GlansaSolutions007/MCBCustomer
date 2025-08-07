@@ -132,6 +132,8 @@ export default function LoginScreen() {
       const result = await response.json();
       console.log("Device Id:", DeviceId);
       console.log("Device Token:", DeviceToken);
+      console.log("User: " , result);
+      
 
       if (response.ok && result?.success) {
         await login({
