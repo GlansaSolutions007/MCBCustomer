@@ -81,9 +81,9 @@ const styles = StyleSheet.create({
     },
     dropdownButton: {
         borderColor: '#ccc',
-        padding: 20,
+        padding: 6,
         borderRadius: 8,
-        backgroundColor: '#fff',
+        backgroundColor: '#ffff',
         justifyContent: 'center',
     },
     dropdownContent: {

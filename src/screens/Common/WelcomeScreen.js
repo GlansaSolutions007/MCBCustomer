@@ -68,8 +68,8 @@ const styles = StyleSheet.create({
     },
     overlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: "#01584aff",
-        opacity: 0.5,
+        backgroundColor: "#ffffffff",
+        opacity: 1,
     },
     content: {
         padding: 20,

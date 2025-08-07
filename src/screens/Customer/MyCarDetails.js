@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     },
 
     label: {
-        ...globalStyles.f12Bold,
+        ...globalStyles.f14Bold,
         marginBottom: 4,
         ...globalStyles.textBlack,
         // marginTop: 10,
@@ -446,8 +446,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         color: '#111111',
         borderRadius: 8,
-        padding: 20,
-        ...globalStyles.f10Bold,
+        padding: 6,
+        ...globalStyles.f16Bold,
         marginBottom: 10,
     },
     itemTextStyle: {

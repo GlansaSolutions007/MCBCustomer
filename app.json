@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mcbc",
-    "slug": "mcbc",
+    "name": "My Car Buddy",
+    "slug": "my-car-buddy",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,7 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "icon": "./assets/icon.png"
     },
     "android": {
       "adaptiveIcon": {
@@ -33,8 +34,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "df3ad992-433a-401f-bdcc-730a6284a67f"
+        "projectId": "6850b1f3-7aec-4d07-8b8b-1802366d658a"
       }
-    }
+    },
+    "owner": "itglansa"
   }
 }
