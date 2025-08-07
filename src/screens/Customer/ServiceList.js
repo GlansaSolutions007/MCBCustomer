@@ -1,196 +1,71 @@
-import React, { useEffect, useState } from "react";
-import { View, ScrollView, TouchableOpacity, StyleSheet, Text, Image } from "react-native";
+import React, { useEffect, useState, useCallback } from "react";
+import { View, ScrollView, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import CustomText from "../../components/CustomText";
 import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
-import CustomText from "../../components/CustomText";
 
 export default function ServiceList() {
   const [selectedTab, setSelectedTab] = useState("New");
   const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
   const tabs = ["New", "Completed"];
 
-  // Manual data
-  const manualData = [
-    {
-      BookingID: 1,
-      BookingTrackID: "MYCAR072025001",
-      CustID: 4,
-      TechID: 83,
-      BookingStatus: "Confirmed",
-      PackageIds: "1,2,3",
-      PackagePrice: "100,200,300",
-      TotalPrice: 500.00,
-      BookingDate: "2025-07-28",
-      TimeSlot: "10:00AM - 12:00PM",
-      CustomerName: "NagRaj",
-      PhoneNumber: "9177346081",
-      IsOthers: false,
-      OthersFullName: "",
-      OthersPhoneNumber: "",
-      StateName: "karnataka",
-      CityName: "chintal",
-      VehicleNumber: "TS27C8223",
-      VehicleImage: "/VehicleModel/brand-9-model-240_z4v0ce3l.jpeg",
-      BrandName: "Maruti Suzuki",
-      ModelName: "Swift",
-      FuelTypeName: "Petrol",
-      Packages: [
-        {
-          PackageID: 1,
-          PackageName: "Exterior Premium Wash",
-          EstimatedDurationMinutes: 50,
-          Category: {
-            CategoryID: 4,
-            CategoryName: "Exterior Cleaning",
-            SubCategories: [
-              {
-                SubCategoryID: 12,
-                SubCategoryName: "Exterior Car Wash",
-                Includes: [
-                  { IncludeID: 4, IncludeName: "inlcude five" },
-                  { IncludeID: 3, IncludeName: "include three" },
-                  { IncludeID: 2, IncludeName: "include two" }
-                ]
-              }
-            ]
+  const fetchBookings = useCallback(async () => {
+    setLoading(true);
+    try {
+      const userData = await AsyncStorage.getItem("userData");
+      const parsedData = userData ? JSON.parse(userData) : null;
+      const custID = parsedData?.custID; 
+      console.log("Customer ID:", custID);
+
+      const response = await axios.get(
+        `https://api.mycarsbuddy.com/api/Bookings/${custID}`
+      );
+      console.log("Raw response:", response);
+      console.log("Response data:", response.data);
+      console.log("Is response.data an array?", Array.isArray(response.data));
+
+      let bookingsData = response.data;
+
+      // Handle potential non-array response
+      if (!Array.isArray(bookingsData)) {
+        console.warn("Response is not an array, attempting to extract array");
+        if (bookingsData && typeof bookingsData === "object" && Array.isArray(bookingsData.bookings)) {
+          bookingsData = bookingsData.bookings;
+          console.log("Extracted bookings array:", bookingsData);
+        } else if (typeof bookingsData === "string") {
+          try {
+            bookingsData = JSON.parse(bookingsData);
+            console.log("Parsed string to array:", bookingsData);
+          } catch (parseError) {
+            console.error("Failed to parse data as JSON:", parseError.message);
+            bookingsData = [];
           }
-        },
-        {
-          PackageID: 2,
-          PackageName: "Exterior Basic Care",
-          EstimatedDurationMinutes: 50,
-          Category: {
-            CategoryID: 4,
-            CategoryName: "Exterior Cleaning",
-            SubCategories: [
-              {
-                SubCategoryID: 13,
-                SubCategoryName: "Foam Wash",
-                Includes: [
-                  { IncludeID: 4, IncludeName: "inlcude five" },
-                  { IncludeID: 2, IncludeName: "include two" },
-                  { IncludeID: 1, IncludeName: "Dashboard Cleaning" }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          PackageID: 3,
-          PackageName: "Exterior Care SPL",
-          EstimatedDurationMinutes: 50,
-          Category: {
-            CategoryID: 4,
-            CategoryName: "Exterior Cleaning",
-            SubCategories: [
-              {
-                SubCategoryID: 12,
-                SubCategoryName: "Exterior Car Wash",
-                Includes: [
-                  { IncludeID: 4, IncludeName: "inlcude five" },
-                  { IncludeID: 2, IncludeName: "include two" },
-                  { IncludeID: 3, IncludeName: "include three" },
-                  { IncludeID: 1, IncludeName: "Dashboard Cleaning" }
-                ]
-              }
-            ]
-          }
+        } else {
+          console.error("Final bookings data is not an array:", bookingsData);
+          bookingsData = [];
         }
-      ]
-    },
-    {
-      BookingID: 8,
-      BookingTrackID: "MYCAR072025001",
-      CustID: 4,
-      TechID: 0,
-      BookingStatus: "Confirmed",
-      PackageIds: "1,2,3",
-      PackagePrice: "100,200,300",
-      TotalPrice: 500.00,
-      BookingDate: "2025-07-28",
-      TimeSlot: "10:00AM - 12:00PM",
-      CustomerName: "NagRaj",
-      PhoneNumber: "9177346081",
-      IsOthers: false,
-      StateName: "karnataka",
-      CityName: "chintal",
-      VehicleNumber: "TS27C8223",
-      VehicleImage: "/VehicleModel/brand-9-model-240_z4v0ce3l.jpeg",
-      BrandName: "Maruti Suzuki",
-      ModelName: "Swift",
-      FuelTypeName: "Petrol",
-      Packages: [
-        {
-          PackageID: 1,
-          PackageName: "Exterior Premium Wash",
-          EstimatedDurationMinutes: 50,
-          Category: {
-            CategoryID: 4,
-            CategoryName: "Exterior Cleaning",
-            SubCategories: [
-              {
-                SubCategoryID: 12,
-                SubCategoryName: "Exterior Car Wash",
-                Includes: [
-                  { IncludeID: 4, IncludeName: "inlcude five" },
-                  { IncludeID: 3, IncludeName: "include three" },
-                  { IncludeID: 2, IncludeName: "include two" }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          PackageID: 2,
-          PackageName: "Exterior Basic Care",
-          EstimatedDurationMinutes: 50,
-          Category: {
-            CategoryID: 4,
-            CategoryName: "Exterior Cleaning",
-            SubCategories: [
-              {
-                SubCategoryID: 13,
-                SubCategoryName: "Foam Wash",
-                Includes: [
-                  { IncludeID: 4, IncludeName: "inlcude five" },
-                  { IncludeID: 2, IncludeName: "include two" },
-                  { IncludeID: 1, IncludeName: "Dashboard Cleaning" }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          PackageID: 3,
-          PackageName: "Exterior Care SPL",
-          EstimatedDurationMinutes: 50,
-          Category: {
-            CategoryID: 4,
-            CategoryName: "Exterior Cleaning",
-            SubCategories: [
-              {
-                SubCategoryID: 12,
-                SubCategoryName: "Exterior Car Wash",
-                Includes: [
-                  { IncludeID: 4, IncludeName: "inlcude five" },
-                  { IncludeID: 2, IncludeName: "include two" },
-                  { IncludeID: 3, IncludeName: "include three" },
-                  { IncludeID: 1, IncludeName: "Dashboard Cleaning" }
-                ]
-              }
-            ]
-          }
-        }
-      ]
+      }
+
+      setBookings((prev) => {
+        console.log("Setting bookings state to:", bookingsData);
+        return [...bookingsData];
+      });
+    } catch (error) {
+      console.error("Failed to fetch bookings:", error.message);
+      setBookings([]);
+    } finally {
+      setLoading(false);
     }
-  ];
+  }, []);
 
   useEffect(() => {
-    console.log("Setting bookings state to manual data");
-    setBookings(manualData);
-  }, []);
+    fetchBookings();
+  }, [fetchBookings]);
 
   const filteredBookings = (bookings || []).filter((b) => {
     const status = (b.BookingStatus || "").toLowerCase();
@@ -231,15 +106,19 @@ export default function ServiceList() {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {/* <CustomText style={{ color: "#333", ...globalStyles.f12Bold }}>
+        <CustomText style={{ color: "#333", ...globalStyles.f12Bold }}>
           Showing{" "}
           <CustomText style={{ fontWeight: "bold", color: "#007AFF" }}>
             {selectedTab}
           </CustomText>{" "}
           Services
-        </CustomText> */}
+        </CustomText>
 
-        {bookings.length === 0 ? (
+        {loading ? (
+          <CustomText style={{ textAlign: "center", marginTop: 20, ...globalStyles.f12Regular }}>
+            Loading...
+          </CustomText>
+        ) : bookings.length === 0 ? (
           <View style={{ marginTop: 20, alignItems: "center" }}>
             <CustomText style={{ color: "#999", ...globalStyles.f12Regular }}>
               No bookings available.
