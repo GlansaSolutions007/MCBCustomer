@@ -19,7 +19,7 @@ export default function ServiceList() {
     try {
       const userData = await AsyncStorage.getItem("userData");
       const parsedData = userData ? JSON.parse(userData) : null;
-      const custID = parsedData?.custID; 
+      const custID = parsedData?.custID || 2; // Fallback to 2 for testing
       console.log("Customer ID:", custID);
 
       const response = await axios.get(
@@ -71,7 +71,7 @@ export default function ServiceList() {
     const status = (b.BookingStatus || "").toLowerCase();
     console.log("Booking status:", status, "Selected tab:", selectedTab);
     return selectedTab === "New"
-      ? status === "confirmed"
+      ? status === "confirmed" || status === "pending"
       : status === "completed";
   });
 

@@ -75,7 +75,7 @@ export const ProfileRegister = () => {
             setErrors({
                 firstName: !firstName ? 'Name is required' : '',
                 phoneNumber: !phoneNumber ? 'Phone is required' : '',
-                email: '', 
+                email: '',
             });
             return;
         }
@@ -112,6 +112,7 @@ export const ProfileRegister = () => {
 
             setAlertStatus('success');
             setAlertMessage("Profile updated successfully!");
+            setIsEditable(false);
         } catch (error) {
             console.error('Profile update error:', error);
             setAlertStatus('error');
@@ -141,13 +142,13 @@ export const ProfileRegister = () => {
         }
     };
 
-      if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={color.primary} />
-      </View>
-    );
-  }
+    if (loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                <ActivityIndicator size="large" color={color.primary} />
+            </View>
+        );
+    }
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

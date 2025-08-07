@@ -43,17 +43,10 @@ export default function MyCars() {
                 .filter(brand => brand.IsActive)
                 .map(brand => {
                     const brandModels = models
-                        .filter(model => model.BrandID === brand.BrandID)
+                        .filter(model => model.BrandID === brand.BrandID && model.IsActive)
                         .map(model => {
-                            // let imagePath = '';
 
-                            // if (model.VehicleImage) {
-                            //     imagePath = model.VehicleImage.includes("Images/VehicleModel")
-                            //         ? model.VehicleImage
-                            //         : `/VehicleModel/${model.VehicleImage}`;
-                            // }
-
-                            const getModelImageUrl = (path) => {
+                            const getModelImageUrl = (path) => { 
                                 if (!path) return null;
                                 const fileName = path.split('/').pop();
                                 return `https://api.mycarsbuddy.com/Images/VehicleModel/${fileName}`;
