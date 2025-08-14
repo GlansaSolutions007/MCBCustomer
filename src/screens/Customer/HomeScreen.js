@@ -6,6 +6,8 @@ import {
   ScrollView,
   ImageBackground,
   StyleSheet,
+  RefreshControl,
+  Alert
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import globalStyles from "../../styles/globalStyles";
@@ -23,29 +25,32 @@ import * as Location from "expo-location";
 import { useContext, useEffect, useState } from "react";
 import { LocationContext } from "../../contexts/LocationContext";
 import axios from "axios";
-import { API_BASE_URL } from "@env";
+// import { API_BASE_URL } from "@env";
+
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
 import { getToken } from "../../utils/token";
+import useGlobalRefresh from "../../hooks/useGlobalRefresh";
+
 
 export default function HomeScreen() {
   const token = getToken();
 
+  // Alert.alert("Debug", `API URL: ${API_URL}`);
   const navigation = useNavigation();
   const { setLocationText, setLocationStatus } = useContext(LocationContext);
   const [categories, setCategories] = useState([]);
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}Category`, {
+      const response = await axios.get(`${API_URL}Category`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log('Catttt',);
-      
+      console.log("Catttt");
+
       if (response.data) {
-        const activeCategories = response.data.filter(
-          (cat) => cat.IsActive
-        );
+        const activeCategories = response.data.filter((cat) => cat.IsActive);
         setCategories(activeCategories);
       }
     } catch (error) {
@@ -61,7 +66,7 @@ export default function HomeScreen() {
     try {
       // const token = await getToken();
       const response = await axios.get(
-        `${API_BASE_URL}SubCategory1/subcategorybycategoryid?categoryid=${category.CategoryID}`,
+        `${API_URL}SubCategory1/subcategorybycategoryid?categoryid=${category.CategoryID}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -122,9 +127,14 @@ export default function HomeScreen() {
       }
     })();
   }, []);
-
+const { refreshing, onRefresh } = useGlobalRefresh(async () => {
+    alert("Refresh logic here"); // Replace with actual refresh logic
+  });
   return (
     <ScrollView
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
       style={{ backgroundColor: color.textWhite }}
       contentContainerStyle={{ paddingBottom: 30 }}
     >
@@ -144,9 +154,14 @@ export default function HomeScreen() {
         </View>
       </View>
       <View style={globalStyles.container}>
-        <CustomText style={[globalStyles.textBlack]}>{DeviceId}</CustomText>
+        {/* <CustomText style={[globalStyles.textBlack]}>{DeviceId}</CustomText> */}
         <CustomText
-          style={[globalStyles.mt4, globalStyles.mb1, globalStyles.f16Bold, globalStyles.textBlack]}
+          style={[
+            globalStyles.mt4,
+            globalStyles.mb1,
+            globalStyles.f16Bold,
+            globalStyles.textBlack,
+          ]}
         >
           We Provide Services Like
         </CustomText>
@@ -159,7 +174,7 @@ export default function HomeScreen() {
             >
               <Image
                 source={{
-                  uri: `https://api.mycarsbuddy.com/Images/${cat.ThumbnailImage}`,
+                  uri: `${API_IMAGE_URL}/${cat.ThumbnailImage}`,
                 }}
                 style={styles.cardImage}
               />
@@ -187,7 +202,7 @@ export default function HomeScreen() {
           source={CTAbannerhome}
           style={[
             styles.ctaContainer,
-            globalStyles.radius,
+            // globalStyles.radius,
             globalStyles.p5,
             globalStyles.mt5,
           ]}
@@ -222,7 +237,11 @@ export default function HomeScreen() {
               style={[styles.ctaButton, globalStyles.bgwhite]}
               onPress={goToCar}
             >
-              <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack]}>Add My Car</CustomText>
+              <CustomText
+                style={[globalStyles.f16Bold, globalStyles.textBlack]}
+              >
+                Add My Car
+              </CustomText>
             </TouchableOpacity>
           </View>
         </ImageBackground>

@@ -8,6 +8,7 @@ import globalStyles from '../../styles/globalStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCoupon } from '../../contexts/CouponContext';
 import { useNavigation } from '@react-navigation/native';
+import { API_URL } from '../../../apiConfig';
 
 const CouponsList = () => {
     const [coupons, setCoupons] = useState([]);
@@ -17,8 +18,9 @@ const CouponsList = () => {
 
     const fetchCoupons = async () => {
         try {
-            const res = await axios.get('https://api.mycarsbuddy.com/api/Coupons');
+            const res = await axios.get(`${API_URL}Coupons`);
             const active = res.data.filter(c => c.IsActive && c.Status);
+            console.log("Active Coupons:", active);
             setCoupons(active);
         } catch (err) {
             console.error(err);

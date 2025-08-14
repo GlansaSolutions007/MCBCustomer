@@ -10,6 +10,8 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import { useCart } from '../../contexts/CartContext'
 import { color } from '../../styles/theme'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
+
 
 const ServiceInnerPage = () => {
     const route = useRoute();
@@ -47,7 +49,7 @@ const ServiceInnerPage = () => {
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['bottom']}>
             <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={{ paddingBottom: 100 }}>
                 <ImageBackground
-                    source={{ uri: `https://api.mycarsbuddy.com/Images/${pkg.image}` }}
+                    source={{ uri: `${API_IMAGE_URL}${pkg.image}` }}
                     style={styles.imageBackground}
                 >
                     <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -107,7 +109,7 @@ const ServiceInnerPage = () => {
                     {/* Details */}
                     <CustomText style={[globalStyles.f16Bold, globalStyles.primary]}>Details</CustomText>
                     <View style={{ marginTop: 10 }}>
-                        <DetailRow label="Estimated Hours" value="1hr 30min" icon="time-outline" />
+                        <DetailRow label="Estimated Hours" value={`${pkg.estimatedMins}`} icon="time-outline" />
                         <DetailRow label="Actual Amount" value={`₹${pkg.originalPrice}`} icon="pricetag-outline" />
                         <DetailRow label="Discount" value={`₹${pkg.originalPrice - pkg.price}`} icon="trending-down-outline" />
                         <DetailRow label="Amount" value={`₹${pkg.price}`} icon="cash-outline" />

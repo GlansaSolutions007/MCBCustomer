@@ -6,6 +6,7 @@ import axios from "axios";
 import CustomText from "../../components/CustomText";
 import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
+import { API_URL } from "../../../apiConfig";
 
 export default function ServiceList() {
   const [selectedTab, setSelectedTab] = useState("New");
@@ -19,13 +20,14 @@ export default function ServiceList() {
     try {
       const userData = await AsyncStorage.getItem("userData");
       const parsedData = userData ? JSON.parse(userData) : null;
-      const custID = parsedData?.custID || 2; // Fallback to 2 for testing
+      const custID = parsedData?.custID; // Fallback to 2 for testing
       console.log("Customer ID:", custID);
+      
 
       const response = await axios.get(
-        `https://api.mycarsbuddy.com/api/Bookings/${custID}`
+        `${API_URL}Bookings/${custID}`
       );
-      console.log("Raw response:", response);
+      console.log("Raw responseasdadas:", response);
       console.log("Response data:", response.data);
       console.log("Is response.data an array?", Array.isArray(response.data));
 
@@ -77,6 +79,9 @@ export default function ServiceList() {
 
   console.log("Current bookings state:", bookings);
   console.log("Filtered bookings:", filteredBookings);
+  // alert(
+  //   "here is the filtered bookings: "
+  // )
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F5F5F5" }}>

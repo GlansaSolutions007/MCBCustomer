@@ -11,6 +11,7 @@ import {
   Platform,
   Keyboard,
   TouchableWithoutFeedback,
+  Alert,
 } from "react-native";
 import fonts from "../../styles/fonts";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,11 +25,13 @@ import { useNavigation } from "@react-navigation/native";
 import * as Device from "expo-device";
 import { registerForPushNotificationsAsync } from "../../utils/notifications";
 import AntDesign from '@expo/vector-icons/AntDesign';
-import Logo from '../../../assets/Logo/my car buddy-02 yellow-01.png'
-import BgImage from '../../../assets/images/loginbg2.png'
-import { API_BASE_URL } from "@env";
+import Logo from '../../../assets/Logo/logo2.png'
+import BgImage from '../../../assets/images/loginbg5.png'
+// import { API_BASE_URL } from "@env";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
 
 export default function LoginScreen() {
+  // Alert.alert("Debug", `API URL: ${API_URL}`);
   const { login } = useAuth();
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [loginId, setLoginId] = useState("");
@@ -46,8 +49,7 @@ export default function LoginScreen() {
 
   const navigation = useNavigation();
 
-  const baseUrl = API_BASE_URL;
-
+  // alert(API_BASE_URL);
   const startResendTimer = () => {
     setTimer(30); // 30 seconds cooldown
     setResendDisabled(true);
@@ -75,7 +77,7 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${baseUrl}Auth/send-otp`, {
+      const response = await fetch(`${API_URL}Auth/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ loginId: loginId }),
@@ -118,7 +120,7 @@ export default function LoginScreen() {
       // const deviceToken = await registerForPushNotificationsAsync();
       const DeviceToken = 'dummy_token';
 
-      const response = await fetch(`${baseUrl}Auth/verify-otp`, {
+      const response = await fetch(`${API_URL}Auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -180,7 +182,7 @@ export default function LoginScreen() {
       style={styles.backgroundImage}
       resizeMode="cover"
     >
-      {!keyboardVisible && (
+      {/* {!keyboardVisible && (
         <TouchableOpacity
           style={styles.skipButton}
           onPress={() => navigation.replace("CustomerTabs")}
@@ -190,7 +192,7 @@ export default function LoginScreen() {
             <AntDesign name="doubleright" size={16} color="white" />
           </View>
         </TouchableOpacity>
-      )}
+      )} */}
       <View />
       <View style={[globalStyles.container]}>
         {!keyboardVisible && (
@@ -251,10 +253,10 @@ export default function LoginScreen() {
           <>
             <View style={[globalStyles.flexrow, globalStyles.alineItemscenter, globalStyles.justifysb, globalStyles.mt1]}>
               <View style={[globalStyles.flexrow, globalStyles.alineItemscenter]}>
-                <CustomText style={globalStyles.textWhite}>Create new account? </CustomText>
-                <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                {/* <CustomText style={globalStyles.textWhite}>Create new account? </CustomText> */}
+                {/* <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                   <CustomText style={globalStyles.textWhite}>Sign Up</CustomText>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
               {/* <TouchableOpacity>
                 <CustomText style={globalStyles.textWhite}>
@@ -294,8 +296,8 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    width: 200,
-    height: 100,
+    width: 250,
+    height: 110,
     marginBottom: 100,
     alignSelf: 'center'
   },
@@ -348,27 +350,27 @@ const styles = StyleSheet.create({
   },
   textInput: {
     borderBottomWidth: 1,
-    borderColor: color.white,
+    borderColor: color.black,
     paddingVertical: 10,
-    color: color.white,
+    color: color.black,
     // fontFamily: fonts.regular,
     fontSize: 16,
     marginBottom: 20,
   },
   button: {
-    backgroundColor: color.white,
+    backgroundColor: color.primary,
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 10,
-    shadowColor: color.black,
+    shadowColor: color.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
     elevation: 5,
   },
   buttonText: {
-    color: color.textDark,
+    color: color.white,
     // fontFamily: fonts.medium,
     fontSize: 16,
   },

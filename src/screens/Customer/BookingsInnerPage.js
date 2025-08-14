@@ -1,50 +1,90 @@
 import React from "react";
-import { View, ScrollView, StyleSheet, Text, Image } from "react-native";
-import { useRoute } from "@react-navigation/native";
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  Image,
+  Button,
+  TouchableOpacity,
+} from "react-native";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
 import CustomText from "../../components/CustomText";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
+
 
 export default function BookingsInnerPage() {
   const route = useRoute();
   const { booking } = route.params;
+  const navigation = useNavigation();
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: "#F5F5F5" }} contentContainerStyle={{ padding: 16 }}>
-      <CustomText style={[styles.sectionTitle, globalStyles.f14Bold]}>Booking Details</CustomText>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: "#F5F5F5" }}
+      contentContainerStyle={{ padding: 16 }}
+    >
+      <CustomText style={[styles.sectionTitle, globalStyles.f14Bold]}>
+        Booking Details
+      </CustomText>
       <View style={styles.card}>
         {/* <View style={styles.section}>
           <CustomText style={[styles.label, globalStyles.f12Bold]}>Booking ID:</CustomText>
           <CustomText style={[styles.value, globalStyles.f12Regular]}>{booking.BookingID}</CustomText>
         </View> */}
         <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>Tracking ID:</CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>{booking.BookingTrackID}</CustomText>
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>
+            Tracking ID:
+          </CustomText>
+          <CustomText style={[styles.value, globalStyles.f12Regular]}>
+            {booking.BookingTrackID}
+          </CustomText>
         </View>
         <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>Customer Name:</CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>{booking.CustomerName}</CustomText>
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>
+            Customer Name:
+          </CustomText>
+          <CustomText style={[styles.value, globalStyles.f12Regular]}>
+            {booking.CustomerName}
+          </CustomText>
         </View>
         <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>Phone Number:</CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>{booking.PhoneNumber}</CustomText>
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>
+            Phone Number:
+          </CustomText>
+          <CustomText style={[styles.value, globalStyles.f12Regular]}>
+            {booking.PhoneNumber}
+          </CustomText>
         </View>
         <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>Location:</CustomText>
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>
+            Location:
+          </CustomText>
           <CustomText style={[styles.value, globalStyles.f12Regular]}>
             {booking.CityName}, {booking.StateName}
           </CustomText>
         </View>
         <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>Date:</CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>{booking.BookingDate}</CustomText>
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>
+            Date:
+          </CustomText>
+          <CustomText style={[styles.value, globalStyles.f12Regular]}>
+            {booking.BookingDate}
+          </CustomText>
         </View>
         <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>Time Slot:</CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>{booking.TimeSlot}</CustomText>
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>
+            Time Slot:
+          </CustomText>
+          <CustomText style={[styles.value, globalStyles.f12Regular]}>
+            {booking.TimeSlot}
+          </CustomText>
         </View>
         <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>Technician:</CustomText>
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>
+            Technician:
+          </CustomText>
           <CustomText
             style={[
               styles.value,
@@ -55,11 +95,23 @@ export default function BookingsInnerPage() {
               },
             ]}
           >
-            {booking.TechID === 0 ? "Not Assigned Yet" : `Assigned (ID: ${booking.TechID})`}
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("WhereCustomer", { techId: booking.TechID, latitude: booking.latitude, longitude: booking.Longitude })
+              }
+            >
+              <Text>
+                {booking.TechID === 0
+                  ? "Not Assigned Yet"
+                  : `Assigned (ID: ${booking.TechID})`}
+              </Text>
+            </TouchableOpacity>
           </CustomText>
         </View>
         <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>Status:</CustomText>
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>
+            Status:
+          </CustomText>
           <CustomText
             style={[
               styles.value,
@@ -71,57 +123,85 @@ export default function BookingsInnerPage() {
           </CustomText>
         </View>
         <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>Total Price:</CustomText>
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>
+            Total Price:
+          </CustomText>
           <CustomText style={[styles.value, globalStyles.f12Bold]}>
             ₹ {booking.TotalPrice.toFixed(2)}
           </CustomText>
         </View>
       </View>
 
-      <CustomText style={[styles.sectionTitle, globalStyles.f14Bold, { marginTop: 20 }]}>
+      <CustomText
+        style={[styles.sectionTitle, globalStyles.f14Bold, { marginTop: 20 }]}
+      >
         Vehicle Details
       </CustomText>
       <View style={styles.card}>
         <View style={styles.section}>
           <Image
-            source={{ uri: `https://api.mycarsbuddy.com/Images${booking.VehicleImage}` }}
+            source={{
+              uri: `${API_IMAGE_URL}${booking.VehicleImage}`,
+            }}
             style={styles.vehicleImage}
-            onError={(e) => console.log("Image load error:", e.nativeEvent.error)}
+            onError={(e) =>
+              console.log("Image load error:", e.nativeEvent.error)
+            }
           />
         </View>
         <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>Vehicle:</CustomText>
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>
+            Vehicle:
+          </CustomText>
           <CustomText style={[styles.value, globalStyles.f12Regular]}>
             {booking.BrandName} {booking.ModelName}
           </CustomText>
         </View>
         <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>Vehicle Number:</CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>{booking.VehicleNumber}</CustomText>
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>
+            Vehicle Number:
+          </CustomText>
+          <CustomText style={[styles.value, globalStyles.f12Regular]}>
+            {booking.VehicleNumber}
+          </CustomText>
         </View>
         <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>Fuel Type:</CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>{booking.FuelTypeName}</CustomText>
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>
+            Fuel Type:
+          </CustomText>
+          <CustomText style={[styles.value, globalStyles.f12Regular]}>
+            {booking.FuelTypeName}
+          </CustomText>
         </View>
       </View>
 
-      <CustomText style={[styles.sectionTitle, globalStyles.f14Bold, { marginTop: 20 }]}>
+      <CustomText
+        style={[styles.sectionTitle, globalStyles.f14Bold, { marginTop: 20 }]}
+      >
         Packages
       </CustomText>
       {(booking.Packages || []).map((pkg) => (
         <View key={pkg.PackageID} style={[styles.card, { marginBottom: 10 }]}>
           <View style={styles.section}>
-            <CustomText style={[styles.label, globalStyles.f12Bold]}>Package:</CustomText>
-            <CustomText style={[styles.value, globalStyles.f12Regular]}>{pkg.PackageName}</CustomText>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              Package:
+            </CustomText>
+            <CustomText style={[styles.value, globalStyles.f12Regular]}>
+              {pkg.PackageName}
+            </CustomText>
           </View>
           <View style={styles.section}>
-            <CustomText style={[styles.label, globalStyles.f12Bold]}>Duration:</CustomText>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              Duration:
+            </CustomText>
             <CustomText style={[styles.value, globalStyles.f12Regular]}>
               {pkg.EstimatedDurationMinutes} minutes
             </CustomText>
           </View>
           <View style={styles.section}>
-            <CustomText style={[styles.label, globalStyles.f12Bold]}>Category:</CustomText>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              Category:
+            </CustomText>
             <CustomText style={[styles.value, globalStyles.f12Regular]}>
               {pkg.Category.CategoryName}
             </CustomText>

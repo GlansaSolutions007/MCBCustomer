@@ -4,22 +4,22 @@ import axios from "axios";
 import { Picker } from "@react-native-picker/picker";
 import CustomText from "../../components/CustomText";
 import { getToken } from "../../utils/token";
-import { API_BASE_URL } from "@env";
+// import { API_BASE_URL } from "@env";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
 
 export default function BookServiceScreen() {
   const [states, setStates] = useState([]);
   const [selectedState, setSelectedState] = useState("");
-  const baseUrl = API_BASE_URL
-
+  //
   const getStates = async () => {
     try {
       const token = await getToken();
       if (!token) {
-        console.warn('No token found');
+        console.warn("No token found");
         return;
       }
 
-      const response = await axios.get(`${baseUrl}State`, {
+      const response = await axios.get(`${API_URL}State`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -54,7 +54,9 @@ export default function BookServiceScreen() {
         </Picker>
       </View>
       {selectedState !== "" && (
-        <CustomText style={styles.resultText}>Selected State ID: {selectedState}</CustomText>
+        <CustomText style={styles.resultText}>
+          Selected State ID: {selectedState}
+        </CustomText>
       )}
     </View>
   );

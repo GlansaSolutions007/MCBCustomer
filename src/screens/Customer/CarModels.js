@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, ImageBackground } from "react-native";
+import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, ImageBackground, Alert } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import carPic from "../../../assets/images/xuv-3xo-exterior-right-front-three-quarter-34.webp"
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -11,11 +11,14 @@ import Electric from "../../../assets/icons/fuelTypes/ev.png";
 import globalStyles from "../../styles/globalStyles";
 import { color } from "../../styles/theme";
 import CustomText from "../../components/CustomText";
-import { API_BASE_URL } from "@env";
+// import { API_BASE_URL } from "@env";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
 import axios from "axios";
 import SearchBox from "../../components/SearchBox";
 
 export default function CarModels() {
+  //
+  // Alert.alert("Debug", `API URL: ${API_URL}`);
   const route = useRoute();
   const { brand, models } = route.params;
   const [searchText, setSearchText] = useState('');
@@ -34,7 +37,7 @@ export default function CarModels() {
   useEffect(() => {
     const fetchFuelTypes = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}FuelTypes/GetFuelTypes`);
+        const response = await axios.get(`${API_URL}FuelTypes/GetFuelTypes`);
         const json = response.data;
 
         if (json.status && Array.isArray(json.data)) {
@@ -57,7 +60,7 @@ export default function CarModels() {
     const fileName = path.split("/").pop();
     const encodedFileName = encodeURIComponent(fileName);
 
-    return `https://api.mycarsbuddy.com/images/FuelImages/${encodedFileName}`;
+    return `${API_IMAGE_URL}/FuelImages/${encodedFileName}`;
   };
 
   useEffect(() => {

@@ -5,6 +5,7 @@ export const color = {
   primary: '#136D6E',
   secondary: '#25878F',
   yellow: '#F7AE21',
+  orange: '#F57C00',
 
 
   // Backgrounds
@@ -17,13 +18,16 @@ export const color = {
   alertSuccess: '#28A745',
   alertInfo: '#17A2B8',
 
+  // map tracking
+  mapTracking: '#f6a04ad5',
+
   // Text
   text: '#454545',
   textGray: '#777777',
   textLight: '#9D9D9D',
   textDark: '#242424',
   textWhite: '#FFFFFF',
-  textInputDark: 'rgba(255, 255, 255, 0.42)',
+  textInputDark: 'rgba(63, 63, 63, 0.42)',
 
   // Utility
   muted: '#888888',

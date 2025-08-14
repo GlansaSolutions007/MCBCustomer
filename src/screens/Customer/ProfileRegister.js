@@ -22,10 +22,13 @@ import axios from 'axios';
 import CustomAlert from '../../components/CustomAlert';
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from "@env";
+// import { API_BASE_URL } from "@env";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
 
 
 export const ProfileRegister = () => {
+    //
+    // Alert.alert("Debug", `API URL: ${API_URL}`);
     const [firstName, setFirstName] = useState('');
     const [email, setEmail] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -43,6 +46,7 @@ export const ProfileRegister = () => {
         phoneNumber: '',
     });
 
+  
 
     useEffect(() => {
         const fetchCustomerData = async () => {
@@ -51,14 +55,14 @@ export const ProfileRegister = () => {
                 const userData = await AsyncStorage.getItem('userData');
                 const parsedData = JSON.parse(userData);
                 const custID = parsedData?.custID;
-
-                const response = await axios.get(`${API_BASE_URL}Customer/Id?Id=${custID}`);
+                // alert(`Customer ID: ${custID}`);
+                const response = await axios.get(`${API_URL}Customer/Id?Id=${custID}`);
                 const data = response.data[0];
                 setFirstName(data.FullName || '');
                 setPhoneNumber(data.PhoneNumber || '');
                 setAltPhoneNumber(data.AlternateNumber || '');
                 setEmail(data.Email || '');
-                setImage(data.ProfileImage ? `https://api.mycarsbuddy.com/Images/${data.ProfileImage}` : null);
+                setImage(data.ProfileImage ? `${API_IMAGE_URL}${data.ProfileImage}` : null);
 
             } catch (err) {
                 console.error('Failed to load profile', err);
@@ -101,7 +105,7 @@ export const ProfileRegister = () => {
             }
 
             const response = await axios.post(
-                `${API_BASE_URL}Customer/update-customer`,
+                `${API_URL}Customer/update-customer`,
                 formData,
                 {
                     headers: {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ImageBackground, StatusBar } from "react-native";
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ImageBackground, StatusBar, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import SearchBox from "../../components/SearchBox";
 import globalStyles from "../../styles/globalStyles";
@@ -8,16 +8,19 @@ import { color } from "../../styles/theme";
 import axios from "axios";
 import Loader from "../../components/Loader";
 import Logo from '../../../assets/Logo/logo.png'
-import { API_BASE_URL } from "@env";
+// import { API_BASE_URL } from "@env";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
 import { getToken } from "../../utils/token";
 
 
 export default function MyCars() {
+    //
+    // const {API_IMAGE_URL} = Constants.expoConfig.extra;
+    // Alert.alert("Debug", `API URL: ${API_IMAGE_URL}`);
     const [brands, setBrands] = useState([]);
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredBrands, setFilteredBrands] = useState([]);
-    const baseUrl = API_BASE_URL
 
     const getBrands = async () => {
         try {
@@ -33,8 +36,8 @@ export default function MyCars() {
                 }
             };
 
-            const brandRes = await axios.get(`${baseUrl}VehicleBrands/GetVehicleBrands`, config);
-            const modelRes = await axios.get(`${baseUrl}VehicleModels/GetListVehicleModel`, config);
+            const brandRes = await axios.get(`${API_URL}VehicleBrands/GetVehicleBrands`, config);
+            const modelRes = await axios.get(`${API_URL}VehicleModels/GetListVehicleModel`, config);
             const brands = brandRes.data.data;
             const models = modelRes.data.data;
 
@@ -49,7 +52,7 @@ export default function MyCars() {
                             const getModelImageUrl = (path) => { 
                                 if (!path) return null;
                                 const fileName = path.split('/').pop();
-                                return `https://api.mycarsbuddy.com/Images/VehicleModel/${fileName}`;
+                                return `${API_IMAGE_URL}VehicleModel/${fileName}`;
                             };
 
 
@@ -65,7 +68,7 @@ export default function MyCars() {
                         brand: brand.BrandName,
                         brandId: brand.BrandID,
                         logo: brand.BrandLogo
-                            ? { uri: `https://api.mycarsbuddy.com/Images/BrandLogo/${brand.BrandLogo.split('/').pop()}` }
+                            ? { uri: `${API_IMAGE_URL}BrandLogo/${brand.BrandLogo.split('/').pop()}` }
                             : Logo,
                         models: brandModels
                     };

@@ -102,6 +102,9 @@ export default StyleSheet.create({
   yellow:{
     color: color.yellow,
   },
+  orange:{
+    color: color.orange,
+  },
   // Color styles .............. end
 
   // background color ----------- start
