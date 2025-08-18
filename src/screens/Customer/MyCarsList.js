@@ -27,6 +27,7 @@ import {
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import carAddIcon from "../../../assets/icons/caddAddIcon.png";
+import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 
 export const MyCarsList = () => {
   //
@@ -38,81 +39,84 @@ export const MyCarsList = () => {
   const [filteredCars, setFilteredCars] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchCustomerCars = async () => {
+    setLoading(true);
+    try {
+      const token = await getToken();
+      const userData = await AsyncStorage.getItem("userData");
+      const parsedData = JSON.parse(userData);
+      const custID = parsedData?.custID;
+
+      if (!custID || !token) {
+        console.warn("Customer ID or token missing");
+        return;
+      }
+
+      const response = await axios.get(
+        `${API_URL}CustomerVehicles/CustId?CustId=${custID}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const carList = response.data;
+      console.log(carList, "Car List Response");
+
+      const normalizedList = carList
+        ? Array.isArray(carList)
+          ? carList
+          : [carList]
+        : [];
+
+      // const activeCars = normalizedList.filter((car) =>car.IsActive===true);
+      // console.log("Active Cars:", activeCars);
+
+      const formattedCars = normalizedList.map((car) => ({
+        id: car.VehicleID.toString(),
+        model: car.ModelName,
+        fuel: car.FuelTypeName,
+        manufacturer: car.BrandName,
+        image: {
+          uri: `https://api.mycarsbuddy.com/Images${car.VehicleImage}`,
+        },
+        vehicleNumber: car.VehicleNumber,
+        isPrimary: car.IsPrimary,
+        yearOfPurchase: car.YearOfPurchase,
+        transmission: car.TransmissionType,
+        engineType: car.EngineType,
+        kilometersDriven: car.KilometersDriven,
+      }));
+
+      setCars(formattedCars);
+      setFilteredCars(formattedCars);
+      console.log(formattedCars);
+
+      const primaryCar = formattedCars.find((car) => car.isPrimary);
+      if (primaryCar) {
+        await AsyncStorage.setItem("primaryVehicleId", primaryCar.id);
+      }
+
+      if (formattedCars.length === 1 && !formattedCars[0].isPrimary) {
+        await makeCarPrimary(formattedCars[0].id);
+        formattedCars[0].isPrimary = true;
+      }
+    } catch (error) {
+      console.error("Error fetching car list:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const { refreshing, onRefresh } = useGlobalRefresh(fetchCustomerCars);
+
   useFocusEffect(
     useCallback(() => {
-      const fetchCustomerCars = async () => {
-        setLoading(true);
-        try {
-          const token = await getToken();
-          const userData = await AsyncStorage.getItem("userData");
-          const parsedData = JSON.parse(userData);
-          const custID = parsedData?.custID;
-
-          if (!custID || !token) {
-            console.warn("Customer ID or token missing");
-            return;
-          }
-
-          const response = await axios.get(
-            `${API_URL}CustomerVehicles/CustId?CustId=${custID}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          const carList = response.data;
-          console.log(carList, "Car List Response");
-
-          const normalizedList = carList
-            ? Array.isArray(carList)
-              ? carList
-              : [carList]
-            : [];
-
-          // const activeCars = normalizedList.filter((car) =>car.IsActive===true);
-          // console.log("Active Cars:", activeCars);
-
-          const formattedCars = normalizedList.map((car) => ({
-            id: car.VehicleID.toString(),
-            model: car.ModelName,
-            fuel: car.FuelTypeName,
-            manufacturer: car.BrandName,
-            image: {
-              uri: `https://api.mycarsbuddy.com/Images${car.VehicleImage}`,
-            },
-            vehicleNumber: car.VehicleNumber,
-            isPrimary: car.IsPrimary,
-            yearOfPurchase: car.YearOfPurchase,
-            transmission: car.TransmissionType,
-            engineType: car.EngineType,
-            kilometersDriven: car.KilometersDriven,
-          }));
-
-          setCars(formattedCars);
-          setFilteredCars(formattedCars);
-          console.log(formattedCars);
-
-          const primaryCar = formattedCars.find((car) => car.isPrimary);
-          if (primaryCar) {
-            await AsyncStorage.setItem("primaryVehicleId", primaryCar.id);
-          }
-
-          if (formattedCars.length === 1 && !formattedCars[0].isPrimary) {
-            await makeCarPrimary(formattedCars[0].id);
-            formattedCars[0].isPrimary = true;
-          }
-        } catch (error) {
-          console.error("Error fetching car list:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-
       fetchCustomerCars();
     }, [])
   );
+
   const makeCarPrimary = async (vehicleId) => {
     try {
       const token = await getToken();
@@ -291,6 +295,8 @@ export const MyCarsList = () => {
             renderItem={renderCar}
             contentContainerStyle={{ paddingBottom: 40 }}
             showsVerticalScrollIndicator={false}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
           />
         </>
       )}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, ScrollView, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { View, ScrollView, TouchableOpacity, StyleSheet, Image, RefreshControl } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
@@ -7,6 +7,7 @@ import CustomText from "../../components/CustomText";
 import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
 import { API_URL } from "../../../apiConfig";
+import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 
 export default function ServiceList() {
   const [selectedTab, setSelectedTab] = useState("New");
@@ -14,6 +15,7 @@ export default function ServiceList() {
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
   const tabs = ["New", "Completed"];
+  const { refreshing, onRefresh } = useGlobalRefresh()
 
   const fetchBookings = useCallback(async () => {
     setLoading(true);
@@ -106,7 +108,10 @@ export default function ServiceList() {
         ))}
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <ScrollView contentContainerStyle={{ padding: 16 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
         <CustomText style={{ color: "#333", ...globalStyles.f12Bold }}>
           Showing{" "}
           <CustomText style={{ fontWeight: "bold", color: "#007AFF" }}>
