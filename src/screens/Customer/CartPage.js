@@ -184,9 +184,9 @@ const CartPage = () => {
     couponCode = appliedCoupon.Code;
     couponId = appliedCoupon.CouponID;
 
-    if (appliedCoupon.DiscountType === "FixedAmount") {
+    if (appliedCoupon.DiscountType === "amount") {
       discountAmount = appliedCoupon.DiscountValue;
-    } else if (appliedCoupon.DiscountType === "Percentage") {
+    } else if (appliedCoupon.DiscountType === "percentage") {
       let calculated = (totalServiceAmount * appliedCoupon.DiscountValue) / 100;
 
       if (

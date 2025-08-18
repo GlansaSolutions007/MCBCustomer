@@ -9,17 +9,41 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCoupon } from '../../contexts/CouponContext';
 import { useNavigation } from '@react-navigation/native';
 import { API_URL } from '../../../apiConfig';
+import { useCart } from '../../contexts/CartContext';
 
 const CouponsList = () => {
     const [coupons, setCoupons] = useState([]);
     const [loading, setLoading] = useState(true);
     const { setAppliedCoupon } = useCoupon();
+    const { cartItems } = useCart();
     const navigation = useNavigation();
+
+    const totalServiceAmount = cartItems.reduce(
+        (sum, item) => sum + item.price,
+        0
+    );
+
+    const isCouponApplicable = (coupon) => {
+        return totalServiceAmount >= coupon.MinBookingAmount;
+    };
 
     const fetchCoupons = async () => {
         try {
             const res = await axios.get(`${API_URL}Coupons`);
-            const active = res.data.filter(c => c.IsActive && c.Status);
+            const now = new Date();
+
+            const active = res.data.filter(c => {
+                const validFrom = new Date(c.ValidFrom);
+                const validTill = new Date(c.ValidTill);
+
+                return (
+                    c.IsActive &&
+                    c.Status &&
+                    now >= validFrom &&
+                    now <= validTill 
+                );
+            });
+
             console.log("Active Coupons:", active);
             setCoupons(active);
         } catch (err) {
@@ -38,7 +62,7 @@ const CouponsList = () => {
         return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
     };
 
-    const isAmount = (type) => type === 'FixedAmount';
+    const isAmount = (type) => type === 'amount';
 
     const handleApplyCoupon = (coupon) => {
         setAppliedCoupon(coupon);
@@ -62,18 +86,20 @@ const CouponsList = () => {
                 <View
                     style={{
                         backgroundColor: '#fff',
-                        padding: 14,
+                        paddingVertical: 15,
+                        paddingHorizontal: 16,
                         justifyContent: 'center',
                         borderTopLeftRadius: 14,
                         borderBottomLeftRadius: 14,
                         borderTopRightRadius: 20,
                         borderBottomRightRadius: 20,
+
                     }}
                 >
                     <CustomText style={[{ color: color.secondary }, globalStyles.f36Bold]}>
                         {isAmount(item.DiscountType) ? `₹${item.DiscountValue}` : `${item.DiscountValue}%`}
                     </CustomText>
-                    <CustomText style={[{ color: color.black }, globalStyles.f12Medium]}>
+                    <CustomText style={[{ color: color.black }, globalStyles.f10Medium]}>
                         {item.Description}
                     </CustomText>
                 </View>
@@ -88,22 +114,27 @@ const CouponsList = () => {
             }}>
                 <CustomText style={[{ color: color.white }, globalStyles.f16Bold]}>{item.Code}</CustomText>
                 <TouchableOpacity
+                    disabled={!isCouponApplicable(item)}
                     style={{
-                        backgroundColor: color.yellow,
+                        backgroundColor: isCouponApplicable(item) ? color.yellow : "#ccc",
                         paddingVertical: 6,
                         borderRadius: 20,
                         marginTop: 10,
                         paddingHorizontal: 14,
                         flexDirection: 'row',
                         alignItems: 'center',
+                        opacity: isCouponApplicable(item) ? 1 : 0.4,
                     }}
                     onPress={() => handleApplyCoupon(item)}
                 >
                     <MaterialCommunityIcons name="tag-outline" color="black" size={14} style={{ marginRight: 6 }} />
                     <CustomText style={[{ color: color.black, marginBottom: 2 }, globalStyles.f10Bold]}>
-                        Apply Now
+                        {isCouponApplicable(item) ? "Apply Now" : "Not Applicable"}
                     </CustomText>
                 </TouchableOpacity>
+                <CustomText style={[{ color: color.yellow, marginTop: 4 }, globalStyles.f10Bold]}>
+                    Valid Till: {formatDate(item.ValidTill)}
+                </CustomText>
             </View>
         </View>
     );
@@ -137,24 +168,26 @@ const CouponsList = () => {
                     <CustomText style={[{ color: color.secondary }, globalStyles.f28Bold]}>
                         {isAmount(item.DiscountType) ? `₹${item.DiscountValue}` : `${item.DiscountValue}%`}
                     </CustomText>
-                    <CustomText style={[{ color: color.black }, globalStyles.f12Medium]}>{item.Description}</CustomText>
+                    <CustomText style={[{ color: color.black }, globalStyles.f10Medium]}>{item.Description}</CustomText>
                 </View>
                 <View style={{ justifyContent: 'flex-end', alignItems: 'flex-end' }}>
                     <TouchableOpacity
+                        disabled={!isCouponApplicable(item)}
                         style={{
-                            backgroundColor: '#000',
+                            backgroundColor: isCouponApplicable(item) ? "#000" : "#ccc",
                             paddingHorizontal: 24,
                             paddingVertical: 6,
                             borderRadius: 20,
                             marginBottom: 4,
+                            opacity: isCouponApplicable(item) ? 1 : 0.4,
                         }}
                         onPress={() => handleApplyCoupon(item)}
                     >
-                        <CustomText style={[{ color: 'white', marginBottom: 2 }, globalStyles.f10Bold]}>
-                            Apply Now
+                        <CustomText style={[{ color: isCouponApplicable(item) ? "white" : "black", marginBottom: 2 }, globalStyles.f10Bold]}>
+                            {isCouponApplicable(item) ? "Apply Now" : "Not Applicable"}
                         </CustomText>
                     </TouchableOpacity>
-                    <CustomText style={[{ fontSize: 10, color: color.yellow }, globalStyles.f10Bold]}>
+                    <CustomText style={[{ color: color.yellow }, globalStyles.f10Bold]}>
                         Valid Till: {formatDate(item.ValidTill)}
                     </CustomText>
                 </View>

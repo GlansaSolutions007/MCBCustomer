@@ -13,7 +13,7 @@ import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
 import CustomText from "../../components/CustomText";
 import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
-
+import Icon from "react-native-vector-icons/MaterialIcons";
 
 export default function BookingsInnerPage() {
   const route = useRoute();
@@ -82,31 +82,35 @@ export default function BookingsInnerPage() {
           </CustomText>
         </View>
         <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>
-            Technician:
-          </CustomText>
-          <CustomText
-            style={[
-              styles.value,
-              globalStyles.f12Regular,
-              {
-                color: booking.TechID === 0 ? color.primary : "#333",
-                fontWeight: booking.TechID === 0 ? "bold" : "normal",
-              },
-            ]}
-          >
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate("WhereCustomer", { techId: booking.TechID, latitude: booking.latitude, longitude: booking.Longitude })
-              }
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>Technician:</CustomText>
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 2, justifyContent: "flex-end" }}>
+            <CustomText
+              style={[
+                styles.value,
+                globalStyles.f12Regular,
+                {
+                  color: booking.TechID === null ? "#FF9500" : "#333",
+                  fontWeight: booking.TechID === null ? "bold" : "normal",
+                },
+              ]}
             >
-              <Text>
-                {booking.TechID === 0
-                  ? "Not Assigned Yet"
-                  : `Assigned (ID: ${booking.TechID})`}
-              </Text>
-            </TouchableOpacity>
-          </CustomText>
+              {booking.TechID === null ? "Not Assigned Yet" : `Assigned (${booking.TechFullName})`}
+            </CustomText>
+            {booking.BookingStatus.toLowerCase() === "startjourney" && booking.TechID !== null && (
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate("WhereCustomer", {
+                    techId: booking.TechID,
+                    latitude: booking.Latitude,
+                    longitude: booking.Longitude,
+                  })
+                }
+                style={{ marginLeft: 8 }}
+              >
+                <Icon name="map" size={20} color={color.primary || "#007AFF"} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
         <View style={styles.section}>
           <CustomText style={[styles.label, globalStyles.f12Bold]}>

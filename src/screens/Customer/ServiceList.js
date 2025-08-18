@@ -20,14 +20,13 @@ export default function ServiceList() {
     try {
       const userData = await AsyncStorage.getItem("userData");
       const parsedData = userData ? JSON.parse(userData) : null;
-      const custID = parsedData?.custID; // Fallback to 2 for testing
+      const custID = parsedData?.custID || 2; // Fallback to 2 for testing
       console.log("Customer ID:", custID);
-      
 
       const response = await axios.get(
-        `${API_URL}Bookings/${custID}`
+        `https://api.mycarsbuddy.com/api/Bookings/${custID}`
       );
-      console.log("Raw responseasdadas:", response);
+      console.log("Raw response:", response);
       console.log("Response data:", response.data);
       console.log("Is response.data an array?", Array.isArray(response.data));
 
@@ -73,15 +72,12 @@ export default function ServiceList() {
     const status = (b.BookingStatus || "").toLowerCase();
     console.log("Booking status:", status, "Selected tab:", selectedTab);
     return selectedTab === "New"
-      ? status === "confirmed" || status === "pending"
+      ? status != "completed"
       : status === "completed";
   });
 
   console.log("Current bookings state:", bookings);
   console.log("Filtered bookings:", filteredBookings);
-  // alert(
-  //   "here is the filtered bookings: "
-  // )
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
@@ -167,12 +163,11 @@ export default function ServiceList() {
                     style={[
                       styles.subText,
                       {
-                        color: booking.TechID === 0 ? "#FF9500" : "#333",
-                        fontWeight: booking.TechID === 0 ? "bold" : "normal",
+                        color: booking.TechID === null ? "#FF9500" : "#333",
                       },
                     ]}
                   >
-                    Technician: {booking.TechID === 0 ? "Not Assigned Yet" : "Assigned"}
+                    Technician: {booking.TechID === null ? "Not Assigned Yet" : "Assigned"}
                   </CustomText>
                 </View>
               </View>
