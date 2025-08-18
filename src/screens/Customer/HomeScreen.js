@@ -128,7 +128,7 @@ export default function HomeScreen() {
     })();
   }, []);
 const { refreshing, onRefresh } = useGlobalRefresh(async () => {
-    alert("Refresh logic here"); // Replace with actual refresh logic
+    // alert("Refresh logic here"); // Replace with actual refresh logic
   });
   return (
     <ScrollView

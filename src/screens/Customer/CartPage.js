@@ -383,7 +383,7 @@ const CartPage = () => {
     // alert(orderid);
     const options = {
       description: "MyCarBuddy Service Payment",
-      image: "https://mycarsbuddy.com/logo.png",
+      image: "https://mycarsbuddy.com/logo2.png",
       currency: "INR",
       key: RAZORPAY_KEY,
       order_id: orderid,

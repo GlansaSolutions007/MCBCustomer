@@ -1,6 +1,8 @@
 // src/contexts/AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_URL } from "../../apiConfig";
+import axios from "axios";
 
 const AuthContext = createContext();
 
@@ -27,8 +29,23 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (userData) => {
     setUser(userData);
+
+
     await AsyncStorage.setItem("authToken", userData.token);
     await AsyncStorage.setItem("userData", JSON.stringify(userData));
+
+    
+    const response1 = await axios.get(
+      `${API_URL}CustomerVehicles/CustId?CustId=${userData.custID}`
+    );
+
+    const primaryCar = response1.data.find((car) => car.IsPrimary);
+
+    const primaryCarId = primaryCar?.VehicleID || null;
+
+    console.log(response1, "Carrrrr Data");
+    await AsyncStorage.setItem("primaryVehicleId", primaryCarId);
+    
   };
 
   const logout = async () => {

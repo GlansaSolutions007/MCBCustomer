@@ -77,7 +77,7 @@ export default function LiveTracking() {
       const destination = `${custLoc.latitude},${custLoc.longitude}`;
 
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=AIzaSyAC8UIiyDI55MVKRzNTHwQ9mnCnRjDymVo`
+        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${GOOGLE_MAPS_APIKEY}`
       );
       const json = await response.json();
 

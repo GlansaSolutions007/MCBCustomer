@@ -7,7 +7,7 @@ import CustomText from "../../components/CustomText";
 import { color } from "../../styles/theme";
 import axios from "axios";
 import Loader from "../../components/Loader";
-import Logo from '../../../assets/Logo/logo.png'
+import Logo from '../../../assets/Logo/logo2.png'
 // import { API_BASE_URL } from "@env";
 import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
 import { getToken } from "../../utils/token";

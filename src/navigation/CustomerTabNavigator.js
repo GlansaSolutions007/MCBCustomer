@@ -12,7 +12,7 @@ import CustomHeader from "../components/CustomHeader";
 import { MyCarsList } from "../screens/Customer/MyCarsList";
 import globalStyles from "../styles/globalStyles";
 import { color } from "../styles/theme";
-import logo from '../../assets/Logo/logo.png'
+import logo from '../../assets/Logo/logo2.png'
 
 const Tab = createBottomTabNavigator();
 
