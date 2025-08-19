@@ -27,7 +27,7 @@ import {
 
 export default function ProfileScreen() {
   const [image, setImage] = useState(null);
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
   const { logout } = useAuth();
@@ -52,7 +52,7 @@ export default function ProfileScreen() {
     }
   };
 
- useFocusEffect(
+  useFocusEffect(
     useCallback(() => {
       fetchCustomerData();
     }, [])
@@ -78,8 +78,7 @@ export default function ProfileScreen() {
           source={image ? { uri: image } : DefaultProfileImage}
           style={styles.profileImage}
           imageStyle={{ borderRadius: 60 }}
-        >
-        </ImageBackground>
+        ></ImageBackground>
       </View>
       <View style={styles.heading}>
         <CustomText style={[globalStyles.f20Bold, globalStyles.textBlack]}>
@@ -123,7 +122,11 @@ export default function ProfileScreen() {
             <View style={styles.profileDetails}>
               <TouchableOpacity
                 style={styles.eachTouchable}
-                onPress={() => navigation.navigate("MyCarsList")}
+                onPress={() =>
+                  navigation.navigate("CustomerTabNavigator", {
+                    screen: "My Cars",
+                  })
+                }
               >
                 <View style={styles.row}>
                   <Ionicons name="car" size={22} color={color.primary} />
@@ -171,7 +174,14 @@ export default function ProfileScreen() {
           </CustomText>
           <View style={styles.profileCard}>
             <View style={styles.profileDetails}>
-              <TouchableOpacity style={styles.eachTouchable} onPress={()=>navigation.navigate('CustomerTabNavigator',{screen:"My Bookings"})}>
+              <TouchableOpacity
+                style={styles.eachTouchable}
+                onPress={() =>
+                  navigation.navigate("CustomerTabNavigator", {
+                    screen: "My Bookings",
+                  })
+                }
+              >
                 <View style={styles.row}>
                   <Ionicons name="calendar" size={22} color={color.primary} />
                   <CustomText
