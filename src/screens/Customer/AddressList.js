@@ -18,6 +18,7 @@ import { LocationContext } from "../../contexts/LocationContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { API_URL } from "../../../apiConfig";
+import CustomAlert from "../../components/CustomAlert";
 
 export default function AddressListScreen() {
   const { locationText, locationStatus, setLocationText, setLocationStatus } =
@@ -25,30 +26,26 @@ export default function AddressListScreen() {
   const [addressList, setAddressList] = useState([]);
   const [primaryAddress, setPrimaryAddress] = useState(null);
 
+  // For delete confirmation
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+
   const fetchAddresses = async () => {
     try {
       const userData = await AsyncStorage.getItem("userData");
       const parsedData = JSON.parse(userData);
-      console.log(parsedData.custID, "user data in cart page");
-      // console.log(userData, "user data in cart page");
       const custID = parsedData?.custID;
-      console.log(custID, "customer id in cart page");
-      // alert(parsedData?.custID || "No customer ID found");
-      // if (!custID) return;
 
       const response = await axios.get(
-        `${API_URL}CustomerAddresses/custid?custid=${parsedData?.custID}`
+        `${API_URL}CustomerAddresses/custid?custid=${custID}`
       );
       const allAddresses = response.data;
-
-      console.log(allAddresses, "customer addresses");
 
       setAddressList(allAddresses);
 
       const primary = allAddresses.find((addr) => addr.IsPrimary);
       if (primary) {
         setPrimaryAddress(primary);
-        // 👇 update LocationContext so header shows it
         setLocationText(`${primary.AddressLine1}, ${primary.CityName}`);
         setLocationStatus("saved");
       }
@@ -58,7 +55,7 @@ export default function AddressListScreen() {
   };
 
   useEffect(() => {
-    fetchAddresses(); // Initial fetch on mount
+    fetchAddresses();
   }, []);
 
   const makePrimaryAddress = async (addressId) => {
@@ -66,15 +63,23 @@ export default function AddressListScreen() {
       await axios.post(
         `${API_URL}CustomerAddresses/primary-address?AddressId=${addressId}`
       );
-      const updated = addressList.find((a) => a.AddressID === addressId);
-      if (updated) {
-        setPrimaryAddress(updated);
-        setLocationText(`${updated.AddressLine1}, ${updated.CityName}`);
-        setLocationStatus("saved");
-      }
       fetchAddresses();
     } catch (err) {
       console.error("Failed to set primary address:", err);
+    }
+  };
+
+  const deleteAddress = async () => {
+    if (!selectedAddressId) return;
+    try {
+      await axios.delete(
+        `${API_URL}CustomerAddresses/addressid?addressid=${selectedAddressId}`
+      );
+      setShowDeleteAlert(false);
+      setSelectedAddressId(null);
+      fetchAddresses();
+    } catch (err) {
+      console.error("Failed to delete address:", err);
     }
   };
 
@@ -88,70 +93,99 @@ export default function AddressListScreen() {
         ) : (
           addressList.map((address) => (
             <View key={address.AddressID} style={styles.card}>
+              {/* Header */}
               <View style={styles.cardHeader}>
-                <Ionicons name="home" size={16} color="#333" />
+                <Ionicons name="home" size={18} color="#333" />
                 <CustomText style={[globalStyles.f12Bold, styles.cardTitle]}>
-                  Address{" "}
-                  {addressList.length > 1
-                    ? addressList.indexOf(address) + 1
-                    : ""}{" "}
+                  {address.AddressLine1}
                 </CustomText>
               </View>
 
-              <CustomText
-                style={[globalStyles.f12SemiBold, styles.addressLine]}
-              >
-                {address.AddressLine1}, {address.CityName},{address.StateName},{" "}
-                {address.CountryName} - {address.Pincode}
+              {/* Address Line */}
+              <CustomText style={[globalStyles.f12SemiBold, styles.addressLine]}>
+                {address.AddressLine1}, {address.AddressLine2} {address.CityName},{" "}
+                {address.StateName} - {address.Pincode}
               </CustomText>
+
+              {/* Action Buttons Row */}
               <View style={styles.ActionButtons}>
-                <TouchableOpacity
-                  //   onPress={() => makePrimaryAddress(address.AddressID)}
-                  style={[
-                    styles.deleteButton,
-                    primaryAddress?.AddressID === address.AddressID && {
-                      backgroundColor: color.secondary,
-                    },
-                  ]}
-                >
-                  <CustomText
-                    style={[globalStyles.f12Regular, styles.buttonText]}
+                {primaryAddress?.AddressID === address.AddressID ? (
+                  <View style={[styles.primaryButton, { flex: 1 }]}>
+                    <CustomText
+                      style={[globalStyles.f12Regular, styles.buttonText]}
+                    >
+                      Primary Address
+                    </CustomText>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => makePrimaryAddress(address.AddressID)}
+                    style={[styles.notprimaryButton, { flex: 1 }]}
                   >
-                    {primaryAddress?.AddressID === address.AddressID
-                      ? "Primary Address"
-                      : "Make Primary"}
-                  </CustomText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => makePrimaryAddress(address.AddressID)}
-                  style={[
-                    styles.primaryButton,
-                    primaryAddress?.AddressID === address.AddressID && {
-                      backgroundColor: color.secondary,
-                    },
-                  ]}
-                >
-                  <CustomText
-                    style={[globalStyles.f12Regular, styles.buttonText]}
+                    <CustomText
+                      style={[globalStyles.f12Regular, styles.nobuttonText]}
+                    >
+                      Make Primary
+                    </CustomText>
+                  </TouchableOpacity>
+                )}
+
+                {/* Show delete only if NOT primary */}
+                {primaryAddress?.AddressID !== address.AddressID && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSelectedAddressId(address.AddressID);
+                      setShowDeleteAlert(true);
+                    }}
+                    style={[styles.deleteButton]}
                   >
-                    {primaryAddress?.AddressID === address.AddressID
-                      ? "Primary Address"
-                      : "Make Primary"}
-                  </CustomText>
-                </TouchableOpacity>
+                    <Ionicons name="trash-outline" size={20} color="white" />
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           ))
         )}
       </ScrollView>
+
+      {/* Delete Confirmation Alert */}
+      <CustomAlert
+        visible={showDeleteAlert}
+        status="error"
+        title="Delete Address"
+        message="Are you sure you want to delete this address?"
+        showButton={false}
+        onClose={() => setShowDeleteAlert(false)}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginTop: 16,
+          }}
+        >
+          <TouchableOpacity
+            style={[styles.cancelButton]}
+            onPress={() => setShowDeleteAlert(false)}
+          >
+            <CustomText style={styles.cancelText}>Cancel</CustomText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.confirmDeleteButton]}
+            onPress={deleteAddress}
+          >
+            <CustomText style={styles.confirmText}>Yes, Delete</CustomText>
+          </TouchableOpacity>
+        </View>
+      </CustomAlert>
     </SafeAreaView>
+
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     backgroundColor: color.backgroundLight,
   },
   contentContainer: {
@@ -162,55 +196,77 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    // shadowColor: "#000",
-    // shadowOffset: { width: 0, height: 3 },
-    // shadowOpacity: 0.1,
-    // shadowRadius: 6,
-    // elevation: 4, // Android shadow
   },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 4,
   },
   cardTitle: {
-    fontSize: 16,
-    fontWeight: "600",
+    ...globalStyles.f14Bold,
     marginLeft: 6,
     color: "#333",
   },
   addressLine: {
-    // fontSize: 14,
-    fontWeight: "500",
+    ...globalStyles.f10Bold,
     color: "#444",
     marginBottom: 10,
   },
-  addressDetails: {
-    fontSize: 13,
-    color: "#666",
-    marginBottom: 12,
-  },
   primaryButton: {
+    backgroundColor: color.secondary,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginRight: 8,
+    alignItems: "center",
+  },
+  notprimaryButton: {
     backgroundColor: color.textLight,
     paddingVertical: 10,
     borderRadius: 8,
-    width: "48%",
+    marginRight: 8,
     alignItems: "center",
   },
   deleteButton: {
     backgroundColor: color.alertError,
-    paddingVertical: 10,
+    padding: 10,
     borderRadius: 8,
-    width: "48%",
     alignItems: "center",
   },
   buttonText: {
     color: "#fff",
-    fontWeight: "600",
+  },
+  nobuttonText: {
+    color: "#fff",
   },
   ActionButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 10,
+    alignItems:'center'
   },
+  cancelButton: {
+    flex: 1,
+    marginRight: 8,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: "#ddd",
+    alignItems: "center",
+  },
+  confirmDeleteButton: {
+    flex: 1,
+    marginLeft: 8,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: color.alertError,
+    alignItems: "center",
+  },
+  cancelText: {
+    color: "#333",
+    fontWeight: "600",
+  },
+  confirmText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+
 });
+

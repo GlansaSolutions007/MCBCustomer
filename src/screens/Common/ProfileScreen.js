@@ -1,4 +1,4 @@
-import { React, useState, useEffect } from "react";
+import { React, useState, useEffect, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import CustomText from "../../components/CustomText";
 import DefaultProfileImage from "../../../assets/images/profile-user.png";
 import axios from "axios";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import globalStyles from "../../styles/globalStyles";
 import { useAuth } from "../../contexts/AuthContext";
@@ -27,33 +27,36 @@ import {
 
 export default function ProfileScreen() {
   const [image, setImage] = useState(null);
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchCustomerData = async () => {
-      setLoading(true);
-      try {
-        const userData = await AsyncStorage.getItem("userData");
-        const parsedData = JSON.parse(userData);
-        const custID = parsedData?.custID;
-        // alert(`Customer ID: ${custID}`);
-        const response = await axios.get(`${API_URL}Customer/Id?Id=${custID}`);
-        const data = response.data[0];
-        setImage(
-          data.ProfileImage ? `${API_IMAGE_URL}${data.ProfileImage}` : null
-        );
-      } catch (err) {
-        console.error("Failed to load profile", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCustomerData();
-  }, []);
-
   const navigation = useNavigation();
   const { logout } = useAuth();
+
+  const fetchCustomerData = async () => {
+    setLoading(true);
+    try {
+      const userData = await AsyncStorage.getItem("userData");
+      const parsedData = JSON.parse(userData);
+      const custID = parsedData?.custID;
+      const response = await axios.get(`${API_URL}Customer/Id?Id=${custID}`);
+      const data = response.data[0];
+      // console.log('data', data);
+      setName(data.FullName);
+      setImage(
+        data.ProfileImage ? `${API_IMAGE_URL}${data.ProfileImage}` : null
+      );
+    } catch (err) {
+      console.error("Failed to load profile", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+ useFocusEffect(
+    useCallback(() => {
+      fetchCustomerData();
+    }, [])
+  );
 
   const handleRegister = () => {
     navigation.navigate("ProfileRegister");
@@ -76,14 +79,11 @@ export default function ProfileScreen() {
           style={styles.profileImage}
           imageStyle={{ borderRadius: 60 }}
         >
-          {/* <TouchableOpacity style={styles.cameraIcon}>
-            <Ionicons name="camera" size={20} color="#fff" />
-          </TouchableOpacity> */}
         </ImageBackground>
       </View>
       <View style={styles.heading}>
         <CustomText style={[globalStyles.f20Bold, globalStyles.textBlack]}>
-          Vishal Kattera
+          {name}
         </CustomText>
       </View>
       <ScrollView
@@ -109,7 +109,7 @@ export default function ProfileScreen() {
                   <CustomText
                     style={[styles.touchableText, globalStyles.f16Medium]}
                   >
-                    Profile Setting
+                    Profile Details
                   </CustomText>
                 </View>
                 <Ionicons
@@ -130,7 +130,7 @@ export default function ProfileScreen() {
                   <CustomText
                     style={[styles.touchableText, globalStyles.f16Medium]}
                   >
-                    Your Cars
+                    My Cars
                   </CustomText>
                 </View>
                 <Ionicons
@@ -171,7 +171,7 @@ export default function ProfileScreen() {
           </CustomText>
           <View style={styles.profileCard}>
             <View style={styles.profileDetails}>
-              <TouchableOpacity style={styles.eachTouchable}>
+              <TouchableOpacity style={styles.eachTouchable} onPress={()=>navigation.navigate('CustomerTabNavigator',{screen:"My Bookings"})}>
                 <View style={styles.row}>
                   <Ionicons name="calendar" size={22} color={color.primary} />
                   <CustomText
@@ -410,7 +410,6 @@ const styles = StyleSheet.create({
   },
   touchableText: {
     marginLeft: 12,
-    fontSize: 16,
     color: "#333",
   },
 });
