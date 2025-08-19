@@ -15,15 +15,18 @@ import CustomText from "../../components/CustomText";
 import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "../../../apiConfig";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 export default function BookingsInnerPage() {
   const route = useRoute();
   const { booking } = route.params;
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: "#F5F5F5" }}
-      contentContainerStyle={{ padding: 16 }}
+      contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16, }}
     >
       <CustomText style={[styles.sectionTitle, globalStyles.f14Bold]}>
         Booking Details

@@ -19,6 +19,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { API_URL } from "../../../apiConfig";
 import CustomAlert from "../../components/CustomAlert";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AddressListScreen() {
   const { locationText, locationStatus, setLocationText, setLocationStatus } =
@@ -29,6 +30,7 @@ export default function AddressListScreen() {
   // For delete confirmation
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const insets = useSafeAreaInsets();
 
   const fetchAddresses = async () => {
     try {
@@ -85,7 +87,7 @@ export default function AddressListScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
+      <ScrollView contentContainerStyle={[styles.contentContainer,{paddingBottom: insets.bottom + 16}]}>
         {addressList.length === 0 ? (
           <CustomText style={globalStyles.paragraph}>
             No addresses found. Please add an address.
@@ -241,7 +243,7 @@ const styles = StyleSheet.create({
   ActionButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems:'center'
+    alignItems: 'center'
   },
   cancelButton: {
     flex: 1,
