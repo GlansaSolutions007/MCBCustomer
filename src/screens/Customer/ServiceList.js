@@ -1,5 +1,13 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, ScrollView, TouchableOpacity, StyleSheet, Image, RefreshControl, ActivityIndicator } from "react-native";
+import {
+  View,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  RefreshControl,
+  ActivityIndicator,
+} from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
@@ -37,7 +45,11 @@ export default function ServiceList() {
       // Handle potential non-array response
       if (!Array.isArray(bookingsData)) {
         console.warn("Response is not an array, attempting to extract array");
-        if (bookingsData && typeof bookingsData === "object" && Array.isArray(bookingsData.bookings)) {
+        if (
+          bookingsData &&
+          typeof bookingsData === "object" &&
+          Array.isArray(bookingsData.bookings)
+        ) {
           bookingsData = bookingsData.bookings;
           console.log("Extracted bookings array:", bookingsData);
         } else if (typeof bookingsData === "string") {
@@ -95,28 +107,28 @@ export default function ServiceList() {
   return (
     <View style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
       <View style={styles.tabRow}>
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => {
-              console.log("Tab switched to:", tab);
-              setSelectedTab(tab);
-            }}
-            style={[
-              styles.tabButton,
-              selectedTab === tab && styles.tabButtonActive,
-            ]}
-          >
-            <CustomText
-              style={[
-                styles.tabButtonText,
-                selectedTab === tab && styles.tabButtonTextActive,
-              ]}
+        {tabs.map((tab) => {
+          const isActive = selectedTab === tab;
+          return (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => {
+                console.log("Tab switched to:", tab);
+                setSelectedTab(tab);
+              }}
+              style={[styles.tabButton, isActive && styles.tabButtonActive]}
             >
-              {tab}
-            </CustomText>
-          </TouchableOpacity>
-        ))}
+              <CustomText
+                style={[
+                  styles.tabButtonText,
+                  isActive && styles.tabButtonTextActive,
+                ]}
+              >
+                {tab}
+              </CustomText>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       <ScrollView
@@ -134,7 +146,13 @@ export default function ServiceList() {
         </CustomText>
 
         {loading ? (
-          <CustomText style={{ textAlign: "center", marginTop: 20, ...globalStyles.f12Regular }}>
+          <CustomText
+            style={{
+              textAlign: "center",
+              marginTop: 20,
+              ...globalStyles.f12Regular,
+            }}
+          >
             <ActivityIndicator size="large" color={color.secondary} />
           </CustomText>
         ) : bookings.length === 0 ? (
@@ -154,7 +172,9 @@ export default function ServiceList() {
             <TouchableOpacity
               key={booking.BookingID}
               style={styles.card}
-              onPress={() => navigation.navigate("BookingsInnerPage", { booking })}
+              onPress={() =>
+                navigation.navigate("BookingsInnerPage", { booking })
+              }
             >
               <View style={styles.header}>
                 <Image
@@ -162,7 +182,9 @@ export default function ServiceList() {
                     uri: `https://api.mycarsbuddy.com/Images${booking.VehicleImage}`,
                   }}
                   style={styles.vehicleImage}
-                  onError={(e) => console.log("Image load error:", e.nativeEvent.error)}
+                  onError={(e) =>
+                    console.log("Image load error:", e.nativeEvent.error)
+                  }
                 />
                 <View style={{ flex: 1, marginLeft: 10 }}>
                   <CustomText style={styles.title}>
@@ -185,7 +207,8 @@ export default function ServiceList() {
                       },
                     ]}
                   >
-                    Technician: {booking.TechID === null ? "Not Assigned Yet" : "Assigned"}
+                    Technician:{" "}
+                    {booking.TechID === null ? "Not Assigned Yet" : "Assigned"}
                   </CustomText>
                 </View>
               </View>
@@ -221,23 +244,36 @@ export default function ServiceList() {
 const styles = StyleSheet.create({
   tabRow: {
     flexDirection: "row",
-    backgroundColor: "#ddd",
+    backgroundColor: "#F5F7FA", // light modern background
+    borderRadius: 12,
+    padding: 4,
+    marginVertical: 10,
+    marginHorizontal: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3, // Android shadow
   },
   tabButton: {
     flex: 1,
-    paddingVertical: 14,
+    paddingVertical: 12,
     alignItems: "center",
-    backgroundColor: "#E0E0E0",
+    borderRadius: 10,
+    backgroundColor: "transparent",
+    transition: "all 0.3s", // works in web, for RN add Animated if needed
   },
   tabButtonActive: {
-    backgroundColor: color.primary || "#007AFF",
+    backgroundColor: color.yellow, // your primary brand color
   },
   tabButtonText: {
-    color: "#333",
-    ...globalStyles.f10Bold,
+    color: "#555",
+    ...globalStyles.f12Bold,
+    fontWeight: "600",
   },
   tabButtonTextActive: {
     color: "#fff",
+    fontWeight: "700",
   },
   card: {
     backgroundColor: "#fff",
