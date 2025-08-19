@@ -17,6 +17,10 @@ import SchedulePage from "../screens/Customer/SchedulePage";
 import CouponsList from "../screens/Customer/Coupons";
 import BookingsInnerPage from "../screens/Customer/BookingsInnerPage";
 import LiveTracking from "../screens/Customer/WhereCustomer";
+import PrivacyPolicyScreen from "../screens/Common/PrivacyPolicyScreen";
+import RefundPolicyScreen from "../screens/Common/RefundPolicyScreen";
+import TermsConditionsScreen from "../screens/Common/TermsConditionsScreen";
+import AddressListScreen from "../screens/Customer/AddressList";
 
 const Stack = createNativeStackNavigator();
 
@@ -42,6 +46,11 @@ export default function CustomerStackNavigator() {
           options={{ title: "Select Your Car" }}
         />
         <Stack.Screen
+          name="MyCarsList"
+          component={MyCarsList}
+          options={{ title: "Select Your Car" }}
+        />
+        <Stack.Screen
           name="MyCarDetails"
           component={MyCarDetails}
           options={{
@@ -51,7 +60,8 @@ export default function CustomerStackNavigator() {
         <Stack.Screen
           name="InteriorService"
           component={InteriorService}
-          options={{ headerShown: false }} />
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="ServiceInnerPage"
           component={ServiceInnerPage}
@@ -93,7 +103,31 @@ export default function CustomerStackNavigator() {
           component={LiveTracking}
           options={{ title: "Where Technician" }}
         />
-        <Stack.Screen name="BookingsInnerPage" component={BookingsInnerPage} options={{ title: "Booking Details" }} />
+        <Stack.Screen
+          name="BookingsInnerPage"
+          component={BookingsInnerPage}
+          options={{ title: "Booking Details" }}
+        />
+        <Stack.Screen
+          name="PrivacyPolicy"
+          component={PrivacyPolicyScreen}
+          options={{ title: "Privacy Policy" }}
+        />
+        <Stack.Screen
+          name="RefundPolicy"
+          component={RefundPolicyScreen}
+          options={{ title: "Refund Policy" }}
+        />
+        <Stack.Screen
+          name="TermsConditions"
+          component={TermsConditionsScreen}
+          options={{ title: "Terms & Conditions" }}
+        />
+        <Stack.Screen
+          name="AddressList"
+          component={AddressListScreen}
+          options={{ title: "My Address" }}
+        />
       </Stack.Navigator>
     </CartProvider>
   );

@@ -110,7 +110,7 @@ export default function CustomerTabNavigator({ navigation }) {
       />
       {/* <Tab.Screen name="Book Service" component={BookServiceScreen} /> */}
       <Tab.Screen name="My Bookings" component={ServiceList} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
     </Tab.Navigator>
   );
 }

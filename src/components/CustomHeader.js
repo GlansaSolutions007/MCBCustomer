@@ -1,7 +1,18 @@
 import React, { useContext, useEffect, useState } from "react";
 import {
-  View, Text, TextInput, StyleSheet, Pressable, Image, TouchableOpacity, Modal, FlatList, TouchableWithoutFeedback,
-  Keyboard, Alert, ActivityIndicator,
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Pressable,
+  Image,
+  TouchableOpacity,
+  Modal,
+  FlatList,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Alert,
+  ActivityIndicator,
   TouchableWithoutFeedback as RNModalDismiss,
   StatusBar,
 } from "react-native";
@@ -9,10 +20,10 @@ import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomText from "./CustomText";
 import globalStyles from "../styles/globalStyles";
-import { Linking } from 'react-native';
+import { Linking } from "react-native";
 import { LocationContext } from "../contexts/LocationContext";
 import { useNavigation } from "@react-navigation/native";
-import * as Location from 'expo-location';
+import * as Location from "expo-location";
 import CustomAlert from "./CustomAlert";
 import { color } from "../styles/theme";
 import { API_URL } from "../../apiConfig";
@@ -22,7 +33,8 @@ import axios from "axios";
 export default function CustomHeader({ navigation }) {
   const insets = useSafeAreaInsets();
   const [showModal, setShowModal] = useState(false);
-  const { locationText, locationStatus, setLocationText, setLocationStatus } = useContext(LocationContext);
+  const { locationText, locationStatus, setLocationText, setLocationStatus } =
+    useContext(LocationContext);
   const [isLocating, setIsLocating] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
   const [addressList, setAddressList] = useState([]);
@@ -41,12 +53,12 @@ export default function CustomHeader({ navigation }) {
 
   const handleManualLocation = (selectedCity) => {
     setLocationText(selectedCity);
-    setLocationStatus('manual');
+    setLocationStatus("manual");
     setShowModal(false);
   };
 
   const handlePressLocation = () => {
-    if (locationStatus === 'denied') {
+    if (locationStatus === "denied") {
       showAlert({
         title: "Location Permission Denied",
         message: "Open settings and enable location access.",
@@ -62,11 +74,12 @@ export default function CustomHeader({ navigation }) {
     try {
       setIsLocating(true);
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
+      if (status !== "granted") {
         setIsLocating(false);
         showAlert({
           title: "Permission Denied",
-          message: "Location permission is required to detect your current city.",
+          message:
+            "Location permission is required to detect your current city.",
           status: "error",
         });
         return;
@@ -135,14 +148,14 @@ export default function CustomHeader({ navigation }) {
     }
   };
 
- useEffect(() => {
-  fetchAddresses(); // Initial fetch on mount
-  const unsubscribe = navigationTo.addListener('focus', () => {
-    fetchAddresses(); // Re-fetch when screen is focused
-  });
+  useEffect(() => {
+    fetchAddresses(); // Initial fetch on mount
+    const unsubscribe = navigationTo.addListener("focus", () => {
+      fetchAddresses(); // Re-fetch when screen is focused
+    });
 
-  return unsubscribe;
-}, [navigationTo]);
+    return unsubscribe;
+  }, [navigationTo]);
 
   const makePrimaryAddress = async (addressId) => {
     try {
@@ -165,19 +178,40 @@ export default function CustomHeader({ navigation }) {
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={color.primary} />
-      <View style={[styles.headerContainer, globalStyles.bgprimary, { paddingTop: insets.top + 10 }]}>
+      <View
+        style={[
+          styles.headerContainer,
+          globalStyles.bgprimary,
+          { paddingTop: insets.top + 10 },
+        ]}
+      >
         <View style={styles.topRow}>
           <View>
-            <CustomText style={[globalStyles.textWhite, globalStyles.mt1]}>Hello User</CustomText>
+            <CustomText style={[globalStyles.textWhite, globalStyles.mt1]}>
+              Hello User
+            </CustomText>
             <Pressable onPress={handlePressLocation}>
-              <CustomText style={[globalStyles.f12Bold, globalStyles.mt1, globalStyles.textWhite]}>
-                {locationText || "Select Location"} <Ionicons name="chevron-down" size={14} />
+              <CustomText
+                style={[
+                  globalStyles.f12Bold,
+                  globalStyles.mt1,
+                  globalStyles.textWhite,
+                ]}
+              >
+                {locationText || "Select Location"}{" "}
+                <Ionicons name="chevron-down" size={14} />
               </CustomText>
             </Pressable>
           </View>
 
-          <Pressable onPress={() => navigationTo.navigate('NotificationScreen')}>
-            <Ionicons name="notifications-outline" size={24} style={globalStyles.textWhite} />
+          <Pressable
+            onPress={() => navigationTo.navigate("NotificationScreen")}
+          >
+            <Ionicons
+              name="notifications-outline"
+              size={24}
+              style={globalStyles.textWhite}
+            />
           </Pressable>
         </View>
       </View>
@@ -227,7 +261,9 @@ export default function CustomHeader({ navigation }) {
                       style={{ marginRight: 8 }}
                     />
                   )}
-                  <CustomText style={[globalStyles.primary, globalStyles.f14Bold]}>
+                  <CustomText
+                    style={[globalStyles.primary, globalStyles.f14Bold]}
+                  >
                     Use My Current Location
                   </CustomText>
                 </TouchableOpacity>
@@ -266,7 +302,9 @@ export default function CustomHeader({ navigation }) {
 
                 {/* ✅ Address List */}
                 <FlatList
-                  data={[...addressList].sort((a, b) => b.IsPrimary - a.IsPrimary)}
+                  data={[...addressList].sort(
+                    (a, b) => b.IsPrimary - a.IsPrimary
+                  )}
                   keyExtractor={(item) => item.AddressID.toString()}
                   showsVerticalScrollIndicator
                   style={{ maxHeight: 250 }}
@@ -302,8 +340,8 @@ export default function CustomHeader({ navigation }) {
                             { color: color.muted },
                           ]}
                         >
-                          {item.AddressLine2}, {item.CityName},{" "}
-                          {item.StateName}, {item.Pincode}
+                          {item.AddressLine2}, {item.CityName}, {item.StateName}
+                          , {item.Pincode}
                         </CustomText>
                       </View>
                     </TouchableOpacity>
@@ -315,7 +353,9 @@ export default function CustomHeader({ navigation }) {
                   onPress={() => setShowModal(false)}
                   style={{ marginTop: 20, alignSelf: "center" }}
                 >
-                  <CustomText style={[globalStyles.primary, globalStyles.f12Bold]}>
+                  <CustomText
+                    style={[globalStyles.primary, globalStyles.f12Bold]}
+                  >
                     Cancel
                   </CustomText>
                 </TouchableOpacity>
@@ -354,14 +394,14 @@ const styles = StyleSheet.create({
 
   modalOverlay: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.4)",
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '70%',
+    maxHeight: "70%",
   },
 });
