@@ -28,9 +28,9 @@ export default function BookingsInnerPage() {
       style={{ flex: 1, backgroundColor: "#F5F5F5" }}
       contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16, }}
     >
-      <CustomText style={[styles.sectionTitle, globalStyles.f14Bold]}>
+      {/* <CustomText style={[styles.sectionTitle, globalStyles.f14Bold]}>
         Booking Details
-      </CustomText>
+      </CustomText> */}
       <View style={styles.card}>
         {/* <View style={styles.section}>
           <CustomText style={[styles.label, globalStyles.f12Bold]}>Booking ID:</CustomText>
