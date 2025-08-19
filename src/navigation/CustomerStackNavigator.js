@@ -45,11 +45,11 @@ export default function CustomerStackNavigator() {
           component={MyCars}
           options={{ title: "Select Your Car" }}
         />
-        <Stack.Screen
+        {/* <Stack.Screen
           name="MyCarsList"
           component={MyCarsList}
           options={{ title: "Select Your Car" }}
-        />
+        /> */}
         <Stack.Screen
           name="MyCarDetails"
           component={MyCarDetails}

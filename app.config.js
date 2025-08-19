@@ -27,6 +27,10 @@ export default {
       },
       usesCleartextTraffic: true, // optional, for HTTP URLs
     },
+    ios: {
+      bundleIdentifier: "com.itglansa.mcbc",
+      buildNumber: "1.0.0",
+    },
     web: {
       favicon: "./assets/favicon.png",
     },

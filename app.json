@@ -14,7 +14,9 @@
     },
     "ios": {
       "supportsTablet": true,
-      "icon": "./assets/icon.png"
+      "icon": "./assets/icon.png",
+      "bundleIdentifier": "com.mycompany.mycarbuddy",
+      "buildNumber": "1.0.0"
     },
     "android": {
       "adaptiveIcon": {
