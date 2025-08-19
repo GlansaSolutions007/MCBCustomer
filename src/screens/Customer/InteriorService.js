@@ -360,8 +360,8 @@ const InteriorService = () => {
                     <Image
                       source={{ uri: selectedCar.image.uri }}
                       style={{
-                        width: 50,
-                        height: 50,
+                        width: 40,
+                        height: 40,
                         resizeMode: "contain",
                         backgroundColor: color.white,
                         borderRadius: 10,

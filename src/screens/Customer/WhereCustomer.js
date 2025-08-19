@@ -117,7 +117,7 @@ export default function LiveTracking() {
   if (!technicianLocation || !customerLocation) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="blue" />
+        <ActivityIndicator size="large" color={color.secondary} />
       </View>
     );
   }

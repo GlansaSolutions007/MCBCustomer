@@ -14,7 +14,7 @@ import globalStyles from "../../styles/globalStyles";
 import CustomText from "../../components/CustomText";
 import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "../../../apiConfig";
 import Icon from "react-native-vector-icons/MaterialIcons";
-
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 export default function BookingsInnerPage() {
   const route = useRoute();
   const { booking } = route.params;
@@ -107,7 +107,7 @@ export default function BookingsInnerPage() {
                 }
                 style={{ marginLeft: 8 }}
               >
-                <Icon name="map" size={20} color={color.primary || "#007AFF"} />
+                <FontAwesome5 name="map-marker-alt" size={20} color={color.primary} />
               </TouchableOpacity>
             )}
           </View>

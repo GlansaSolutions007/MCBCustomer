@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import CustomText from '../../components/CustomText';
@@ -10,6 +10,7 @@ import { useCoupon } from '../../contexts/CouponContext';
 import { useNavigation } from '@react-navigation/native';
 import { API_URL } from '../../../apiConfig';
 import { useCart } from '../../contexts/CartContext';
+import useGlobalRefresh from '../../hooks/useGlobalRefresh';
 
 const CouponsList = () => {
     const [coupons, setCoupons] = useState([]);
@@ -40,7 +41,7 @@ const CouponsList = () => {
                     c.IsActive &&
                     c.Status &&
                     now >= validFrom &&
-                    now <= validTill 
+                    now <= validTill
                 );
             });
 
@@ -52,6 +53,8 @@ const CouponsList = () => {
             setLoading(false);
         }
     };
+
+    const { refreshing, onRefresh } = useGlobalRefresh(fetchCoupons);
 
     useEffect(() => {
         fetchCoupons();
@@ -66,7 +69,7 @@ const CouponsList = () => {
 
     const handleApplyCoupon = (coupon) => {
         setAppliedCoupon(coupon);
-        navigation.goBack(); // navigate back to Cart
+        navigation.goBack(); 
     };
 
     const CouponCardStyleA = (item) => (
@@ -93,7 +96,6 @@ const CouponsList = () => {
                         borderBottomLeftRadius: 14,
                         borderTopRightRadius: 20,
                         borderBottomRightRadius: 20,
-
                     }}
                 >
                     <CustomText style={[{ color: color.secondary }, globalStyles.f36Bold]}>
@@ -138,7 +140,6 @@ const CouponsList = () => {
             </View>
         </View>
     );
-
 
     const CouponCardStyleB = (item) => (
         <View
@@ -195,12 +196,14 @@ const CouponsList = () => {
         </View>
     );
 
-    if (loading) return <ActivityIndicator size="large" color="#15706f" style={{ marginTop: 50 }} />;
+    if (loading) return <ActivityIndicator size="large" color={color.secondary} style={{ marginTop: 50 }} />;
 
     return (
         <SafeAreaView style={{ flex: 1, }} edges={['bottom']}>
-
-            <ScrollView contentContainerStyle={{ padding: 16 }}>
+            <ScrollView contentContainerStyle={{ padding: 16 }}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                }>
                 {coupons.map((coupon, index) =>
                     index % 2 === 0 ? CouponCardStyleA(coupon) : CouponCardStyleB(coupon)
                 )}

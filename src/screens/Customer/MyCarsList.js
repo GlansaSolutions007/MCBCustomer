@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
     marginBottom: 1,
   },
   primaryBadge: {
-    backgroundColor: "#28a745",
+    backgroundColor: color.primary,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 20,
