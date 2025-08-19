@@ -12,9 +12,10 @@ import globalStyles from "../../styles/globalStyles";
 import { color } from "../../styles/theme";
 import CustomText from "../../components/CustomText";
 // import { API_BASE_URL } from "@env";
-import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "../../../apiConfig";
 import axios from "axios";
 import SearchBox from "../../components/SearchBox";
+import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 
 export default function CarModels() {
   //
@@ -34,23 +35,23 @@ export default function CarModels() {
     setAlertVisible(true);
   };
 
-  useEffect(() => {
-    const fetchFuelTypes = async () => {
-      try {
-        const response = await axios.get(`${API_URL}FuelTypes/GetFuelTypes`);
-        const json = response.data;
+  const fetchFuelTypes = async () => {
+    try {
+      const response = await axios.get(`${API_URL}FuelTypes/GetFuelTypes`);
+      const json = response.data;
 
-        if (json.status && Array.isArray(json.data)) {
-          const activeFuelTypes = json.data.filter(f => f.IsActive);
-          setFuelTypes(activeFuelTypes);
-        } else {
-          console.warn("Failed to load fuel types.");
-        }
-      } catch (error) {
-        console.error("Error fetching fuel types:", error);
+      if (json.status && Array.isArray(json.data)) {
+        const activeFuelTypes = json.data.filter(f => f.IsActive);
+        setFuelTypes(activeFuelTypes);
+      } else {
+        console.warn("Failed to load fuel types.");
       }
-    };
+    } catch (error) {
+      console.error("Error fetching fuel types:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchFuelTypes();
   }, []);
 
@@ -71,6 +72,12 @@ export default function CarModels() {
     setFilteredModels(filtered);
   }, [searchText, models]);
 
+  const refreshData = async () => {
+    await fetchFuelTypes();
+    setFilteredModels(models); 
+  };
+
+  const { refreshing, onRefresh } = useGlobalRefresh(refreshData);
 
   const renderModel = ({ item }) => (
     <TouchableOpacity style={styles.card} onPress={() => handleModelPress(item)}>
@@ -94,6 +101,8 @@ export default function CarModels() {
         numColumns={3}
         columnWrapperStyle={styles.row}
         contentContainerStyle={{ paddingBottom: 20 }}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
       />
       <CustomAlert
         visible={alertVisible}

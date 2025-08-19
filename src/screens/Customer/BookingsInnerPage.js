@@ -12,7 +12,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
 import CustomText from "../../components/CustomText";
-import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "../../../apiConfig";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
 export default function BookingsInnerPage() {
@@ -126,6 +126,32 @@ export default function BookingsInnerPage() {
             {booking.BookingStatus}
           </CustomText>
         </View>
+        <View style={styles.section}>
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>
+            Package Price:
+          </CustomText>
+          <CustomText style={[styles.value, globalStyles.f12Bold]}>
+            ₹ {booking.PackagePrice}
+          </CustomText>
+        </View>
+        <View style={styles.section}>
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>
+            GST:
+          </CustomText>
+          <CustomText style={[styles.value, globalStyles.f12Bold]}>
+            ₹ {booking.GSTAmount}
+          </CustomText>
+        </View>
+        {booking.CouponAmount > 0 && (
+          <View style={styles.section}>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              Discount Price:
+            </CustomText>
+            <CustomText style={[styles.value, globalStyles.f12Bold]}>
+              - ₹ {booking.CouponAmount}
+            </CustomText>
+          </View>
+        )}
         <View style={styles.section}>
           <CustomText style={[styles.label, globalStyles.f12Bold]}>
             Total Price:

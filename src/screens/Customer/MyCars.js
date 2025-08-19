@@ -9,8 +9,9 @@ import axios from "axios";
 import Loader from "../../components/Loader";
 import Logo from '../../../assets/Logo/logo2.png'
 // import { API_BASE_URL } from "@env";
-import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "../../../apiConfig";
 import { getToken } from "../../utils/token";
+import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 
 
 export default function MyCars() {
@@ -49,7 +50,7 @@ export default function MyCars() {
                         .filter(model => model.BrandID === brand.BrandID && model.IsActive)
                         .map(model => {
 
-                            const getModelImageUrl = (path) => { 
+                            const getModelImageUrl = (path) => {
                                 if (!path) return null;
                                 const fileName = path.split('/').pop();
                                 return `${API_IMAGE_URL}VehicleModel/${fileName}`;
@@ -85,6 +86,8 @@ export default function MyCars() {
     useEffect(() => {
         getBrands();
     }, []);
+
+    const { refreshing, onRefresh } = useGlobalRefresh(getBrands);
 
     const navigation = useNavigation();
 
@@ -144,6 +147,8 @@ export default function MyCars() {
                     columnWrapperStyle={styles.row}
                     contentContainerStyle={{ paddingBottom: 20 }}
                     showsVerticalScrollIndicator={false}
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
                 />
             </View>
         </>

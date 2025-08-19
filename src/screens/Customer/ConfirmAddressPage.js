@@ -278,7 +278,7 @@ const ConfirmAddressPage = ({ navigation }) => {
 
       console.log("Address saved successfully:", response.data);
       setFormModalVisible(false);
-      navigation.navigate("Cart");
+      navigation.goBack();
     } catch (err) {
       console.error("Failed to submit address:", err);
       setAlertStatus("error");

@@ -150,9 +150,14 @@ const CartPage = () => {
     }
   };
 
-  useEffect(() => {
-    fetchAddresses();
-  }, []);
+ useEffect(() => {
+    fetchAddresses(); // Initial fetch on mount
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchAddresses(); // Re-fetch when screen is focused
+    });
+
+    return unsubscribe; // Cleanup listener on unmount
+  }, [navigation]);
 
   const makePrimaryAddress = async (addressId) => {
     try {
@@ -298,7 +303,7 @@ const CartPage = () => {
         PackagePrice: totalServiceAmount,
         TotalPrice: finalAmount,
         CouponCode: couponCode,
-        DiscountAmount: discountAmount,
+        CouponAmount: discountAmount,
         // BookingFrom: "app",
         PaymentMethod: paymentMethod,
         Notes: instructions || "",
@@ -361,6 +366,8 @@ const CartPage = () => {
 
         await AsyncStorage.removeItem("selectedDate");
         await AsyncStorage.removeItem("selectedTimeSlotLabel");
+
+        setAppliedCoupon(null);
 
         setTimeout(() => {
           clearCart();
@@ -917,7 +924,7 @@ const CartPage = () => {
                     To Pay ₹{finalAmount}
                   </CustomText>
                   <CustomText style={styles.saved}>
-                    ₹{savedAmount + discountAmount} saved by coupon
+                   Saving ₹{savedAmount + discountAmount}
                   </CustomText>
                 </View>
               </View>
@@ -978,7 +985,7 @@ const CartPage = () => {
                     <View style={styles.selectedRb} />
                   )}
                 </View>
-                <Text style={styles.optionText}>Cash On Service</Text>
+                <Text style={styles.optionText}>Pay on Completion</Text>
               </TouchableOpacity>
 
               {/* Option 2: Pay with RazorPay */}
@@ -1031,7 +1038,7 @@ const CartPage = () => {
                 }}
               >
                 {/* Prevent modal from closing when content is tapped */}
-                <TouchableWithoutFeedback onPress={() => {}}>
+                <TouchableWithoutFeedback onPress={() => { }}>
                   <View
                     style={{
                       backgroundColor: "white",
@@ -1266,7 +1273,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   toPay: { ...globalStyles.f12Bold, color: color.black, marginBottom: 4 },
-  saved: { color: color.secondary, ...globalStyles.f10Bold },
+  saved: { color: color.secondary, ...globalStyles.f10Medium },
   toPayBold: { ...globalStyles.f12Bold, color: color.black },
   footerBtnWrapper: {
     backgroundColor: "#fff",

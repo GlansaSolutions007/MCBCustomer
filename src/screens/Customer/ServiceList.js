@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, ScrollView, TouchableOpacity, StyleSheet, Image, RefreshControl } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { View, ScrollView, TouchableOpacity, StyleSheet, Image, RefreshControl, ActivityIndicator } from "react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import CustomText from "../../components/CustomText";
@@ -15,7 +15,7 @@ export default function ServiceList() {
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
   const tabs = ["New", "Completed"];
-  const { refreshing, onRefresh } = useGlobalRefresh()
+  const { refreshing, onRefresh } = useGlobalRefresh();
 
   const fetchBookings = useCallback(async () => {
     setLoading(true);
@@ -66,15 +66,26 @@ export default function ServiceList() {
     }
   }, []);
 
-  useEffect(() => {
+  // Reload bookings every time the screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      console.log("Screen focused, fetching bookings...");
+      fetchBookings();
+    }, [fetchBookings])
+  );
+
+  // Handle manual refresh
+  const handleRefresh = useCallback(() => {
+    console.log("Manual refresh triggered");
+    onRefresh();
     fetchBookings();
-  }, [fetchBookings]);
+  }, [onRefresh, fetchBookings]);
 
   const filteredBookings = (bookings || []).filter((b) => {
     const status = (b.BookingStatus || "").toLowerCase();
     console.log("Booking status:", status, "Selected tab:", selectedTab);
     return selectedTab === "New"
-      ? status != "completed"
+      ? status !== "completed"
       : status === "completed";
   });
 
@@ -108,10 +119,12 @@ export default function ServiceList() {
         ))}
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 16 }}
+      <ScrollView
+        contentContainerStyle={{ padding: 16 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+      >
         <CustomText style={{ color: "#333", ...globalStyles.f12Bold }}>
           Showing{" "}
           <CustomText style={{ fontWeight: "bold", color: "#007AFF" }}>
@@ -122,7 +135,7 @@ export default function ServiceList() {
 
         {loading ? (
           <CustomText style={{ textAlign: "center", marginTop: 20, ...globalStyles.f12Regular }}>
-            Loading...
+            <ActivityIndicator size="large" color={color.secondary} />
           </CustomText>
         ) : bookings.length === 0 ? (
           <View style={{ marginTop: 20, alignItems: "center" }}>
@@ -191,9 +204,11 @@ export default function ServiceList() {
                 <CustomText style={styles.totalText}>
                   ₹ {booking.TotalPrice.toFixed(2)}
                 </CustomText>
-                <CustomText style={styles.statusText}>
-                  {booking.BookingStatus}
-                </CustomText>
+                {booking.BookingStatus?.toLowerCase() !== "pending" && (
+                  <CustomText style={styles.statusText}>
+                    {booking.BookingStatus}
+                  </CustomText>
+                )}
               </View>
             </TouchableOpacity>
           ))
