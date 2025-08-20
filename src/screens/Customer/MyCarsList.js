@@ -30,8 +30,7 @@ import carAddIcon from "../../../assets/icons/caddAddIcon.png";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 
 export const MyCarsList = () => {
-  //
-  // Alert.alert("Debug", `API URL: ${API_URL}`);
+
   const navigation = useNavigation();
 
   const [cars, setCars] = useState([]);
@@ -165,6 +164,38 @@ export const MyCarsList = () => {
     setFilteredCars(filtered);
   };
 
+  const SkeletonLoader = () => (
+    <View style={styles.carCard}>
+      <View style={{ flexDirection: 'row' }}>
+        <View style={styles.carContainer}>
+          <View style={[styles.carImage, { backgroundColor: '#e0e0e0' }]} />
+          <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '80%', borderRadius: 4, marginTop: 5 }} />
+        </View>
+        <View style={styles.carInfo}>
+          <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', borderRadius: 4 }} />
+          <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '80%', borderRadius: 4, marginTop: 5 }} />
+          <View style={{ height: 6 }} />
+          <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', borderRadius: 4 }} />
+          <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '80%', borderRadius: 4, marginTop: 5 }} />
+          <View style={{ height: 6 }} />
+          <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', borderRadius: 4 }} />
+          <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '80%', borderRadius: 4, marginTop: 5 }} />
+        </View>
+      </View>
+      <View style={{ height: 16 }} />
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <View style={[styles.detailsButton, { backgroundColor: '#e0e0e0' }]} />
+        <View style={[styles.makePrimaryBtn, { backgroundColor: '#e0e0e0' }]} />
+      </View>
+    </View>
+  );
+
   const renderCar = ({ item }) => (
     <View style={styles.carCard}>
       <View style={{ flexDirection: "row" }}>
@@ -247,14 +278,15 @@ export const MyCarsList = () => {
   return (
     <View style={[globalStyles.container, { backgroundColor: "#fff" }]}>
       {loading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={color.secondary} />
-          <CustomText style={{ marginTop: 10 }}>
-            Loading your cars...
-          </CustomText>
-        </View>
+        <FlatList
+          data={[{ id: 'skeleton1' }, { id: 'skeleton2' }]}
+          keyExtractor={(item) => item.id}
+          renderItem={() => <SkeletonLoader />}
+          contentContainerStyle={{ paddingTop: 40 }}
+          showsVerticalScrollIndicator={false}
+        />
       ) : cars.length === 0 ? (
-        <View style={styles.centered}>
+        <View style={styles.centered}> 
           <CustomText style={styles.emptyText}>Please add your car</CustomText>
           <TouchableOpacity
             style={styles.addButton}

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   Animated,
   RefreshControl,
   Alert,
+  InteractionManager,
 } from "react-native";
 import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
@@ -39,53 +40,67 @@ import CustomAlert from "../../components/CustomAlert";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 // import PackageSkeleton from "../../components/PackageSkeleton";
+
+const debounce = (func, wait) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
+
 const InteriorService = () => {
-  //
-  // Alert.alert("Debug", `API URL: ${API_URL}`);
   const token = getToken();
   const navigation = useNavigation();
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
-
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null);
   const [packages, setPackages] = useState([]);
+  const [packageCache, setPackageCache] = useState({});
   const { cartItems, addToCart } = useCart();
   const route = useRoute();
-  const { categoryId, categoryName, subCategories, subCategoryId } =
-    route.params;
-  const [selectedServiceId, setSelectedServiceId] = useState(
-    subCategories?.[0]?.SubCategoryID || null
-  );
+  const { categoryId, categoryName, subCategories, subCategoryId } = route.params;
+  const [selectedServiceId, setSelectedServiceId] = useState(subCategories?.[0]?.SubCategoryID || null);
   const [cars, setCars] = useState([]);
   const [showCarModal, setShowCarModal] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [filteredPackages, setFilteredPackages] = useState([]);
-  const [brandId, setBrandId] = useState("");
-  const [modelId, setModelId] = useState("");
-  const [fuelId, setFuelId] = useState("");
+  const [brandId, setBrandId] = useState('');
+  const [modelId, setModelId] = useState('');
+  const [fuelId, setFuelId] = useState('');
 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  // Initialize fadeAnims dynamically based on filteredPackages length
+  const fadeAnims = useRef([]);
 
-  const fadeIn = () => {
-    fadeAnim.setValue(0);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
+  const resetFadeAnims = (count) => {
+    fadeAnims.current = Array(count)
+      .fill()
+      .map(() => new Animated.Value(0));
+  };
+
+  const fadeIn = (index) => {
+    if (fadeAnims.current[index]) {
+      InteractionManager.runAfterInteractions(() => {
+        Animated.timing(fadeAnims.current[index], {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      });
+    }
   };
 
   useEffect(() => {
     const fetchCustomerCars = async () => {
       try {
         const token = await getToken();
-        const userData = await AsyncStorage.getItem("userData");
+        const userData = await AsyncStorage.getItem('userData');
         const parsedData = JSON.parse(userData);
         const custID = parsedData?.custID;
 
         if (!custID || !token) {
-          console.warn("Customer ID or token missing");
+          console.warn('Customer ID or token missing');
           return;
         }
 
@@ -99,7 +114,6 @@ const InteriorService = () => {
         );
 
         const carList = response.data;
-
         const normalizedList = carList
           ? Array.isArray(carList)
             ? carList
@@ -131,7 +145,7 @@ const InteriorService = () => {
           formattedCars[0].isPrimary = true;
         }
       } catch (error) {
-        console.error("Error fetching car list:", error);
+        console.error('Error fetching car list:', error);
       }
     };
 
@@ -147,7 +161,7 @@ const InteriorService = () => {
   const makeCarPrimary = async (vehicleId) => {
     try {
       const token = await getToken();
-      const userData = await AsyncStorage.getItem("userData");
+      const userData = await AsyncStorage.getItem('userData');
       const parsedData = JSON.parse(userData);
       const custID = parsedData?.custID;
 
@@ -166,37 +180,36 @@ const InteriorService = () => {
       }));
       setCars(updated);
     } catch (error) {
-      console.error("Error setting primary car:", error);
+      console.error('Error setting primary car:', error);
     }
   };
 
-  const fetchPackages = async (
-    subCategoryId,
-    brandId = "",
-    modelId = "",
-    fuelId = ""
-  ) => {
+  const debouncedFetchPackages = debounce(async (subCategoryId, brandId = '', modelId = '', fuelId = '') => {
+    if (!subCategoryId) {
+      console.warn('No subCategoryId provided, skipping fetch');
+      return;
+    }
+
+    // Clear cache for this subcategory to ensure fresh data
+    setPackageCache((prev) => {
+      const newCache = { ...prev };
+      delete newCache[subCategoryId];
+      return newCache;
+    });
+
     try {
       console.log(
-        categoryId,
-        subCategoryId,
-        brandId,
-        modelId,
-        fuelId,
-        "Fetching packages for category and subcategory"
+        `Fetching packages: categoryId=${categoryId}, subCategoryId=${subCategoryId}, brandId=${brandId}, modelId=${modelId}, fuelId=${fuelId}`
       );
       setLoading(true);
       const response = await axios.get(
-        `${API_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?categoryId=${categoryId}&subCategoryId=${subCategoryId}&BrandId=${
-          brandId || ""
-        }&ModelId=${modelId || ""}&fuelTypeId=${fuelId || ""}`,
+        `${API_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?categoryId=${categoryId}&subCategoryId=${subCategoryId}&BrandId=${brandId || ''}&ModelId=${modelId || ''}&fuelTypeId=${fuelId || ''}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      // console.log("Packkkkkk", response);
 
       const rawData = response.data;
       const dataArray = Array.isArray(rawData) ? rawData : [rawData];
@@ -206,42 +219,42 @@ const InteriorService = () => {
         id: pkg.PackageID,
         title: pkg.PackageName,
         image: pkg.PackageImage,
-        bannerImages: pkg.BannerImage?.split(","),
+        bannerImages: pkg.BannerImage?.split(','),
         price: pkg.Serv_Off_Price,
         originalPrice: pkg.Serv_Reg_Price,
-        services: pkg.IncludeNames?.split(",") || [],
+        services: pkg.IncludeNames?.split(',') || [],
         estimatedMins: pkg.EstimatedDurationMinutes,
         desc: pkg.Description,
       }));
 
-      // console.log('Fetched packages:', formatted);
+      setPackageCache((prev) => ({ ...prev, [subCategoryId]: formatted }));
       setPackages(formatted);
-      fadeIn();
     } catch (error) {
-      console.error("Failed to fetch packages:", error);
+      console.error('Failed to fetch packages:', error);
       setPackages([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, 300);
 
   useEffect(() => {
     if (subCategories.length > 0) {
       const firstActive = subCategories.find((sub) => sub.IsActive);
       setSelectedSubCategoryId(firstActive?.SubCategoryID || null);
+      setSelectedServiceId(firstActive?.SubCategoryID || null);
 
       if (firstActive) {
         const primaryCar = cars.find((car) => car.isPrimary);
         if (cars.length > 0 && primaryCar) {
           setSelectedCar(primaryCar);
-          fetchPackages(
+          debouncedFetchPackages(
             firstActive.SubCategoryID,
             primaryCar.brandId,
             primaryCar.modelId,
             primaryCar.fuelId
           );
         } else {
-          fetchPackages(firstActive.SubCategoryID); // ✅ fallback when no car
+          debouncedFetchPackages(firstActive.SubCategoryID);
         }
       }
     }
@@ -249,205 +262,357 @@ const InteriorService = () => {
 
   const handleTabPress = (subCategory) => {
     setSelectedSubCategoryId(subCategory.SubCategoryID);
+    setSelectedServiceId(subCategory.SubCategoryID);
     if (selectedCar) {
-      fetchPackages(
+      debouncedFetchPackages(
         subCategory.SubCategoryID,
         selectedCar.brandId,
         selectedCar.modelId,
         selectedCar.fuelId
       );
     } else {
-      fetchPackages(subCategory.SubCategoryID);
+      debouncedFetchPackages(subCategory.SubCategoryID);
     }
   };
 
-  useEffect(() => {
-    const filtered = packages.filter((pkg) =>
+  const filteredPackagesMemo = useMemo(() => {
+    return packages.filter((pkg) =>
       pkg.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    setFilteredPackages(filtered);
   }, [packages, searchQuery]);
 
-  // console.log(selectedSubCategoryId, "Params for refresh");
+  useEffect(() => {
+    // Reset fadeAnims based on the number of filtered packages
+    resetFadeAnims(filteredPackagesMemo.length);
+    setFilteredPackages(filteredPackagesMemo);
+    filteredPackagesMemo.forEach((_, index) => {
+      fadeIn(index);
+    });
+  }, [filteredPackagesMemo]);
 
   const { refreshing, onRefresh } = useGlobalRefresh(async () => {
-    await fetchPackages(
-      selectedSubCategoryId,
-      selectedCar.brandId,
-      selectedCar.modelId,
-      selectedCar.fuelId
-    );
+    if (selectedSubCategoryId && selectedCar) {
+      await debouncedFetchPackages(
+        selectedSubCategoryId,
+        selectedCar.brandId,
+        selectedCar.modelId,
+        selectedCar.fuelId
+      );
+    } else if (selectedSubCategoryId) {
+      await debouncedFetchPackages(selectedSubCategoryId);
+    }
   });
-  return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: "#fff" }}
-      edges={["bottom"]}
-    >
-      <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        style={styles.container}
-      >
-        <ImageBackground source={interior} style={styles.imageBackground}>
-          <StatusBar
-            barStyle="light-content"
-            translucent
-            backgroundColor="transparent"
-          />
-          <LinearGradient
-            colors={[
-              "rgba(19, 109, 110, .6)",
-              "rgba(19, 109, 110, .10)",
-              "rgba(0, 0, 0, 1)",
-            ]}
-            locations={[0.13, 0.52, 0.91]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={styles.overlay}
+
+  const SkeletonLoader = () => (
+    <View style={styles.rowCard}>
+      <View style={[styles.sideImage, { backgroundColor: '#e0e0e0',borderRadius:10 }]} />
+      <View style={styles.cardRight}>
+        <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '80%', marginBottom: 5, borderRadius:10 }} />
+        <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '70%', marginBottom: 5, borderRadius:10 }} />
+        <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', marginBottom: 5, borderRadius:10 }} />
+        <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '50%', borderRadius:10 }} />
+      </View>
+    </View>
+  );
+
+  const PackageCard = React.memo(({ item, index }) => (
+    <Animated.View style={{ opacity: fadeAnims.current[index] || 1 }}>
+      <View style={styles.rowCard}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('ServiceInnerPage', {
+              package: item,
+            })
+          }
+        >
+          <ImageBackground
+            source={{
+              uri: `${API_IMAGE_URL}${item.image}`,
+            }}
+            style={styles.sideImage}
+            imageStyle={{ borderRadius: 10 }}
           >
-            {/* Top Row */}
-            <View style={styles.topRow}>
-              <TouchableOpacity
-                onPress={() => navigation.goBack()}
-                style={styles.backIcon}
+            <View style={styles.discountBadge}>
+              <CustomText style={styles.discountText}>
+                {Math.round(
+                  ((item.originalPrice - item.price) /
+                    item.originalPrice) *
+                    100
+                )}
+                %
+              </CustomText>
+            </View>
+          </ImageBackground>
+        </TouchableOpacity>
+
+        <View style={styles.cardRight}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('ServiceInnerPage', {
+                package: item,
+              })
+            }
+          >
+            <CustomText
+              style={[
+                { color: color.primary },
+                globalStyles.f16Bold,
+              ]}
+            >
+              {item.title}
+            </CustomText>
+          </TouchableOpacity>
+          <CustomText style={styles.cardSubheading}>
+            Services Included:
+          </CustomText>
+          {item.services.slice(0, 3).map((service, idx) => {
+            const isLastVisible =
+              idx === 2 && item.services.length > 3;
+            return (
+              <CustomText
+                key={`${service}-${idx}`}
+                style={styles.serviceText}
               >
-                <Ionicons name="arrow-back" size={24} color="black" />
-              </TouchableOpacity>
+                • {service}
+                {isLastVisible && (
+                  <Text
+                    onPress={() =>
+                      navigation.navigate('ServiceInnerPage', {
+                        package: item,
+                      })
+                    }
+                    style={{ color: color.primary }}
+                  >
+                    {' '}
+                    +more
+                  </Text>
+                )}
+              </CustomText>
+            );
+          })}
 
-              <View style={styles.iconWrapper}>
-                <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
-                  <Image source={Garage} style={styles.garageIcon} />
-                  {cartItems.length > 0 && (
-                    <View style={styles.badge}>
-                      <CustomText style={styles.badgeText}>
-                        {cartItems.length}
-                      </CustomText>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Search Box */}
-            <View style={styles.searchContainer}>
-              <View style={styles.textContainer}>
-                <CustomText
-                  style={[globalStyles.textWhite, globalStyles.f32Bold]}
-                >
-                  {categoryName}
+          {cars.length === 0 || !selectedCar ? (
+            <TouchableOpacity
+              style={styles.addCarButton}
+              onPress={() =>
+                navigation.navigate('SelectCarBrand')
+              }
+            >
+              <CustomText style={styles.addButtonText}>
+                Add Your Car
+              </CustomText>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.priceRow}>
+              <View
+                style={{
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                }}
+              >
+                <CustomText style={styles.striked}>
+                  ₹{item.originalPrice}
                 </CustomText>
                 <CustomText
-                  style={[globalStyles.textWhite, globalStyles.f12Regular]}
+                  style={[
+                    globalStyles.textBlack,
+                    globalStyles.f16Bold,
+                  ]}
                 >
-                  Here you can find the suitable packages for your car
+                  ₹{item.price}
                 </CustomText>
               </View>
 
-              <View style={styles.chooseCarRow}>
-                <View style={styles.chooseCarDiv}>
-                  <SearchBox
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                  />
-                </View>
-
+              {cartItems.find((ci) => ci.id === item.id) ? (
                 <TouchableOpacity
-                  style={styles.chooseCarButton}
-                  onPress={() => setShowCarModal(true)}
+                  style={[
+                    styles.addButton,
+                    { backgroundColor: color.yellow },
+                  ]}
+                  onPress={() => navigation.navigate('Cart')}
                 >
-                  {selectedCar?.image?.uri && (
-                    <Image
-                      source={{ uri: selectedCar.image.uri }}
-                      style={{
-                        width: 40,
-                        height: 40,
-                        resizeMode: "contain",
-                        backgroundColor: color.white,
-                        borderRadius: 10,
-                      }}
-                    />
-                  )}
-                  {/* <Ionicons name="filter" size={26} color="#000" /> */}
-                  <CustomText style={styles.chooseCarText}>Change</CustomText>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </LinearGradient>
-        </ImageBackground>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            {/* <CustomText style={[globalStyles.f16Bold, globalStyles.primary]}>Popular Services</CustomText> */}
-            <Ionicons
-              name="arrow-forward-circle"
-              size={20}
-              color={color.primary}
-              style={styles.scrollHintIcon}
-            />
-          </View>
-
-          <FlatList
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={subCategories}
-            keyExtractor={(item) => item.SubCategoryID.toString()}
-            contentContainerStyle={styles.flatListContainer}
-            renderItem={({ item }) => {
-              const isSelected = selectedServiceId === item.SubCategoryID;
-              return (
-                <TouchableOpacity
-                  style={styles.popularItem}
-                  onPress={() => {
-                    setSelectedServiceId(item.SubCategoryID);
-                    handleTabPress(item);
-                  }}
-                >
-                  <View
-                    style={[
-                      styles.imageWrapper,
-                      isSelected && styles.selectedImageWrapper,
-                    ]}
-                  >
-                    <Image
-                      source={{
-                        uri: `${API_IMAGE_URL}${item.ThumbnailImage}`,
-                      }}
-                      style={styles.popularImage}
-                    />
-                  </View>
-                  <CustomText
-                    style={[
-                      globalStyles.f10Bold,
-                      styles.popularText,
-                      globalStyles.textBlack,
-                      isSelected && styles.selectedText,
-                    ]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {item.SubCategoryName}
+                  <CustomText style={styles.addButtonTextCart}>
+                    View Cart
                   </CustomText>
                 </TouchableOpacity>
-              );
-            }}
-          />
+              ) : (
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={() => addToCart(item)}
+                >
+                  <CustomText style={styles.addButtonText}>
+                    Add Service
+                  </CustomText>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+        </View>
+      </View>
+    </Animated.View>
+  ));
+
+  // Data for the single FlatList
+  const renderData = [
+    { type: 'header', id: 'header' },
+    { type: 'subcategories', id: 'subcategories' },
+    { type: 'content', id: 'content' },
+  ];
+
+  const renderItem = ({ item }) => {
+    switch (item.type) {
+      case 'header':
+        return (
+          <View>
+            <ImageBackground source={interior} style={styles.imageBackground}>
+              <LinearGradient
+                colors={[
+                  'rgba(19, 109, 110, .6)',
+                  'rgba(19, 109, 110, .10)',
+                  'rgba(0, 0, 0, 1)',
+                ]}
+                locations={[0.13, 0.52, 0.91]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={styles.overlay}
+              >
+                <View style={styles.topRow}>
+                  <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={styles.backIcon}
+                  >
+                    <Ionicons name="arrow-back" size={24} color="black" />
+                  </TouchableOpacity>
+                  <View style={styles.iconWrapper}>
+                    <TouchableOpacity onPress={() => navigation.navigate('Cart')}>
+                      <Image source={Garage} style={styles.garageIcon} />
+                      {cartItems.length > 0 && (
+                        <View style={styles.badge}>
+                          <CustomText style={styles.badgeText}>
+                            {cartItems.length}
+                          </CustomText>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <View style={styles.searchContainer}>
+                  <View style={styles.textContainer}>
+                    <CustomText
+                      style={[globalStyles.textWhite, globalStyles.f32Bold]}
+                    >
+                      {categoryName}
+                    </CustomText>
+                    <CustomText
+                      style={[globalStyles.textWhite, globalStyles.f12Regular]}
+                    >
+                      Here you can find the suitable packages for your car
+                    </CustomText>
+                  </View>
+                  <View style={styles.chooseCarRow}>
+                    <View style={styles.chooseCarDiv}>
+                      <SearchBox
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                      />
+                    </View>
+                    <TouchableOpacity
+                      style={styles.chooseCarButton}
+                      onPress={() => setShowCarModal(true)}
+                    >
+                      {selectedCar?.image?.uri && (
+                        <Image
+                          source={{ uri: selectedCar.image.uri }}
+                          style={{
+                            width: 40,
+                            height: 40,
+                            resizeMode: 'contain',
+                            backgroundColor: color.white,
+                            borderRadius: 10,
+                          }}
+                        />
+                      )}
+                      <CustomText style={styles.chooseCarText}>Change</CustomText>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </LinearGradient>
+            </ImageBackground>
+          </View>
+        );
+      case 'subcategories':
+        return (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons
+                name="arrow-forward-circle"
+                size={20}
+                color={color.primary}
+                style={styles.scrollHintIcon}
+              />
+            </View>
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={subCategories}
+              keyExtractor={(item) => item.SubCategoryID.toString()}
+              initialNumToRender={5}
+              contentContainerStyle={styles.flatListContainer}
+              renderItem={({ item }) => {
+                const isSelected = selectedServiceId === item.SubCategoryID;
+                return (
+                  <TouchableOpacity
+                    style={styles.popularItem}
+                    onPress={() => {
+                      setSelectedServiceId(item.SubCategoryID);
+                      handleTabPress(item);
+                    }}
+                  >
+                    <View
+                      style={[
+                        styles.imageWrapper,
+                        isSelected && styles.selectedImageWrapper,
+                      ]}
+                    >
+                      <Image
+                        source={{
+                          uri: `${API_IMAGE_URL}${item.ThumbnailImage}`,
+                        }}
+                        style={styles.popularImage}
+                      />
+                    </View>
+                    <CustomText
+                      style={[
+                        globalStyles.f10Bold,
+                        styles.popularText,
+                        globalStyles.textBlack,
+                        isSelected && styles.selectedText,
+                      ]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {item.SubCategoryName}
+                    </CustomText>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </View>
+        );
+      case 'content':
+        return (
           <View style={styles.tabContent}>
             <View style={styles.section}>
               {loading ? (
-                <CustomText
-                  style={{
-                    textAlign: "center",
-                    marginTop: 20,
-                    color: color.black,
-                  }}
-                >
-                  Loading packages...
-                </CustomText>
+                <View>
+                  <SkeletonLoader />
+                  <SkeletonLoader />
+                  <SkeletonLoader />
+                </View>
               ) : filteredPackages.length === 0 ? (
                 <CustomText
                   style={{
-                    textAlign: "center",
+                    textAlign: 'center',
                     marginTop: 20,
                     color: color.black,
                   }}
@@ -455,252 +620,112 @@ const InteriorService = () => {
                   No Packages Available
                 </CustomText>
               ) : (
-                <Animated.View style={{ opacity: fadeAnim, marginTop: 20 }}>
-                  {filteredPackages.map((item) => (
-                    <View key={item.id} style={styles.rowCard}>
-                      <TouchableOpacity
-                        onPress={() =>
-                          navigation.navigate("ServiceInnerPage", {
-                            package: item,
-                          })
-                        }
-                      >
-                        <ImageBackground
-                          source={{
-                            uri: `${API_IMAGE_URL}${item.image}`,
-                          }}
-                          style={styles.sideImage}
-                          imageStyle={{ borderRadius: 10 }}
-                        >
-                          <View style={styles.discountBadge}>
-                            <CustomText style={styles.discountText}>
-                              {Math.round(
-                                ((item.originalPrice - item.price) /
-                                  item.originalPrice) *
-                                  100
-                              )}
-                              %
-                            </CustomText>
-                          </View>
-                        </ImageBackground>
-                      </TouchableOpacity>
-
-                      <View style={styles.cardRight}>
-                        <TouchableOpacity
-                          onPress={() =>
-                            navigation.navigate("ServiceInnerPage", {
-                              package: item,
-                            })
-                          }
-                        >
-                          <CustomText
-                            style={[
-                              { color: color.primary },
-                              globalStyles.f16Bold,
-                            ]}
-                          >
-                            {item.title}
-                          </CustomText>
-                        </TouchableOpacity>
-                        <CustomText style={styles.cardSubheading}>
-                          Services Included:
-                        </CustomText>
-                        {item.services.slice(0, 3).map((service, index) => {
-                          // If it's the third item and there are more services
-                          const isLastVisible =
-                            index === 2 && item.services.length > 3;
-
-                          return (
-                            <CustomText
-                              key={`${service}-${index}`}
-                              style={styles.serviceText}
-                            >
-                              • {service}
-                              {isLastVisible && (
-                                <Text
-                                  onPress={() =>
-                                    navigation.navigate("ServiceInnerPage", {
-                                      package: item,
-                                    })
-                                  }
-                                  style={{ color: color.primary }}
-                                >
-                                  {" "}
-                                  +more
-                                </Text>
-                              )}
-                            </CustomText>
-                          );
-                        })}
-
-                        {cars.length === 0 || !selectedCar ? (
-                          <TouchableOpacity
-                            style={styles.addCarButton}
-                            onPress={() =>
-                              navigation.navigate("SelectCarBrand")
-                            }
-                          >
-                            <CustomText style={styles.addButtonText}>
-                              Add Your Car
-                            </CustomText>
-                          </TouchableOpacity>
-                        ) : (
-                          <View style={styles.priceRow}>
-                            <View
-                              style={{
-                                flexDirection: "column",
-                                alignItems: "center",
-                              }}
-                            >
-                              <CustomText style={styles.striked}>
-                                ₹{item.originalPrice}
-                              </CustomText>
-                              <CustomText
-                                style={[
-                                  globalStyles.textBlack,
-                                  globalStyles.f16Bold,
-                                ]}
-                              >
-                                ₹{item.price}
-                              </CustomText>
-                            </View>
-
-                            {cartItems.find((ci) => ci.id === item.id) ? (
-                              <TouchableOpacity
-                                style={[
-                                  styles.addButton,
-                                  { backgroundColor: color.yellow },
-                                ]}
-                                onPress={() => navigation.navigate("Cart")}
-                              >
-                                <CustomText style={styles.addButtonTextCart}>
-                                  View Cart
-                                </CustomText>
-                              </TouchableOpacity>
-                            ) : (
-                              <TouchableOpacity
-                                style={styles.addButton}
-                                onPress={() => addToCart(item)}
-                              >
-                                <CustomText style={styles.addButtonText}>
-                                  Add Service
-                                </CustomText>
-                              </TouchableOpacity>
-                            )}
-                          </View>
-                        )}
-                      </View>
-                    </View>
-                  ))}
-                </Animated.View>
+                <FlatList
+                  data={filteredPackages}
+                  keyExtractor={(item) => item.id.toString()}
+                  renderItem={({ item, index }) => (
+                    <PackageCard item={item} index={index} />
+                  )}
+                  contentContainerStyle={{ paddingBottom: 20 }}
+                  scrollEnabled={false} // Disable scrolling to let parent FlatList handle it
+                />
               )}
             </View>
           </View>
-        </View>
+        );
+      default:
+        return null;
+    }
+  };
 
-        {/* <View style={styles.bannerContainer}>
-          <FlatList
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            data={[interior, interior, interior]}
-            keyExtractor={(_, index) => index.toString()}
-            onScroll={(event) => {
-              const index = Math.round(
-                event.nativeEvent.contentOffset.x /
-                  event.nativeEvent.layoutMeasurement.width
-              );
-              setActiveBannerIndex(index);
-            }}
-            renderItem={({ item }) => (
-              <Image
-                source={item}
-                style={styles.bannerImage}
-                resizeMode="cover"
-              />
-            )}
-          />
-          <View style={styles.dotContainer}>
-            {[0, 1, 2].map((_, i) => (
-              <View
-                key={i}
-                style={
-                  i === activeBannerIndex
-                    ? styles.activeDot
-                    : styles.inactiveDot
+  return (
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      edges={['bottom']}
+    >
+      <FlatList
+        data={renderData}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        contentContainerStyle={styles.container}
+      />
+      <CustomAlert
+        visible={showCarModal}
+        onClose={() => setShowCarModal(false)}
+        title="Select Your Car"
+        showButton={false}
+      >
+        <View style={{ marginTop: 10 }}>
+          {cars.length === 1 ? (
+            <TouchableOpacity
+              style={[styles.carItem, { alignSelf: 'center' }]}
+              onPress={() => {
+                console.log('Selected single car:', cars[0].id);
+                setSelectedCar(cars[0]);
+                setShowCarModal(false);
+                if (selectedSubCategoryId) {
+                  debouncedFetchPackages(
+                    selectedSubCategoryId,
+                    cars[0].brandId,
+                    cars[0].modelId,
+                    cars[0].fuelId
+                  );
                 }
-              />
-            ))}
-          </View>
-        </View> */}
-        <CustomAlert
-          visible={showCarModal}
-          onClose={() => setShowCarModal(false)}
-          title="Select Your Car"
-          showButton={false}
-        >
-          <View style={{ marginTop: 10 }}>
-            {cars.length === 1 ? (
-              // Single car layout
-              <TouchableOpacity
-                style={[styles.carItem, { alignSelf: "center" }]}
-                onPress={() => {
-                  setSelectedCar(cars[0]);
-                  setShowCarModal(false);
-                }}
-              >
-                <Image source={cars[0].image} style={styles.singleCarImage} />
-                <CustomText style={styles.carModel}>{cars[0].model}</CustomText>
-              </TouchableOpacity>
-            ) : (
-              // Multiple cars layout
-              <View style={styles.carGrid}>
-                {cars.map((car) => {
-                  const isSelected = selectedCar?.id === car.id;
-                  // console.log("Selected Car:", selectedCar);
-                  return (
-                    <TouchableOpacity
-                      key={car.id}
-                      style={[
-                        styles.carItem,
-                        car.isPrimary && styles.primaryCarItem,
-                        isSelected && styles.selectedCarItem,
-                      ]}
-                      onPress={async () => {
-                        setSelectedCar(car);
-                        setTimeout(() => {
-                          setShowCarModal(false);
-                        }, 1000);
-                        if (!car.isPrimary) {
-                          await makeCarPrimary(car.id);
-                        }
-                        fetchPackages(
+              }}
+            >
+              <Image source={cars[0].image} style={styles.singleCarImage} />
+              <CustomText style={styles.carModel}>{cars[0].model}</CustomText>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.carGrid}>
+              {cars.map((car) => {
+                const isSelected = selectedCar?.id === car.id;
+                return (
+                  <TouchableOpacity
+                    key={car.id}
+                    style={[
+                      styles.carItem,
+                      car.isPrimary && styles.primaryCarItem,
+                      isSelected && styles.selectedCarItem,
+                    ]}
+                    onPress={async () => {
+                      console.log('Selected car:', car.id, 'SubCategoryID:', selectedSubCategoryId);
+                      setSelectedCar(car);
+                      setShowCarModal(false);
+                      if (!car.isPrimary) {
+                        await makeCarPrimary(car.id);
+                      }
+                      if (selectedSubCategoryId) {
+                        debouncedFetchPackages(
                           selectedSubCategoryId,
                           car.brandId,
                           car.modelId,
                           car.fuelId
                         );
-                      }}
-                    >
-                      <Image source={car.image} style={styles.carImage} />
-                      <CustomText style={styles.carModel}>
-                        {car.model}
+                      } else {
+                        console.warn('No subCategoryId selected, cannot fetch packages');
+                      }
+                    }}
+                  >
+                    <Image source={car.image} style={styles.carImage} />
+                    <CustomText style={styles.carModel}>
+                      {car.model}
+                    </CustomText>
+                    {car.isPrimary && (
+                      <CustomText style={styles.primaryLabel}>
+                        Primary
                       </CustomText>
-                      {car.isPrimary && (
-                        <CustomText style={styles.primaryLabel}>
-                          Primary
-                        </CustomText>
-                      )}
-                      
-                    </TouchableOpacity>
-                    
-                  );
-                })}
-              </View>
-            )}
-          </View>
-        </CustomAlert>
-      </ScrollView>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+        </View>
+      </CustomAlert>
     </SafeAreaView>
   );
 };

@@ -182,7 +182,7 @@ const CartPage = () => {
     0
   );
   const savedAmount = originalAmount - totalServiceAmount;
-  const gst = Math.round(totalServiceAmount * 0.18);
+  // const gst = Math.round(totalServiceAmount * 0.18);
   let couponCode = null;
 
   if (appliedCoupon) {
@@ -207,7 +207,11 @@ const CartPage = () => {
     }
   }
 
-  const finalAmount = totalServiceAmount + gst - discountAmount;
+  const taxableAmount = Math.max(totalServiceAmount - discountAmount, 0);
+  const gst = Math.round(taxableAmount * 0.18);
+
+  // ✅ Final amount = discounted price + GST
+  const finalAmount = taxableAmount + gst;
 
   const postBooking = async () => {
     // alert(paymentMethod);
@@ -363,7 +367,7 @@ const CartPage = () => {
         console.log("✅ Booking successful:", response.data);
         handlePayment(response.data.razorpay.orderID, response.data.bookingID);
       } else {
-        showCustomAlert("success", "Payment Successful");
+        showCustomAlert("success", "Booking Successful");
 
         await AsyncStorage.removeItem("selectedDate");
         await AsyncStorage.removeItem("selectedTimeSlotLabel");
@@ -942,18 +946,7 @@ const CartPage = () => {
                   ₹{totalServiceAmount}
                 </CustomText>
               </View>
-              <View style={styles.rowBetween}>
-                <CustomText
-                  style={{ color: color.secondary, ...globalStyles.f12Bold }}
-                >
-                  GST & Other Charges
-                </CustomText>
-                <CustomText
-                  style={{ color: color.black, ...globalStyles.f10Bold }}
-                >
-                  ₹{gst}
-                </CustomText>
-              </View>
+
               {appliedCoupon && (
                 <View style={styles.rowBetween}>
                   <CustomText
@@ -968,7 +961,18 @@ const CartPage = () => {
                   </CustomText>
                 </View>
               )}
-
+              <View style={styles.rowBetween}>
+                <CustomText
+                  style={{ color: color.secondary, ...globalStyles.f12Bold }}
+                >
+                  GST & Other Charges
+                </CustomText>
+                <CustomText
+                  style={{ color: color.black, ...globalStyles.f10Bold }}
+                >
+                  ₹{gst}
+                </CustomText>
+              </View>
               <View style={styles.divider} />
               <View style={styles.rowBetween}>
                 <CustomText style={styles.toPayBold}>To Pay</CustomText>

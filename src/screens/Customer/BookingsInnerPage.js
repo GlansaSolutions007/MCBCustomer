@@ -137,14 +137,7 @@ export default function BookingsInnerPage() {
             ₹ {booking.PackagePrice}
           </CustomText>
         </View>
-        <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>
-            GST:
-          </CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Bold]}>
-            ₹ {booking.GSTAmount}
-          </CustomText>
-        </View>
+
         {booking.CouponAmount > 0 && (
           <View style={styles.section}>
             <CustomText style={[styles.label, globalStyles.f12Bold]}>
@@ -155,6 +148,14 @@ export default function BookingsInnerPage() {
             </CustomText>
           </View>
         )}
+        <View style={styles.section}>
+          <CustomText style={[styles.label, globalStyles.f12Bold]}>
+            GST:
+          </CustomText>
+          <CustomText style={[styles.value, globalStyles.f12Bold]}>
+            ₹ {booking.GSTAmount}
+          </CustomText>
+        </View>
         <View style={styles.section}>
           <CustomText style={[styles.label, globalStyles.f12Bold]}>
             Total Price:

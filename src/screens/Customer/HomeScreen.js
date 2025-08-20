@@ -27,7 +27,7 @@ import { LocationContext } from "../../contexts/LocationContext";
 import axios from "axios";
 // import { API_BASE_URL } from "@env";
 
-import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "../../../apiConfig";
 import { getToken } from "../../utils/token";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 
@@ -39,8 +39,10 @@ export default function HomeScreen() {
   const navigation = useNavigation();
   const { setLocationText, setLocationStatus } = useContext(LocationContext);
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchCategories = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(`${API_URL}Category`, {
         headers: {
@@ -55,6 +57,8 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.error("Failed to fetch categories:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -127,9 +131,60 @@ export default function HomeScreen() {
       }
     })();
   }, []);
-const { refreshing, onRefresh } = useGlobalRefresh(async () => {
+  const { refreshing, onRefresh } = useGlobalRefresh(async () => {
     // alert("Refresh logic here"); // Replace with actual refresh logic
   });
+
+  const SkeletonLoader = () => (
+    <View>
+      {/* Banner Placeholder */}
+      {/* <View style={[styles.banner, globalStyles.mb35]}>
+        <View style={[styles.logo, { backgroundColor: '#e0e0e0' }]} />
+        <View style={styles.bannerAbsolute}>
+          <View style={[styles.carImagePositioned, { backgroundColor: '#e0e0e0' }]} />
+          <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '80%', borderRadius: 4, marginTop: 10 }} />
+        </View>
+      </View> */}
+      <View style={globalStyles.container}>
+        <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '50%', borderRadius: 4, marginBottom: 10, marginTop:40 }} />
+        {/* Category Cards Placeholder */}
+        <View style={[globalStyles.flexrow, globalStyles.justifysb]}>
+          {[1, 2, 3].map((_, index) => (
+            <View key={index} style={styles.card}>
+              <View style={[styles.cardImage, { backgroundColor: '#e0e0e0' }]} />
+              <LinearGradient
+                colors={['#e0e0e0', 'transparent']}
+                start={{ x: 0.5, y: 1 }}
+                end={{ x: 0.5, y: 0 }}
+                style={styles.gradientOverlay}
+              >
+                <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', borderRadius: 4 }} />
+                <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '40%', borderRadius: 4, marginTop: 5 }} />
+              </LinearGradient>
+            </View>
+          ))}
+        </View>
+        {/* CTA Banner Placeholder */}
+        <View
+          style={[
+            styles.ctaContainer,
+            globalStyles.p5,
+            globalStyles.mt5,
+            { backgroundColor: '#e0e0e0', borderRadius: 8 },
+          ]}
+        >
+          <View>
+            <View style={{ backgroundColor: '#e0e0e0', height: 25, width: '70%', borderRadius: 4 }} />
+            <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '50%', borderRadius: 4, marginTop: 5 }} />
+          </View>
+          <View style={styles.ctaButtonWrapper}>
+            <View style={[styles.ctaButton, { backgroundColor: '#e0e0e0' }]} />
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+
   return (
     <ScrollView
       refreshControl={
@@ -138,114 +193,118 @@ const { refreshing, onRefresh } = useGlobalRefresh(async () => {
       style={{ backgroundColor: color.textWhite }}
       contentContainerStyle={{ paddingBottom: 30 }}
     >
-      <View style={[styles.banner, globalStyles.mb35]}>
-        <Image source={logo} style={styles.logo} resizeMode="contain" />
-        <View style={styles.bannerAbsolute}>
-          <Image
-            source={bluecar}
-            style={styles.carImagePositioned}
-            resizeMode="contain"
-          />
-          <CustomText
-            style={[styles.bannerSubtitlePositioned, globalStyles.f18Regular]}
-          >
-            A Professional Car Care Services in Hyderabad
-          </CustomText>
-        </View>
-      </View>
-      <View style={globalStyles.container}>
-        {/* <CustomText style={[globalStyles.textBlack]}>{DeviceId}</CustomText> */}
-        <CustomText
-          style={[
-            globalStyles.mt4,
-            globalStyles.mb1,
-            globalStyles.f16Bold,
-            globalStyles.textBlack,
-          ]}
-        >
-          We Provide Services Like
-        </CustomText>
-        <View style={[globalStyles.flexrow, globalStyles.justifysb]}>
-          {categories.map((cat) => (
-            <TouchableOpacity
-              key={cat.CategoryID}
-              style={styles.card}
-              onPress={() => handleCategoryPress(cat)}
-            >
+      {loading ? (
+        <SkeletonLoader />
+      ) : (
+        <>
+          <View style={[styles.banner, globalStyles.mb35]}>
+            <Image source={logo} style={styles.logo} resizeMode="contain" />
+            <View style={styles.bannerAbsolute}>
               <Image
-                source={{
-                  uri: `${API_IMAGE_URL}/${cat.ThumbnailImage}`,
-                }}
-                style={styles.cardImage}
+                source={bluecar}
+                style={styles.carImagePositioned}
+                resizeMode="contain"
               />
-              <LinearGradient
-                colors={[color.primary, "transparent"]}
-                start={{ x: 0.5, y: 1 }}
-                end={{ x: 0.5, y: 0 }}
-                style={styles.gradientOverlay}
-              >
-                <CustomText
-                  style={[globalStyles.f12Bold, globalStyles.textWhite]}
-                >
-                  {cat.CategoryName.split(" ")[0]}
-                </CustomText>
-                <CustomText
-                  style={[globalStyles.f12Regular, globalStyles.textWhite]}
-                >
-                  {cat.CategoryName.split(" ")[1] || "Service"}
-                </CustomText>
-              </LinearGradient>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <ImageBackground
-          source={CTAbannerhome}
-          style={[
-            styles.ctaContainer,
-            // globalStyles.radius,
-            globalStyles.p5,
-            globalStyles.mt5,
-          ]}
-          resizeMode="cover"
-        >
-          <View>
-            <View>
               <CustomText
-                style={[
-                  styles.ctaTitle,
-                  globalStyles.f20Bold,
-                  globalStyles.w60,
-                  globalStyles.textWhite,
-                  globalStyles.f16Bold,
-                ]}
+                style={[styles.bannerSubtitlePositioned, globalStyles.f18Regular]}
               >
-                Give your car’s intro to your care buddy
-              </CustomText>
-              <CustomText
-                style={[
-                  globalStyles.w50,
-                  globalStyles.textWhite,
-                  globalStyles.f12Regular,
-                ]}
-              >
-                We’ll remember it, pamper it, and keep it shining.
+                A Professional Car Care Services in Hyderabad
               </CustomText>
             </View>
           </View>
-          <View style={styles.ctaButtonWrapper}>
-            <TouchableOpacity
-              style={[styles.ctaButton, globalStyles.bgwhite]}
-              onPress={goToCar}
+          <View style={globalStyles.container}>
+            <CustomText
+              style={[
+                globalStyles.mt4,
+                globalStyles.mb1,
+                globalStyles.f16Bold,
+                globalStyles.textBlack,
+              ]}
             >
-              <CustomText
-                style={[globalStyles.f16Bold, globalStyles.textBlack]}
-              >
-                Add My Car
-              </CustomText>
-            </TouchableOpacity>
+              We Provide Services Like
+            </CustomText>
+            <View style={[globalStyles.flexrow, globalStyles.justifysb]}>
+              {categories.map((cat) => (
+                <TouchableOpacity
+                  key={cat.CategoryID}
+                  style={styles.card}
+                  onPress={() => handleCategoryPress(cat)}
+                >
+                  <Image
+                    source={{
+                      uri: `${API_IMAGE_URL}/${cat.ThumbnailImage}`,
+                    }}
+                    style={styles.cardImage}
+                  />
+                  <LinearGradient
+                    colors={[color.primary, 'transparent']}
+                    start={{ x: 0.5, y: 1 }}
+                    end={{ x: 0.5, y: 0 }}
+                    style={styles.gradientOverlay}
+                  >
+                    <CustomText
+                      style={[globalStyles.f12Bold, globalStyles.textWhite]}
+                    >
+                      {cat.CategoryName.split(' ')[0]}
+                    </CustomText>
+                    <CustomText
+                      style={[globalStyles.f12Regular, globalStyles.textWhite]}
+                    >
+                      {cat.CategoryName.split(' ')[1] || 'Service'}
+                    </CustomText>
+                  </LinearGradient>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <ImageBackground
+              source={CTAbannerhome}
+              style={[
+                styles.ctaContainer,
+                globalStyles.p5,
+                globalStyles.mt5,
+              ]}
+              resizeMode="cover"
+            >
+              <View>
+                <View>
+                  <CustomText
+                    style={[
+                      styles.ctaTitle,
+                      globalStyles.f20Bold,
+                      globalStyles.w60,
+                      globalStyles.textWhite,
+                      globalStyles.f16Bold,
+                    ]}
+                  >
+                    Give your car’s intro to your care buddy
+                  </CustomText>
+                  <CustomText
+                    style={[
+                      globalStyles.w50,
+                      globalStyles.textWhite,
+                      globalStyles.f12Regular,
+                    ]}
+                  >
+                    We’ll remember it, pamper it, and keep it shining.
+                  </CustomText>
+                </View>
+              </View>
+              <View style={styles.ctaButtonWrapper}>
+                <TouchableOpacity
+                  style={[styles.ctaButton, globalStyles.bgwhite]}
+                  onPress={goToCar}
+                >
+                  <CustomText
+                    style={[globalStyles.f16Bold, globalStyles.textBlack]}
+                  >
+                    Add My Car
+                  </CustomText>
+                </TouchableOpacity>
+              </View>
+            </ImageBackground>
           </View>
-        </ImageBackground>
-      </View>
+        </>
+      )}
     </ScrollView>
   );
 }

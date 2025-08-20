@@ -27,6 +27,7 @@ export default function AddressListScreen() {
     useContext(LocationContext);
   const [addressList, setAddressList] = useState([]);
   const [primaryAddress, setPrimaryAddress] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // For delete confirmation
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
@@ -34,6 +35,7 @@ export default function AddressListScreen() {
   const insets = useSafeAreaInsets();
 
   const fetchAddresses = async () => {
+    setLoading(true);
     try {
       const userData = await AsyncStorage.getItem("userData");
       const parsedData = JSON.parse(userData);
@@ -54,6 +56,8 @@ export default function AddressListScreen() {
       }
     } catch (error) {
       console.error("Failed to fetch addresses", error);
+    } finally {
+      setLoading(false); // Set loading to false
     }
   };
 
@@ -86,12 +90,33 @@ export default function AddressListScreen() {
     }
   };
 
+  const SkeletonLoader = () => (
+    <View style={styles.card}>
+      {/* Header Placeholder */}
+      <View style={styles.cardHeader}>
+        <View style={{ backgroundColor: '#e0e0e0', width: 18, height: 18, borderRadius: 4 }} />
+        <View style={{ backgroundColor: '#e0e0e0', height: 16, width: '60%', borderRadius: 4, marginLeft: 8 }} />
+      </View>
+      {/* Address Line Placeholder */}
+      <View style={{ backgroundColor: '#e0e0e0', height: 16, width: '90%', borderRadius: 4, marginVertical: 8 }} />
+      {/* Action Buttons Placeholder */}
+      <View style={styles.ActionButtons}>
+        <View style={[styles.notprimaryButton, { flex: 1, backgroundColor: '#e0e0e0' }]} />
+        <View style={[styles.deleteButton, { backgroundColor: '#e0e0e0' }]} />
+      </View>
+    </View>
+  );
+
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={[styles.contentContainer, { paddingBottom: insets.bottom + 16 }]}>
-        {addressList.length === 0 ? (
+        {loading ? (
           <View>
-            <ActivityIndicator size="large" color={color.primary} />
+            <SkeletonLoader />
+            <SkeletonLoader />
+          </View>
+        ) : addressList.length === 0 ? (
+          <View style={{ alignItems: 'center', marginTop: 20 }}>
             <CustomText style={globalStyles.paragraph}>
               No addresses found. Please add an address.
             </CustomText>
@@ -106,13 +131,11 @@ export default function AddressListScreen() {
                   {address.AddressLine1}
                 </CustomText>
               </View>
-
               {/* Address Line */}
               <CustomText style={[globalStyles.f12SemiBold, styles.addressLine]}>
-                {address.AddressLine1}, {address.AddressLine2} {address.CityName},{" "}
+                {address.AddressLine1}, {address.AddressLine2} {address.CityName},{' '}
                 {address.StateName} - {address.Pincode}
               </CustomText>
-
               {/* Action Buttons Row */}
               <View style={styles.ActionButtons}>
                 {primaryAddress?.AddressID === address.AddressID ? (
@@ -135,8 +158,6 @@ export default function AddressListScreen() {
                     </CustomText>
                   </TouchableOpacity>
                 )}
-
-                {/* Show delete only if NOT primary */}
                 {primaryAddress?.AddressID !== address.AddressID && (
                   <TouchableOpacity
                     onPress={() => {
@@ -153,7 +174,6 @@ export default function AddressListScreen() {
           ))
         )}
       </ScrollView>
-
       {/* Delete Confirmation Alert */}
       <CustomAlert
         visible={showDeleteAlert}
@@ -165,8 +185,8 @@ export default function AddressListScreen() {
       >
         <View
           style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
+            flexDirection: 'row',
+            justifyContent: 'space-between',
             marginTop: 16,
           }}
         >
@@ -185,7 +205,6 @@ export default function AddressListScreen() {
         </View>
       </CustomAlert>
     </SafeAreaView>
-
   );
 }
 

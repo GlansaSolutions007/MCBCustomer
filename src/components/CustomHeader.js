@@ -38,6 +38,7 @@ export default function CustomHeader({ navigation }) {
   const [isLocating, setIsLocating] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
   const [addressList, setAddressList] = useState([]);
+  const [name, setName] = useState('');
   const [primaryAddress, setPrimaryAddress] = useState(null);
   const [alertData, setAlertData] = useState({
     title: "",
@@ -116,16 +117,32 @@ export default function CustomHeader({ navigation }) {
     }
   };
 
+  const getUserData = async () => {
+    try {
+      const userData = await AsyncStorage.getItem('userData');
+      if (userData) {
+        const parsedData = JSON.parse(userData);
+        setName(parsedData?.name || "");
+      }
+    } catch (error) {
+      console.error("Error fetching user data", error);
+    }
+  };
+
+  useEffect(() => {
+    getUserData()
+  }, []);
+
   const fetchAddresses = async () => {
     try {
       const userData = await AsyncStorage.getItem("userData");
       const parsedData = JSON.parse(userData);
+      console.log(parsedData, 'userrrrr');
+
       console.log(parsedData.custID, "user data in cart page");
-      // console.log(userData, "user data in cart page");
       const custID = parsedData?.custID;
+
       console.log(custID, "customer id in cart page");
-      // alert(parsedData?.custID || "No customer ID found");
-      // if (!custID) return;
 
       const response = await axios.get(
         `${API_URL}CustomerAddresses/custid?custid=${parsedData?.custID}`
@@ -188,7 +205,7 @@ export default function CustomHeader({ navigation }) {
         <View style={styles.topRow}>
           <View>
             <CustomText style={[globalStyles.textWhite, globalStyles.mt1]}>
-              Hello User
+              {name ? `Hello, ${name}` : "Hello, User"}
             </CustomText>
             <Pressable onPress={handlePressLocation}>
               <CustomText

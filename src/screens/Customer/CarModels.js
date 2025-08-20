@@ -27,6 +27,7 @@ export default function CarModels() {
   const [selectedModel, setSelectedModel] = useState(null);
   const [alertVisible, setAlertVisible] = useState(false);
   const [fuelTypes, setFuelTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const navigation = useNavigation();
 
@@ -37,6 +38,7 @@ export default function CarModels() {
 
   const fetchFuelTypes = async () => {
     try {
+      setLoading(true);
       const response = await axios.get(`${API_URL}FuelTypes/GetFuelTypes`);
       const json = response.data;
 
@@ -48,6 +50,8 @@ export default function CarModels() {
       }
     } catch (error) {
       console.error("Error fetching fuel types:", error);
+    } finally {
+      setLoading(false); // Set loading to false
     }
   };
 
@@ -74,10 +78,17 @@ export default function CarModels() {
 
   const refreshData = async () => {
     await fetchFuelTypes();
-    setFilteredModels(models); 
+    setFilteredModels(models);
   };
 
   const { refreshing, onRefresh } = useGlobalRefresh(refreshData);
+
+  const SkeletonLoader = () => (
+    <View style={styles.card}>
+      <View style={[styles.image, { backgroundColor: '#e0e0e0' }]} />
+      <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', borderRadius: 4, marginTop: 5, alignSelf: 'center' }} />
+    </View>
+  );
 
   const renderModel = ({ item }) => (
     <TouchableOpacity style={styles.card} onPress={() => handleModelPress(item)}>
@@ -88,67 +99,79 @@ export default function CarModels() {
 
   return (
     <View style={styles.container}>
-      <SearchBox
-        placeholder="Search car models"
-        value={searchText}
-        onChangeText={setSearchText}
-        style={{ marginBottom: 40 }}
-      />
-      <FlatList
-        data={filteredModels}
-        renderItem={renderModel}
-        keyExtractor={(item) => item.name}
-        numColumns={3}
-        columnWrapperStyle={styles.row}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-      />
-      <CustomAlert
-        visible={alertVisible}
-        onClose={() => setAlertVisible(false)}
-        title={selectedModel ? selectedModel.name : ''}
-        message="Select Fuel Type"
-        status="info"
-        showButton={false}
-      >
-        {selectedModel && (
-          <Image source={{ uri: selectedModel.image }} style={styles.alertCarImage} />
-        )}
-
-        <View style={styles.fuelRow}>
-          {fuelTypes.map((fuel) => (
-            <TouchableOpacity
-              key={fuel.FuelTypeID}
-              style={styles.fuelIcon}
-              onPress={() => {
-                console.log(`Selected ${fuel.FuelTypeName} for ${selectedModel?.name}`);
-                navigation.navigate("MyCarDetails", {
-                  brandId: route.params.brandId,
-                  modelId: selectedModel.id,
-                  fuelId: fuel.FuelTypeID,
-                  model: selectedModel,
-                  fuelType: fuel.FuelTypeName
-                });
-                setAlertVisible(false);
-              }}
-
-            >
-
-              <Image
-                source={
-                  fuel.FuelImage
-                    ? { uri: getFuelImageUrl(fuel.FuelImage) }
-                    : Petrol // fallback image
-                }
-                style={styles.fuelImage}
-              />
-              <CustomText style={[globalStyles.f10Bold, globalStyles.textBlack]}>{fuel.FuelTypeName}</CustomText>
-
-            </TouchableOpacity>
-          ))}
-        </View>
-      </CustomAlert>
+      {loading ? (
+        <FlatList
+          data={Array(9).fill().map((_, i) => ({ id: `skeleton${i}` }))}
+          renderItem={() => <SkeletonLoader />}
+          keyExtractor={(item) => item.id}
+          numColumns={3}
+          columnWrapperStyle={styles.row}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          showsVerticalScrollIndicator={false}
+        />
+      ) : (
+        <>
+          <SearchBox
+            placeholder="Search car models"
+            value={searchText}
+            onChangeText={setSearchText}
+            style={{ marginBottom: 40 }}
+          />
+          <FlatList
+            data={filteredModels}
+            renderItem={renderModel}
+            keyExtractor={(item) => item.name}
+            numColumns={3}
+            columnWrapperStyle={styles.row}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+          <CustomAlert
+            visible={alertVisible}
+            onClose={() => setAlertVisible(false)}
+            title={selectedModel ? selectedModel.name : ''}
+            message="Select Fuel Type"
+            status="info"
+            showButton={false}
+          >
+            {selectedModel && (
+              <Image source={{ uri: selectedModel.image }} style={styles.alertCarImage} />
+            )}
+            <View style={styles.fuelRow}>
+              {fuelTypes.map((fuel) => (
+                <TouchableOpacity
+                  key={fuel.FuelTypeID}
+                  style={styles.fuelIcon}
+                  onPress={() => {
+                    console.log(`Selected ${fuel.FuelTypeName} for ${selectedModel?.name}`);
+                    navigation.navigate('MyCarDetails', {
+                      brandId: route.params.brandId,
+                      modelId: selectedModel.id,
+                      fuelId: fuel.FuelTypeID,
+                      model: selectedModel,
+                      fuelType: fuel.FuelTypeName,
+                    });
+                    setAlertVisible(false);
+                  }}
+                >
+                  <Image
+                    source={
+                      fuel.FuelImage
+                        ? { uri: getFuelImageUrl(fuel.FuelImage) }
+                        : Petrol
+                    }
+                    style={styles.fuelImage}
+                  />
+                  <CustomText style={[globalStyles.f10Bold, globalStyles.textBlack]}>
+                    {fuel.FuelTypeName}
+                  </CustomText>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </CustomAlert>
+        </>
+      )}
     </View>
   );
 }

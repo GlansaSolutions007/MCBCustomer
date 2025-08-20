@@ -15,9 +15,6 @@ import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 
 
 export default function MyCars() {
-    //
-    // const {API_IMAGE_URL} = Constants.expoConfig.extra;
-    // Alert.alert("Debug", `API URL: ${API_IMAGE_URL}`);
     const [brands, setBrands] = useState([]);
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState('');
@@ -108,6 +105,12 @@ export default function MyCars() {
         setFilteredBrands(filtered);
     };
 
+    const SkeletonLoader = () => (
+        <View style={styles.card}>
+            <View style={[styles.logo, { backgroundColor: '#e0e0e0' }]} />
+            <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', borderRadius: 4, marginTop: 5, alignSelf: 'center' }} />
+        </View>
+    );
 
     const renderBrand = ({ item }) => (
         <TouchableOpacity
@@ -127,32 +130,44 @@ export default function MyCars() {
         </TouchableOpacity>
     );
 
-    if (loading) return <Loader />;
-
     return (
-        <>
-            <View style={[styles.container, { padding: 10, flex: 1 }]}>
-                <SearchBox
-                    value={searchQuery}
-                    onChangeText={handleSearch} />
-                <View style={{ marginVertical: 10 }}>
-                    <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>Add Your Car</CustomText>
-                    <CustomText style={{ ...globalStyles.f10Bold, color: color.secondary }}>Start From Selecting Your Manufacturer.</CustomText>
-                </View>
+        <View style={[styles.container, { padding: 10, flex: 1 }]}>
+            {loading ? (
                 <FlatList
-                    data={filteredBrands}
-                    renderItem={renderBrand}
-                    keyExtractor={(item) => item.brand}
+                    data={Array(6).fill().map((_, i) => ({ id: `skeleton${i}` }))}
+                    renderItem={() => <SkeletonLoader />}
+                    keyExtractor={(item) => item.id}
                     numColumns={3}
                     columnWrapperStyle={styles.row}
                     contentContainerStyle={{ paddingBottom: 20 }}
                     showsVerticalScrollIndicator={false}
-                    refreshing={refreshing}
-                    onRefresh={onRefresh}
                 />
-            </View>
-        </>
-    );
+            ) : (
+                <>
+                    <SearchBox
+                        value={searchQuery}
+                        onChangeText={handleSearch}
+                    />
+                    <View style={{ marginVertical: 10 }}>
+                        <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>Add Your Car</CustomText>
+                        <CustomText style={{ ...globalStyles.f10Bold, color: color.secondary }}>
+                            Start From Selecting Your Manufacturer.
+                        </CustomText>
+                    </View>
+                    <FlatList
+                        data={filteredBrands}
+                        renderItem={renderBrand}
+                        keyExtractor={(item) => item.brand}
+                        numColumns={3}
+                        columnWrapperStyle={styles.row}
+                        contentContainerStyle={{ paddingBottom: 20 }}
+                        showsVerticalScrollIndicator={false}
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                    />
+                </>
+            )}
+        </View>);
 }
 
 const styles = StyleSheet.create({
