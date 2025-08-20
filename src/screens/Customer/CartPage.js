@@ -150,7 +150,7 @@ const CartPage = () => {
     }
   };
 
- useEffect(() => {
+  useEffect(() => {
     fetchAddresses(); // Initial fetch on mount
     const unsubscribe = navigation.addListener('focus', () => {
       fetchAddresses(); // Re-fetch when screen is focused
@@ -304,6 +304,7 @@ const CartPage = () => {
         TotalPrice: finalAmount,
         CouponCode: couponCode,
         CouponAmount: discountAmount,
+        GSTAmount: gst,
         // BookingFrom: "app",
         PaymentMethod: paymentMethod,
         Notes: instructions || "",
@@ -924,7 +925,7 @@ const CartPage = () => {
                     To Pay ₹{finalAmount}
                   </CustomText>
                   <CustomText style={styles.saved}>
-                   Saving ₹{savedAmount + discountAmount}
+                    Saving ₹{savedAmount + discountAmount}
                   </CustomText>
                 </View>
               </View>

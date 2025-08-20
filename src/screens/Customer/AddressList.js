@@ -7,6 +7,7 @@ import {
   View,
   TouchableOpacity,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import { color } from "../../styles/theme";
 
@@ -87,11 +88,14 @@ export default function AddressListScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <ScrollView contentContainerStyle={[styles.contentContainer,{paddingBottom: insets.bottom + 16}]}>
+      <ScrollView contentContainerStyle={[styles.contentContainer, { paddingBottom: insets.bottom + 16 }]}>
         {addressList.length === 0 ? (
-          <CustomText style={globalStyles.paragraph}>
-            No addresses found. Please add an address.
-          </CustomText>
+          <View>
+            <ActivityIndicator size="large" color={color.primary} />
+            <CustomText style={globalStyles.paragraph}>
+              No addresses found. Please add an address.
+            </CustomText>
+          </View>
         ) : (
           addressList.map((address) => (
             <View key={address.AddressID} style={styles.card}>
