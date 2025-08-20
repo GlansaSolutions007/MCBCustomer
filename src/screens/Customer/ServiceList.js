@@ -16,6 +16,7 @@ import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
 import { API_URL } from "../../../apiConfig";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function ServiceList() {
   const [selectedTab, setSelectedTab] = useState("New");
@@ -79,12 +80,15 @@ export default function ServiceList() {
   }, []);
 
   // Reload bookings every time the screen is focused
-  useFocusEffect(
-    useCallback(() => {
-      console.log("Screen focused, fetching bookings...");
-      fetchBookings();
-    }, [fetchBookings])
-  );
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     console.log("Screen focused, fetching bookings...");
+  //     fetchBookings();
+  //   }, [fetchBookings])
+  // );
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
 
   // Handle manual refresh
   const handleRefresh = useCallback(() => {
@@ -137,14 +141,6 @@ export default function ServiceList() {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
-        <CustomText style={{ color: "#333", ...globalStyles.f12Bold }}>
-          Showing{" "}
-          <CustomText style={{ fontWeight: "bold", color: "#007AFF" }}>
-            {selectedTab}
-          </CustomText>{" "}
-          Services
-        </CustomText>
-
         {loading ? (
           <CustomText
             style={{
@@ -171,67 +167,115 @@ export default function ServiceList() {
           filteredBookings.map((booking) => (
             <TouchableOpacity
               key={booking.BookingID}
-              style={styles.card}
+              style={styles.bookingCard}
               onPress={() =>
                 navigation.navigate("BookingsInnerPage", { booking })
               }
             >
-              <View style={styles.header}>
-                <Image
-                  source={{
-                    uri: `https://api.mycarsbuddy.com/Images${booking.VehicleImage}`,
-                  }}
-                  style={styles.vehicleImage}
-                  onError={(e) =>
-                    console.log("Image load error:", e.nativeEvent.error)
-                  }
-                />
-                <View style={{ flex: 1, marginLeft: 10 }}>
-                  <CustomText style={styles.title}>
-                    {booking.BrandName} {booking.ModelName}
-                  </CustomText>
-                  <CustomText style={styles.subText}>
-                    {booking.VehicleNumber} | {booking.FuelTypeName}
-                  </CustomText>
-                  <CustomText style={styles.subText}>
-                    Date: {booking.BookingDate}
-                  </CustomText>
-                  <CustomText style={styles.subText}>
-                    Slot: {booking.TimeSlot}
+              <View>
+                <View style={styles.bookingR1}>
+                  <CustomText style={styles.bookingID}>
+                    BID: {booking.BookingTrackID}
                   </CustomText>
                   <CustomText
                     style={[
-                      styles.subText,
+                      styles.techStatus,
                       {
-                        color: booking.TechID === null ? "#FF9500" : "#333",
+                        color:
+                          booking.TechID === null ? color.text : color.primary,
                       },
                     ]}
                   >
-                    Technician:{" "}
-                    {booking.TechID === null ? "Not Assigned Yet" : "Assigned"}
+                    Tech {booking.TechID === null ? "Not Assigned" : "Assigned"}
                   </CustomText>
                 </View>
-              </View>
-
-              <View style={styles.packageList}>
-                {(booking.Packages || []).map((pkg) => (
-                  <View key={pkg.PackageID} style={styles.packageItem}>
-                    <CustomText style={styles.packageName}>
-                      • {pkg.PackageName}
+                <View style={styles.divider} />
+                <View style={styles.bookingR1}>
+                  <View style={styles.bookingCarImage}>
+                    <Image
+                      source={{
+                        uri: `https://api.mycarsbuddy.com/Images${booking.VehicleImage}`,
+                      }}
+                      style={{
+                        width: "80%",
+                        height: 60,
+                        borderRadius: 8,
+                        backgroundColor: "#eee",
+                      }}
+                      onError={(e) =>
+                        console.log("Image load error:", e.nativeEvent.error)
+                      }
+                    />
+                    <CustomText style={styles.title}>
+                      {booking.BrandName} {booking.ModelName} (
+                      {booking.FuelTypeName === "Petrol"
+                        ? "P"
+                        : booking.FuelTypeName === "Diesel"
+                        ? "D"
+                        : "E"}
+                      )
+                    </CustomText>
+                    <CustomText style={styles.subText}>
+                      {booking.VehicleNumber}
                     </CustomText>
                   </View>
-                ))}
-              </View>
-
-              <View style={styles.footer}>
-                <CustomText style={styles.totalText}>
-                  ₹ {booking.TotalPrice.toFixed(2)}
-                </CustomText>
-                {booking.BookingStatus?.toLowerCase() !== "pending" && (
-                  <CustomText style={styles.statusText}>
-                    {booking.BookingStatus}
+                  <View style={styles.bookingDetails}>
+                    <View style={styles.bookingDate}>
+                      <CustomText
+                        style={[globalStyles.f10Regular, color.primary]}
+                      >
+                        Booked On:
+                      </CustomText>
+                      <CustomText style={[globalStyles.f12Bold]}>
+                        {booking.BookingDate}
+                      </CustomText>
+                    </View>
+                    <View style={styles.bookingDate}>
+                      <CustomText style={[globalStyles.f10Regular]}>
+                        Booked Slot:
+                      </CustomText>
+                      <CustomText style={[globalStyles.f12Bold]}>
+                        {booking.TimeSlot}
+                      </CustomText>
+                    </View>
+                    <View style={styles.bookingDate}>
+                      <CustomText style={[globalStyles.f10Regular]}>
+                        Service Amount:
+                      </CustomText>
+                      <CustomText style={[globalStyles.f12Bold]}>
+                        ₹ {booking.TotalPrice.toFixed(2)}
+                      </CustomText>
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.bookingServices}>
+                  <CustomText style={[globalStyles.f10Regular, color.primary]}>
+                    Services:
                   </CustomText>
-                )}
+                  {(booking.Packages || []).map((pkg) => (
+                    <View
+                      key={pkg.PackageID}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginVertical: 4,
+                      }}
+                    >
+                      <Ionicons
+                        name="settings"
+                        size={16}
+                        color={color.primary}
+                        style={{ marginRight: 6 }}
+                      />
+                      <CustomText
+                        style={[globalStyles.f12Bold, { color: "#333" }]}
+                      >
+                        {pkg.PackageName}
+                      </CustomText>
+                    </View>
+                  ))}
+                </View>
               </View>
             </TouchableOpacity>
           ))
@@ -264,16 +308,15 @@ const styles = StyleSheet.create({
     transition: "all 0.3s", // works in web, for RN add Animated if needed
   },
   tabButtonActive: {
-    backgroundColor: color.yellow, // your primary brand color
+    backgroundColor: color.yellow,
   },
   tabButtonText: {
     color: "#555",
     ...globalStyles.f12Bold,
-    fontWeight: "600",
   },
   tabButtonTextActive: {
     color: "#fff",
-    fontWeight: "700",
+    ...globalStyles.f12Bold,
   },
   card: {
     backgroundColor: "#fff",
@@ -325,5 +368,62 @@ const styles = StyleSheet.create({
   statusText: {
     color: color.primary || "#007AFF",
     ...globalStyles.f10Bold,
+  },
+  bookingCard: {
+    backgroundColor: color.white,
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2, // Android shadow
+  },
+  bookingR1: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  bookingID: {
+    ...globalStyles.f10Bold,
+    backgroundColor: color.secondary,
+    padding: 5,
+    borderRadius: 10,
+    color: color.white,
+  },
+  bookingCarImage: {
+    width: "50%",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    // gap: 2,
+  },
+  techStatus: {
+    ...globalStyles.f10Bold,
+    // color: "#666",
+  },
+  divider: {
+    borderBottomColor: "#ededed",
+    borderBottomWidth: 1,
+    marginVertical: 3,
+  },
+  bookingDetails: {
+    display: "flex",
+    flexDirection: "column",
+    // justifyContent: "space-between",
+    alignContent: "flex-start",
+    flex: 1,
+    gap: 6,
+    padding: 5,
+  },
+  bookingDate: {
+    // ...globalStyles.f10Bold,
+    // color: "#666",
+    display: "flex",
+    flexDirection: "column",
   },
 });
