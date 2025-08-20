@@ -69,7 +69,7 @@ export default function ServiceList() {
       }
 
       setBookings((prev) => {
-        console.log("Setting bookings state to:", bookingsData);
+        // console.log("Setting bookings state to:", bookingsData);
         return [...bookingsData];
       });
     } catch (error) {
@@ -293,27 +293,43 @@ export default function ServiceList() {
                   <CustomText style={[globalStyles.f10Regular, color.primary]}>
                     Services Booked:
                   </CustomText>
-                  {(booking.Packages || []).map((pkg) => (
+
+                  {(booking.Packages || []).map((pkg, index) => (
                     <View
                       key={pkg.PackageID}
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
+                        justifyContent:
+                          index === booking.Packages.length - 1
+                            ? "space-between" // ✅ last package row → push status to right
+                            : "flex-start",   // other rows → normal alignment
                         marginVertical: 4,
                       }}
                     >
-                      <FontAwesome5 name="tools"
-                        size={16}
-                        color={color.primary}
-                        style={{ marginRight: 6 }} />
-                      <CustomText
-                        style={[globalStyles.f12Bold, { color: "#333" }]}
-                      >
-                        {pkg.PackageName}
-                      </CustomText>
+                      {/* Left: icon + package name */}
+                      <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        <FontAwesome5
+                          name="tools"
+                          size={16}
+                          color={color.primary}
+                          style={{ marginRight: 6 }}
+                        />
+                        <CustomText style={[globalStyles.f12Bold, { color: "#333" }]}>
+                          {pkg.PackageName}
+                        </CustomText>
+                      </View>
+
+                      {/* Right: status only for last package */}
+                      {index === booking.Packages.length - 1 && (
+                        <CustomText style={[globalStyles.f10Medium]}>
+                          Status: <CustomText style={[globalStyles.f10Bold, { color: color.primary }]}>{booking.BookingStatus}</CustomText>
+                        </CustomText>
+                      )}
                     </View>
                   ))}
                 </View>
+
               </View>
             </Pressable>
           ))

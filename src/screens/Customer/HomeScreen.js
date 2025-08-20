@@ -35,7 +35,6 @@ import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 export default function HomeScreen() {
   const token = getToken();
 
-  // Alert.alert("Debug", `API URL: ${API_URL}`);
   const navigation = useNavigation();
   const { setLocationText, setLocationStatus } = useContext(LocationContext);
   const [categories, setCategories] = useState([]);

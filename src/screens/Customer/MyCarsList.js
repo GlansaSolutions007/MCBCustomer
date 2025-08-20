@@ -61,7 +61,7 @@ export const MyCarsList = () => {
       );
 
       const carList = response.data;
-      console.log(carList, "Car List Response");
+      // console.log(carList, "Car List Response");
 
       const normalizedList = carList
         ? Array.isArray(carList)

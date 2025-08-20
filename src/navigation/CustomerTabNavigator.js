@@ -13,7 +13,6 @@ import { MyCarsList } from "../screens/Customer/MyCarsList";
 import globalStyles from "../styles/globalStyles";
 import { color } from "../styles/theme";
 import logo from '../../assets/Logo/logo2.png'
-
 const Tab = createBottomTabNavigator();
 
 export default function CustomerTabNavigator({ navigation }) {
@@ -81,8 +80,8 @@ export default function CustomerTabNavigator({ navigation }) {
             case "My Cars":
               iconName = "car-sport-outline";
               break;
-            case "Book Service":
-              iconName = "calendar-outline";
+            case "Services":
+              iconName = "list";
               break;
             case "My Bookings":
               iconName = "calendar-outline";
@@ -108,7 +107,7 @@ export default function CustomerTabNavigator({ navigation }) {
         component={MyCarsList}
         options={{ unmountOnBlur: true }}
       />
-      {/* <Tab.Screen name="Book Service" component={BookServiceScreen} /> */}
+      <Tab.Screen name="Services" component={BookServiceScreen} />
       <Tab.Screen name="My Bookings" component={ServiceList} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
     </Tab.Navigator>
