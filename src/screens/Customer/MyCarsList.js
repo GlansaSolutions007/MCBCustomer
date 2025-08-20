@@ -168,18 +168,18 @@ export const MyCarsList = () => {
     <View style={styles.carCard}>
       <View style={{ flexDirection: 'row' }}>
         <View style={styles.carContainer}>
-          <View style={[styles.carImage, { backgroundColor: '#e0e0e0' }]} />
-          <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '80%', borderRadius: 4, marginTop: 5 }} />
+          <View style={[styles.carImage, { backgroundColor: '#f1f1f1ff', borderRadius: 8 }]} />
+          <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '80%', borderRadius: 4, marginTop: 5 }} />
         </View>
         <View style={styles.carInfo}>
-          <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', borderRadius: 4 }} />
-          <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '80%', borderRadius: 4, marginTop: 5 }} />
+          <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '60%', borderRadius: 4 }} />
+          <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '80%', borderRadius: 4, marginTop: 5 }} />
           <View style={{ height: 6 }} />
-          <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', borderRadius: 4 }} />
-          <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '80%', borderRadius: 4, marginTop: 5 }} />
+          <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '60%', borderRadius: 4 }} />
+          <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '80%', borderRadius: 4, marginTop: 5 }} />
           <View style={{ height: 6 }} />
-          <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', borderRadius: 4 }} />
-          <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '80%', borderRadius: 4, marginTop: 5 }} />
+          <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '60%', borderRadius: 4 }} />
+          <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '80%', borderRadius: 4, marginTop: 5 }} />
         </View>
       </View>
       <View style={{ height: 16 }} />
@@ -190,8 +190,8 @@ export const MyCarsList = () => {
           alignItems: 'center',
         }}
       >
-        <View style={[styles.detailsButton, { backgroundColor: '#e0e0e0' }]} />
-        <View style={[styles.makePrimaryBtn, { backgroundColor: '#e0e0e0' }]} />
+        {/* <View style={[styles.detailsButton, { backgroundColor: '#f1f1f1ff' }]} />
+        <View style={[styles.makePrimaryBtn, { backgroundColor: '#f1f1f1ff' }]} /> */}
       </View>
     </View>
   );

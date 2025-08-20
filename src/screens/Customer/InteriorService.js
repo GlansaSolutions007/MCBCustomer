@@ -305,12 +305,12 @@ const InteriorService = () => {
 
   const SkeletonLoader = () => (
     <View style={styles.rowCard}>
-      <View style={[styles.sideImage, { backgroundColor: '#e0e0e0',borderRadius:10 }]} />
+      <View style={[styles.sideImage, { backgroundColor: '#f1f1f1ff',borderRadius:10 }]} />
       <View style={styles.cardRight}>
-        <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '80%', marginBottom: 5, borderRadius:10 }} />
-        <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '70%', marginBottom: 5, borderRadius:10 }} />
-        <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', marginBottom: 5, borderRadius:10 }} />
-        <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '50%', borderRadius:10 }} />
+        <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '80%', marginBottom: 5, borderRadius:10 }} />
+        <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '70%', marginBottom: 5, borderRadius:10 }} />
+        <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '60%', marginBottom: 5, borderRadius:10 }} />
+        <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '50%', borderRadius:10 }} />
       </View>
     </View>
   );

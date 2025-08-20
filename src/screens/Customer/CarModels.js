@@ -85,8 +85,8 @@ export default function CarModels() {
 
   const SkeletonLoader = () => (
     <View style={styles.card}>
-      <View style={[styles.image, { backgroundColor: '#e0e0e0' }]} />
-      <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', borderRadius: 4, marginTop: 5, alignSelf: 'center' }} />
+      <View style={[styles.image, { backgroundColor: '#f1f0f0ff' }]} />
+      <View style={{ backgroundColor: '#f1f0f0ff', height: 15, width: '60%', borderRadius: 4, marginTop: 5, alignSelf: 'center' }} />
     </View>
   );
 

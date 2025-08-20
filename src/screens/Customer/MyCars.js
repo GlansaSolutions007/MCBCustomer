@@ -107,8 +107,8 @@ export default function MyCars() {
 
     const SkeletonLoader = () => (
         <View style={styles.card}>
-            <View style={[styles.logo, { backgroundColor: '#e0e0e0' }]} />
-            <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', borderRadius: 4, marginTop: 5, alignSelf: 'center' }} />
+            <View style={[styles.logo, { backgroundColor: '#f1f1f1ff' }]} />
+            <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '60%', borderRadius: 4, marginTop: 5, alignSelf: 'center' }} />
         </View>
     );
 

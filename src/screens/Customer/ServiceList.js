@@ -111,41 +111,41 @@ export default function ServiceList() {
     <View style={styles.bookingCard}>
       <View>
         <View style={styles.bookingR1}>
-          <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '40%', borderRadius: 4 }} />
-          <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '30%', borderRadius: 4 }} />
+          <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '40%', borderRadius: 4 }} />
+          <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '30%', borderRadius: 4 }} />
         </View>
-        <View style={[styles.divider, { backgroundColor: '#e0e0e0' }]} />
+        <View style={[styles.divider, { backgroundColor: '#f1f1f1ff' }]} />
         <View style={styles.bookingR1}>
           <View style={styles.bookingCarImage}>
-            <View style={{ backgroundColor: '#e0e0e0', width: '60%', height: 60, borderRadius: 8 }} />
-            <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '80%', borderRadius: 4, marginTop: 5 }} />
-            <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', borderRadius: 4, marginTop: 5 }} />
+            <View style={{ backgroundColor: '#f1f1f1ff', width: '60%', height: 60, borderRadius: 8 }} />
+            <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '80%', borderRadius: 4, marginTop: 5 }} />
+            <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '60%', borderRadius: 4, marginTop: 5 }} />
           </View>
           <View style={styles.bookingDetails}>
             <View style={styles.bookingDate}>
-              <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '70%', borderRadius: 4 }} />
-              <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '50%', borderRadius: 4, marginTop: 5 }} />
+              <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '70%', borderRadius: 4 }} />
+              <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '50%', borderRadius: 4, marginTop: 5 }} />
             </View>
             <View style={styles.bookingDate}>
-              <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '70%', borderRadius: 4 }} />
-              <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '50%', borderRadius: 4, marginTop: 5 }} />
+              <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '70%', borderRadius: 4 }} />
+              <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '50%', borderRadius: 4, marginTop: 5 }} />
             </View>
             <View style={styles.bookingDate}>
-              <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '70%', borderRadius: 4 }} />
-              <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '50%', borderRadius: 4, marginTop: 5 }} />
+              <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '70%', borderRadius: 4 }} />
+              <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '50%', borderRadius: 4, marginTop: 5 }} />
             </View>
           </View>
         </View>
-        <View style={[styles.divider, { backgroundColor: '#e0e0e0' }]} />
+        <View style={[styles.divider, { backgroundColor: '#f1f1f1ff' }]} />
         <View style={styles.bookingServices}>
-          <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', borderRadius: 4 }} />
+          <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '60%', borderRadius: 4 }} />
           <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 4 }}>
-            <View style={{ backgroundColor: '#e0e0e0', height: 16, width: 16, borderRadius: 4, marginRight: 6 }} />
-            <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '80%', borderRadius: 4 }} />
+            <View style={{ backgroundColor: '#f1f1f1ff', height: 16, width: 16, borderRadius: 4, marginRight: 6 }} />
+            <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '80%', borderRadius: 4 }} />
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 4 }}>
-            <View style={{ backgroundColor: '#e0e0e0', height: 16, width: 16, borderRadius: 4, marginRight: 6 }} />
-            <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '80%', borderRadius: 4 }} />
+            <View style={{ backgroundColor: '#f1f1f1ff', height: 16, width: 16, borderRadius: 4, marginRight: 6 }} />
+            <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '80%', borderRadius: 4 }} />
           </View>
         </View>
       </View>

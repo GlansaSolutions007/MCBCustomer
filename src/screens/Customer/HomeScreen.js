@@ -132,34 +132,25 @@ export default function HomeScreen() {
     })();
   }, []);
   const { refreshing, onRefresh } = useGlobalRefresh(async () => {
-    // alert("Refresh logic here"); // Replace with actual refresh logic
   });
 
   const SkeletonLoader = () => (
     <View>
-      {/* Banner Placeholder */}
-      {/* <View style={[styles.banner, globalStyles.mb35]}>
-        <View style={[styles.logo, { backgroundColor: '#e0e0e0' }]} />
-        <View style={styles.bannerAbsolute}>
-          <View style={[styles.carImagePositioned, { backgroundColor: '#e0e0e0' }]} />
-          <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '80%', borderRadius: 4, marginTop: 10 }} />
-        </View>
-      </View> */}
       <View style={globalStyles.container}>
-        <View style={{ backgroundColor: '#e0e0e0', height: 20, width: '50%', borderRadius: 4, marginBottom: 10, marginTop:40 }} />
+        <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '50%', borderRadius: 4, marginBottom: 10, marginTop:40 }} />
         {/* Category Cards Placeholder */}
         <View style={[globalStyles.flexrow, globalStyles.justifysb]}>
           {[1, 2, 3].map((_, index) => (
             <View key={index} style={styles.card}>
-              <View style={[styles.cardImage, { backgroundColor: '#e0e0e0' }]} />
+              <View style={[styles.cardImage, { backgroundColor: '#f1f1f1ff' }]} />
               <LinearGradient
-                colors={['#e0e0e0', 'transparent']}
+                colors={['#f1f1f1ff', 'transparent']}
                 start={{ x: 0.5, y: 1 }}
                 end={{ x: 0.5, y: 0 }}
                 style={styles.gradientOverlay}
               >
-                <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '60%', borderRadius: 4 }} />
-                <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '40%', borderRadius: 4, marginTop: 5 }} />
+                <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '60%', borderRadius: 4 }} />
+                <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '40%', borderRadius: 4, marginTop: 5 }} />
               </LinearGradient>
             </View>
           ))}
@@ -170,15 +161,15 @@ export default function HomeScreen() {
             styles.ctaContainer,
             globalStyles.p5,
             globalStyles.mt5,
-            { backgroundColor: '#e0e0e0', borderRadius: 8 },
+            { backgroundColor: '#f1f1f1ff', borderRadius: 8 },
           ]}
         >
           <View>
-            <View style={{ backgroundColor: '#e0e0e0', height: 25, width: '70%', borderRadius: 4 }} />
-            <View style={{ backgroundColor: '#e0e0e0', height: 15, width: '50%', borderRadius: 4, marginTop: 5 }} />
+            <View style={{ backgroundColor: '#f1f1f1ff', height: 25, width: '70%', borderRadius: 4 }} />
+            <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '50%', borderRadius: 4, marginTop: 5 }} />
           </View>
           <View style={styles.ctaButtonWrapper}>
-            <View style={[styles.ctaButton, { backgroundColor: '#e0e0e0' }]} />
+            <View style={[styles.ctaButton, { backgroundColor: '#f1f1f1ff' }]} />
           </View>
         </View>
       </View>

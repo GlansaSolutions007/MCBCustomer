@@ -94,15 +94,15 @@ export default function AddressListScreen() {
     <View style={styles.card}>
       {/* Header Placeholder */}
       <View style={styles.cardHeader}>
-        <View style={{ backgroundColor: '#e0e0e0', width: 18, height: 18, borderRadius: 4 }} />
-        <View style={{ backgroundColor: '#e0e0e0', height: 16, width: '60%', borderRadius: 4, marginLeft: 8 }} />
+        <View style={{ backgroundColor: '#f1f1f1ff', width: 18, height: 18, borderRadius: 4 }} />
+        <View style={{ backgroundColor: '#f1f1f1ff', height: 16, width: '60%', borderRadius: 4, marginLeft: 8 }} />
       </View>
       {/* Address Line Placeholder */}
-      <View style={{ backgroundColor: '#e0e0e0', height: 16, width: '90%', borderRadius: 4, marginVertical: 8 }} />
+      <View style={{ backgroundColor: '#f1f1f1ff', height: 16, width: '90%', borderRadius: 4, marginVertical: 8 }} />
       {/* Action Buttons Placeholder */}
       <View style={styles.ActionButtons}>
-        <View style={[styles.notprimaryButton, { flex: 1, backgroundColor: '#e0e0e0' }]} />
-        <View style={[styles.deleteButton, { backgroundColor: '#e0e0e0' }]} />
+        <View style={[styles.notprimaryButton, { flex: 1, backgroundColor: '#f1f1f1ff' }]} />
+        <View style={[styles.deleteButton, { backgroundColor: '#f1f1f1ff' }]} />
       </View>
     </View>
   );

@@ -130,8 +130,6 @@ const CartPage = () => {
       // console.log(userData, "user data in cart page");
       const custID = parsedData?.custID;
       console.log(custID, "customer id in cart page");
-      // alert(parsedData?.custID || "No customer ID found");
-      // if (!custID) return;
 
       const response = await axios.get(
         `${API_URL}CustomerAddresses/custid?custid=${parsedData?.custID}`
@@ -143,10 +141,9 @@ const CartPage = () => {
       setAddressList(allAddresses);
 
       const primary = allAddresses.find((addr) => addr.IsPrimary);
-      // alert(primary)
       if (primary) setPrimaryAddress(primary);
     } catch (error) {
-      // alert(error.message || "Failed to fetch addresses");
+      console.error(error.message || "Failed to fetch addresses");
     }
   };
 
@@ -182,7 +179,6 @@ const CartPage = () => {
     0
   );
   const savedAmount = originalAmount - totalServiceAmount;
-  // const gst = Math.round(totalServiceAmount * 0.18);
   let couponCode = null;
 
   if (appliedCoupon) {
@@ -219,11 +215,6 @@ const CartPage = () => {
       const userData = await AsyncStorage.getItem("userData");
       const user = JSON.parse(userData);
       const token = getToken();
-      const custID = user?.custID;
-      // console.log(customerName, "customer name in cart page");
-      // console.log('add', primaryAddress);
-      // console.log('vehi', vehicleId);
-      // console.log('date', scheduledDate, scheduledTimeLabel);
 
       if (
         !customerName ||
