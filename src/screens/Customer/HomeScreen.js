@@ -79,7 +79,7 @@ export default function HomeScreen() {
       const response = await axios.get(`${API_URL}Bookings/${custID}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log(custID, response, 'bookkkkkiiiinnnnnnggggg');
+      // console.log(custID, response, 'bookkkkkiiiinnnnnnggggg');
 
       if (response.data) {
         // Filter bookings for today
