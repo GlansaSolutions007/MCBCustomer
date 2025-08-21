@@ -205,16 +205,26 @@ export default function CustomHeader({ navigation }) {
               {name ? `Hello, ${name}` : "Hello, User"}
             </CustomText>
             <Pressable onPress={handlePressLocation}>
-              <CustomText
-                style={[
-                  globalStyles.f12Bold,
-                  globalStyles.mt1,
-                  globalStyles.textWhite,
-                ]}
-              >
-                {locationText || "Select Location"}{" "}
-                <Ionicons name="chevron-down" size={14} />
-              </CustomText>
+              <View style={{ flexDirection: "row", alignItems: "center", maxWidth: 220 }}>
+                <Text
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  style={[
+                    globalStyles.f12Bold,
+                    globalStyles.mt1,
+                    globalStyles.textWhite,
+                    { flexShrink: 1 },
+                  ]}
+                >
+                  {locationText || "Select Location"}
+                </Text>
+                <Ionicons
+                  name="chevron-down"
+                  size={14}
+                  color="#fff"
+                  style={{ marginLeft: 4 }}
+                />
+              </View>
             </Pressable>
           </View>
           <View style={[styles.rightIcons]}>

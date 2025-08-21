@@ -136,7 +136,7 @@ const CartPage = () => {
       );
       const allAddresses = response.data;
 
-      console.log(allAddresses, "customer addresses");
+      // console.log(allAddresses, "customer addresses");
 
       setAddressList(allAddresses);
 
@@ -168,6 +168,24 @@ const CartPage = () => {
     }
   };
 
+  const handleRemoveFromCart = async (itemId) => {
+    removeFromCart(itemId);
+
+    const updatedCartItems = cartItems.filter((item) => item.id !== itemId);
+    if (updatedCartItems.length === 0) {
+      setScheduledDate(null);
+      setScheduledTimeLabel(null);
+      setAppliedCoupon(null);
+
+      try {
+        await AsyncStorage.removeItem("selectedDate");
+        await AsyncStorage.removeItem("selectedTimeSlotLabel");
+      } catch (e) {
+        console.error("Error removing schedule from AsyncStorage:", e);
+      }
+    }
+  };
+
   let discountAmount = 0;
 
   const totalServiceAmount = cartItems.reduce(
@@ -180,8 +198,9 @@ const CartPage = () => {
   );
   const savedAmount = originalAmount - totalServiceAmount;
   let couponCode = null;
+  let couponId = null;
 
-  if (appliedCoupon) {
+  if (appliedCoupon && appliedCoupon.CouponID) {
     couponCode = appliedCoupon.Code;
     couponId = appliedCoupon.CouponID;
 
@@ -474,7 +493,8 @@ const CartPage = () => {
     }
   };
 
-  
+
+
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + 1 }]}>
@@ -549,12 +569,7 @@ const CartPage = () => {
           </CustomText>
 
           {/* Subtext */}
-          <CustomText
-            style={[
-              { color: "#777", textAlign: "center", marginBottom: 20 },
-              globalStyles.f10Medium,
-            ]}
-          >
+          <CustomText style={[{ color: "#777", textAlign: "center", marginBottom: 20 }, globalStyles.f10Medium]}>
             Browse our services and add them to your cart to continue
           </CustomText>
 
@@ -604,7 +619,7 @@ const CartPage = () => {
                       </CustomText>
 
                       <TouchableOpacity
-                        onPress={() => removeFromCart(item.id)}
+                        onPress={() => handleRemoveFromCart(item.id)}
                         style={{
                           marginTop: 4,
                           alignSelf: "flex-start",
