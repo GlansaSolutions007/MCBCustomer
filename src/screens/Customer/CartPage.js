@@ -62,7 +62,7 @@ const CartPage = () => {
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   // for selection of payment method
-  const [paymentMethod, setPaymentMethod] = useState("cos");
+  const [paymentMethod, setPaymentMethod] = useState("razorpay");
   const [disable, setDisable] = useState(false);
 
   const showCustomAlert = (status, title, message) => {
@@ -1050,6 +1050,17 @@ const CartPage = () => {
               </View>
             </View>
             <View style={styles.card}>
+              <TouchableOpacity
+                style={styles.option}
+                onPress={() => setPaymentMethod("razorpay")}
+              >
+                <View style={styles.radioCircle}>
+                  {paymentMethod === "razorpay" && (
+                    <View style={styles.selectedRb} />
+                  )}
+                </View>
+                <Text style={styles.optionText}>Pay with RazorPay</Text>
+              </TouchableOpacity>
               {/* Option 1: Cash On Service */}
               <TouchableOpacity
                 style={styles.option}
@@ -1064,17 +1075,7 @@ const CartPage = () => {
               </TouchableOpacity>
 
               {/* Option 2: Pay with RazorPay */}
-              <TouchableOpacity
-                style={styles.option}
-                onPress={() => setPaymentMethod("razorpay")}
-              >
-                <View style={styles.radioCircle}>
-                  {paymentMethod === "razorpay" && (
-                    <View style={styles.selectedRb} />
-                  )}
-                </View>
-                <Text style={styles.optionText}>Pay with RazorPay</Text>
-              </TouchableOpacity>
+              
             </View>
           </ScrollView>
 
