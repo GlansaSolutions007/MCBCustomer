@@ -35,8 +35,7 @@ import { useCart } from "../contexts/CartContext";
 export default function CustomHeader({ navigation }) {
   const insets = useSafeAreaInsets();
   const [showModal, setShowModal] = useState(false);
-  const { locationText, locationStatus, setLocationText, setLocationStatus } =
-    useContext(LocationContext);
+  const { locationText, locationStatus, setLocationText, setLocationStatus } = useContext(LocationContext);
   const [isLocating, setIsLocating] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
   const [addressList, setAddressList] = useState([]);
@@ -55,12 +54,6 @@ export default function CustomHeader({ navigation }) {
   };
 
   const navigationTo = useNavigation();
-
-  const handleManualLocation = (selectedCity) => {
-    setLocationText(selectedCity);
-    setLocationStatus("manual");
-    setShowModal(false);
-  };
 
   const handlePressLocation = () => {
     if (locationStatus === "denied") {

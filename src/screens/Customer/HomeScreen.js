@@ -79,13 +79,14 @@ export default function HomeScreen() {
       const response = await axios.get(`${API_URL}Bookings/${custID}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // console.log(custID, response, 'bookkkkkiiiinnnnnnggggg');
+      console.log(custID, response, 'bookkkkkiiiinnnnnnggggg');
 
       if (response.data) {
         // Filter bookings for today
         const todaysBookings = response.data.filter(
-          (booking) => booking.BookingDate === today
-        );
+          (booking) =>
+            booking.BookingDate === today &&
+            booking.BookingStatus?.toLowerCase() !== "cancelled");
         setBookings(todaysBookings);
       }
     } catch (error) {
