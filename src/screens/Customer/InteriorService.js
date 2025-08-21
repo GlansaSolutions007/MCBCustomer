@@ -832,7 +832,7 @@ const styles = StyleSheet.create({
     height: 55,
     width: 70,
     marginLeft: 8,
-    marginTop: 10,
+    marginTop: 18,
   },
   chooseCarDiv: {
     width: "80%",

@@ -19,12 +19,18 @@ import { API_URL } from "../../../apiConfig";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const [year, month, day] = dateString.split('-');
+  return `${day}-${month}-${year}`;
+};
+
 export default function ServiceList() {
   const [selectedTab, setSelectedTab] = useState("New");
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
-  const tabs = ["New", "Completed"];
+  const tabs = ["New", "Completed", "Cancelled"];
   const { refreshing, onRefresh } = useGlobalRefresh();
 
   const fetchBookings = useCallback(async () => {
@@ -32,19 +38,15 @@ export default function ServiceList() {
     try {
       const userData = await AsyncStorage.getItem("userData");
       const parsedData = userData ? JSON.parse(userData) : null;
-      const custID = parsedData?.custID || 2; // Fallback to 2 for testing
+      const custID = parsedData?.custID;
       console.log("Customer ID:", custID);
 
       const response = await axios.get(
-        `https://api.mycarsbuddy.com/api/Bookings/${custID}`
+        `${API_URL}Bookings/${custID}`
       );
-      // console.log("Raw response:", response);
-      // console.log("Response data:", response.data);
-      // console.log("Is response.data an array?", Array.isArray(response.data));
 
       let bookingsData = response.data;
 
-      // Handle potential non-array response
       if (!Array.isArray(bookingsData)) {
         console.warn("Response is not an array, attempting to extract array");
         if (
@@ -53,11 +55,9 @@ export default function ServiceList() {
           Array.isArray(bookingsData.bookings)
         ) {
           bookingsData = bookingsData.bookings;
-          // console.log("Extracted bookings array:", bookingsData);
         } else if (typeof bookingsData === "string") {
           try {
             bookingsData = JSON.parse(bookingsData);
-            // console.log("Parsed string to array:", bookingsData);
           } catch (parseError) {
             console.error("Failed to parse data as JSON:", parseError.message);
             bookingsData = [];
@@ -67,9 +67,7 @@ export default function ServiceList() {
           bookingsData = [];
         }
       }
-
       setBookings((prev) => {
-        // console.log("Setting bookings state to:", bookingsData);
         return [...bookingsData];
       });
     } catch (error) {
@@ -102,9 +100,14 @@ export default function ServiceList() {
   const filteredBookings = (bookings || []).filter((b) => {
     const status = (b.BookingStatus || "").toLowerCase();
     console.log("Booking status:", status, "Selected tab:", selectedTab);
-    return selectedTab === "New"
-      ? status !== "completed"
-      : status === "completed";
+    if (selectedTab === "New") {
+      return status !== "completed" && status !== "cancelled";
+    } else if (selectedTab === "Completed") {
+      return status === "completed";
+    } else if (selectedTab === "Cancelled") {
+      return status === "cancelled";
+    }
+    return false;
   });
 
   const SkeletonLoader = () => (
@@ -157,6 +160,7 @@ export default function ServiceList() {
       <View style={styles.tabRow}>
         {tabs.map((tab) => {
           const isActive = selectedTab === tab;
+          const isCancelled = tab === "Cancelled";
           return (
             <TouchableOpacity
               key={tab}
@@ -164,7 +168,9 @@ export default function ServiceList() {
                 console.log("Tab switched to:", tab);
                 setSelectedTab(tab);
               }}
-              style={[styles.tabButton, isActive && styles.tabButtonActive]}
+              style={[styles.tabButton, isActive && {
+                backgroundColor: isCancelled ? color.alertError : color.yellow,
+              },]}
             >
               <CustomText
                 style={[
@@ -217,17 +223,19 @@ export default function ServiceList() {
                   <CustomText style={styles.bookingID}>
                     BID: {booking.BookingTrackID}
                   </CustomText>
-                  <CustomText
-                    style={[
-                      styles.techStatus,
-                      {
-                        color:
-                          booking.TechID === null ? color.text : color.primary,
-                      },
-                    ]}
-                  >
-                    Tech {booking.TechID === null ? "Not Assigned" : "Assigned"}
-                  </CustomText>
+                  {booking.BookingStatus?.toLowerCase() !== "cancelled" && (
+                    <CustomText
+                      style={[
+                        styles.techStatus,
+                        {
+                          color:
+                            booking.TechID === null ? color.text : color.primary,
+                        },
+                      ]}
+                    >
+                      Tech {booking.TechID === null ? "Not Assigned" : "Assigned"}
+                    </CustomText>
+                  )}
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.bookingR1}>
@@ -261,14 +269,10 @@ export default function ServiceList() {
                   </View>
                   <View style={styles.bookingDetails}>
                     <View style={styles.bookingDate}>
-                      <CustomText
-                        style={[globalStyles.f10Regular, color.primary]}
-                      >
-                        Booked On:
+                      <CustomText style={[globalStyles.f10Regular, { color: color.primary }]}>
+                        Booking Date:
                       </CustomText>
-                      <CustomText style={[globalStyles.f12Bold]}>
-                        {booking.BookingDate}
-                      </CustomText>
+                      <CustomText style={[globalStyles.f12Bold]}>{formatDate(booking.BookingDate)}</CustomText>
                     </View>
                     <View style={styles.bookingDate}>
                       <CustomText style={[globalStyles.f10Regular]}>

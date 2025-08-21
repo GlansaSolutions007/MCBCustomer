@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   ScrollView,
@@ -16,248 +16,321 @@ import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "../../
 import Icon from "react-native-vector-icons/MaterialIcons";
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import CustomAlert from "../../components/CustomAlert";
+import axios from "axios";
+
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const [year, month, day] = dateString.split('-');
+  return `${day}-${month}-${year}`;
+};
 
 export default function BookingsInnerPage() {
   const route = useRoute();
   const { booking } = route.params;
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const [showCancelAlert, setShowCancelAlert] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  const handleCancelBooking = async () => {
+    setIsCancelling(true);
+    try {
+      const response = await axios.post(
+        `${API_URL}TechnicianTracking/UpdateTechnicianTracking`,
+        {
+          bookingID: booking.BookingID,
+          actionType: 'Cancelled',
+        }
+      );
+      console.log(response,'rressssss');
+      
+      if (response.status === 200) {
+        setShowCancelAlert(false);
+        navigation.goBack();
+      }
+    } catch (error) {
+      console.error('Cancel booking error:', error);
+      setShowCancelAlert(false);
+
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: "#F5F5F5" }}
-      contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16, }}
-    >
-      {/* <CustomText style={[styles.sectionTitle, globalStyles.f14Bold]}>
-        Booking Details
-      </CustomText> */}
-      <View style={styles.card}>
-        {/* <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>Booking ID:</CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>{booking.BookingID}</CustomText>
-        </View> */}
-        <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>
-            Tracking ID:
-          </CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>
-            {booking.BookingTrackID}
-          </CustomText>
-        </View>
-        <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>
-            Customer Name:
-          </CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>
-            {booking.CustomerName}
-          </CustomText>
-        </View>
-        <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>
-            Phone Number:
-          </CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>
-            {booking.PhoneNumber}
-          </CustomText>
-        </View>
-        <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>
-            Location:
-          </CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>
-            {booking.CityName}, {booking.StateName}
-          </CustomText>
-        </View>
-        <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>
-            Date:
-          </CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>
-            {booking.BookingDate}
-          </CustomText>
-        </View>
-        <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>
-            Time Slot:
-          </CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>
-            {booking.TimeSlot}
-          </CustomText>
-        </View>
-        <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>Technician:</CustomText>
-          <View style={{ flexDirection: "row", alignItems: "center", flex: 2, justifyContent: "flex-end" }}>
+    <>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: "#F5F5F5" }}
+        contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 16, }}
+      >
+        <View style={styles.card}>
+          <View style={styles.section}>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              Tracking ID:
+            </CustomText>
+            <CustomText style={[styles.value, globalStyles.f12Regular]}>
+              {booking.BookingTrackID}
+            </CustomText>
+          </View>
+          <View style={styles.section}>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              Customer Name:
+            </CustomText>
+            <CustomText style={[styles.value, globalStyles.f12Regular]}>
+              {booking.CustomerName}
+            </CustomText>
+          </View>
+          <View style={styles.section}>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              Phone Number:
+            </CustomText>
+            <CustomText style={[styles.value, globalStyles.f12Regular]}>
+              {booking.PhoneNumber}
+            </CustomText>
+          </View>
+          <View style={styles.section}>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              Location:
+            </CustomText>
+            <CustomText style={[styles.value, globalStyles.f12Regular]}>
+              {booking.CityName}, {booking.StateName}
+            </CustomText>
+          </View>
+          <View style={styles.section}>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              Date:
+            </CustomText>
+            <CustomText style={[styles.value, globalStyles.f12Regular]}>
+              {formatDate(booking.BookingDate)}
+            </CustomText>
+          </View>
+          <View style={styles.section}>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              Time Slot:
+            </CustomText>
+            <CustomText style={[styles.value, globalStyles.f12Regular]}>
+              {booking.TimeSlot}
+            </CustomText>
+          </View>
+          <View style={styles.section}>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>Technician:</CustomText>
+            <View style={{ flexDirection: "row", alignItems: "center", flex: 2, justifyContent: "flex-end" }}>
+              <CustomText
+                style={[
+                  styles.value,
+                  globalStyles.f12Regular,
+                  {
+                    color: booking.TechID === null ? "#FF9500" : "#333",
+                    fontWeight: booking.TechID === null ? "bold" : "normal",
+                  },
+                ]}
+              >
+                {booking.TechID === null ? "Not Assigned Yet" : `Assigned (${booking.TechFullName})`}
+              </CustomText>
+              {booking.BookingStatus.toLowerCase() === "startjourney" && booking.TechID !== null && (
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate("WhereCustomer", {
+                      techId: booking.TechID,
+                      latitude: booking.Latitude,
+                      longitude: booking.Longitude,
+                    })
+                  }
+                  style={{ marginLeft: 8 }}
+                >
+                  <FontAwesome5 name="map-marker-alt" size={20} color={color.primary} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+          <View style={styles.section}>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              Status:
+            </CustomText>
             <CustomText
               style={[
                 styles.value,
                 globalStyles.f12Regular,
-                {
-                  color: booking.TechID === null ? "#FF9500" : "#333",
-                  fontWeight: booking.TechID === null ? "bold" : "normal",
-                },
+                { color: color.primary || "#007AFF", fontWeight: "bold" },
               ]}
             >
-              {booking.TechID === null ? "Not Assigned Yet" : `Assigned (${booking.TechFullName})`}
+              {booking.BookingStatus}
             </CustomText>
-            {booking.BookingStatus.toLowerCase() === "startjourney" && booking.TechID !== null && (
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("WhereCustomer", {
-                    techId: booking.TechID,
-                    latitude: booking.Latitude,
-                    longitude: booking.Longitude,
-                  })
-                }
-                style={{ marginLeft: 8 }}
-              >
-                <FontAwesome5 name="map-marker-alt" size={20} color={color.primary} />
-              </TouchableOpacity>
-            )}
           </View>
-        </View>
-        <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>
-            Status:
-          </CustomText>
-          <CustomText
-            style={[
-              styles.value,
-              globalStyles.f12Regular,
-              { color: color.primary || "#007AFF", fontWeight: "bold" },
-            ]}
-          >
-            {booking.BookingStatus}
-          </CustomText>
-        </View>
-        <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>
-            Package Price:
-          </CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Bold]}>
-            ₹ {booking.PackagePrice}
-          </CustomText>
-        </View>
-
-        {booking.CouponAmount > 0 && (
           <View style={styles.section}>
             <CustomText style={[styles.label, globalStyles.f12Bold]}>
-              Discount Price:
+              Package Price:
             </CustomText>
             <CustomText style={[styles.value, globalStyles.f12Bold]}>
-              - ₹ {booking.CouponAmount}
+              ₹ {booking.PackagePrice}
             </CustomText>
           </View>
-        )}
-        <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>
-            GST:
-          </CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Bold]}>
-            ₹ {booking.GSTAmount}
-          </CustomText>
-        </View>
-        <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>
-            Total Price:
-          </CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Bold]}>
-            ₹ {booking.TotalPrice.toFixed(2)}
-          </CustomText>
-        </View>
-      </View>
 
-      <CustomText
-        style={[styles.sectionTitle, globalStyles.f14Bold, { marginTop: 20 }]}
-      >
-        Vehicle Details
-      </CustomText>
-      <View style={styles.card}>
-        <View style={styles.section}>
-          <Image
-            source={{
-              uri: `${API_IMAGE_URL}${booking.VehicleImage}`,
-            }}
-            style={styles.vehicleImage}
-            onError={(e) =>
-              console.log("Image load error:", e.nativeEvent.error)
-            }
-          />
-        </View>
-        <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>
-            Vehicle:
-          </CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>
-            {booking.BrandName} {booking.ModelName}
-          </CustomText>
-        </View>
-        <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>
-            Vehicle Number:
-          </CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>
-            {booking.VehicleNumber}
-          </CustomText>
-        </View>
-        <View style={styles.section}>
-          <CustomText style={[styles.label, globalStyles.f12Bold]}>
-            Fuel Type:
-          </CustomText>
-          <CustomText style={[styles.value, globalStyles.f12Regular]}>
-            {booking.FuelTypeName}
-          </CustomText>
-        </View>
-      </View>
-
-      <CustomText
-        style={[styles.sectionTitle, globalStyles.f14Bold, { marginTop: 20 }]}
-      >
-        Packages
-      </CustomText>
-      {(booking.Packages || []).map((pkg) => (
-        <View key={pkg.PackageID} style={[styles.card, { marginBottom: 10 }]}>
-          <View style={styles.section}>
-            <CustomText style={[styles.label, globalStyles.f12Bold]}>
-              Package:
-            </CustomText>
-            <CustomText style={[styles.value, globalStyles.f12Regular]}>
-              {pkg.PackageName}
-            </CustomText>
-          </View>
-          <View style={styles.section}>
-            <CustomText style={[styles.label, globalStyles.f12Bold]}>
-              Duration:
-            </CustomText>
-            <CustomText style={[styles.value, globalStyles.f12Regular]}>
-              {pkg.EstimatedDurationMinutes} minutes
-            </CustomText>
-          </View>
-          <View style={styles.section}>
-            <CustomText style={[styles.label, globalStyles.f12Bold]}>
-              Category:
-            </CustomText>
-            <CustomText style={[styles.value, globalStyles.f12Regular]}>
-              {pkg.Category.CategoryName}
-            </CustomText>
-          </View>
-          {(pkg.Category.SubCategories || []).map((subCat) => (
-            <View key={subCat.SubCategoryID} style={styles.subSection}>
-              <CustomText style={[styles.subLabel, globalStyles.f10Bold]}>
-                {subCat.SubCategoryName}
+          {booking.CouponAmount > 0 && (
+            <View style={styles.section}>
+              <CustomText style={[styles.label, globalStyles.f12Bold]}>
+                Discount Price:
               </CustomText>
-              {(subCat.Includes || []).map((include) => (
-                <CustomText
-                  key={include.IncludeID}
-                  style={[styles.includeText, globalStyles.f10Regular]}
-                >
-                  • {include.IncludeName}
-                </CustomText>
-              ))}
+              <CustomText style={[styles.value, globalStyles.f12Bold]}>
+                - ₹ {booking.CouponAmount}
+              </CustomText>
             </View>
-          ))}
+          )}
+          <View style={styles.section}>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              GST:
+            </CustomText>
+            <CustomText style={[styles.value, globalStyles.f12Bold]}>
+              ₹ {booking.GSTAmount}
+            </CustomText>
+          </View>
+          <View style={styles.section}>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              Total Price:
+            </CustomText>
+            <CustomText style={[styles.value, globalStyles.f12Bold]}>
+              ₹ {booking.TotalPrice.toFixed(2)}
+            </CustomText>
+          </View>
+          {booking.BookingStatus.toLowerCase() === 'pending' && (
+            <View style={[styles.section, { justifyContent: 'center' }]}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: color.alertError || '#FF3B30',
+                  padding: 12,
+                  borderRadius: 8,
+                  alignItems: 'center',
+                  marginTop: 10,
+                }}
+                onPress={() => setShowCancelAlert(true)}
+                disabled={isCancelling}
+              >
+                <CustomText style={[globalStyles.f10Bold, { color: '#FFF' }]}>
+                  {isCancelling ? 'Cancelling...' : 'Cancel Booking'}
+                </CustomText>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
-      ))}
-    </ScrollView>
+
+        <CustomText
+          style={[styles.sectionTitle, globalStyles.f14Bold, { marginTop: 20 }]}
+        >
+          Vehicle Details
+        </CustomText>
+        <View style={styles.card}>
+          <View style={styles.section}>
+            <Image
+              source={{
+                uri: `${API_IMAGE_URL}${booking.VehicleImage}`,
+              }}
+              style={styles.vehicleImage}
+              onError={(e) =>
+                console.log("Image load error:", e.nativeEvent.error)
+              }
+            />
+          </View>
+          <View style={styles.section}>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              Vehicle:
+            </CustomText>
+            <CustomText style={[styles.value, globalStyles.f12Regular]}>
+              {booking.BrandName} {booking.ModelName}
+            </CustomText>
+          </View>
+          <View style={styles.section}>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              Vehicle Number:
+            </CustomText>
+            <CustomText style={[styles.value, globalStyles.f12Regular]}>
+              {booking.VehicleNumber}
+            </CustomText>
+          </View>
+          <View style={styles.section}>
+            <CustomText style={[styles.label, globalStyles.f12Bold]}>
+              Fuel Type:
+            </CustomText>
+            <CustomText style={[styles.value, globalStyles.f12Regular]}>
+              {booking.FuelTypeName}
+            </CustomText>
+          </View>
+        </View>
+
+        <CustomText
+          style={[styles.sectionTitle, globalStyles.f14Bold, { marginTop: 20 }]}
+        >
+          Packages
+        </CustomText>
+        {(booking.Packages || []).map((pkg) => (
+          <View key={pkg.PackageID} style={[styles.card, { marginBottom: 10 }]}>
+            <View style={styles.section}>
+              <CustomText style={[styles.label, globalStyles.f12Bold]}>
+                Package:
+              </CustomText>
+              <CustomText style={[styles.value, globalStyles.f12Regular]}>
+                {pkg.PackageName}
+              </CustomText>
+            </View>
+            <View style={styles.section}>
+              <CustomText style={[styles.label, globalStyles.f12Bold]}>
+                Duration:
+              </CustomText>
+              <CustomText style={[styles.value, globalStyles.f12Regular]}>
+                {pkg.EstimatedDurationMinutes} minutes
+              </CustomText>
+            </View>
+            <View style={styles.section}>
+              <CustomText style={[styles.label, globalStyles.f12Bold]}>
+                Category:
+              </CustomText>
+              <CustomText style={[styles.value, globalStyles.f12Regular]}>
+                {pkg.Category.CategoryName}
+              </CustomText>
+            </View>
+            {(pkg.Category.SubCategories || []).map((subCat) => (
+              <View key={subCat.SubCategoryID} style={styles.subSection}>
+                <CustomText style={[styles.subLabel, globalStyles.f10Bold]}>
+                  {subCat.SubCategoryName}
+                </CustomText>
+                {(subCat.Includes || []).map((include) => (
+                  <CustomText
+                    key={include.IncludeID}
+                    style={[styles.includeText, globalStyles.f10Regular]}
+                  >
+                    • {include.IncludeName}
+                  </CustomText>
+                ))}
+              </View>
+            ))}
+          </View>
+        ))}
+      </ScrollView>
+      <CustomAlert
+        visible={showCancelAlert}
+        status="error"
+        title="Cancel Booking"
+        message="Are you sure you want to cancel this booking?"
+        onClose={() => setShowCancelAlert(false)}
+        showButton={false}
+        children={
+          <TouchableOpacity
+            style={{
+              backgroundColor: color.alertError || '#FF3B30',
+              padding: 12,
+              borderRadius: 8,
+              alignItems: 'center',
+              marginTop: 10,
+            }}
+            onPress={handleCancelBooking}
+          >
+            <CustomText style={[globalStyles.f10Bold, { color: '#FFF' }]}>
+              Confirm Cancel
+            </CustomText>
+          </TouchableOpacity>
+        }
+      />
+    </>
   );
 }
 

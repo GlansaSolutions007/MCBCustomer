@@ -7,7 +7,8 @@ import {
   ImageBackground,
   StyleSheet,
   RefreshControl,
-  Alert
+  Alert,
+  Pressable
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import globalStyles from "../../styles/globalStyles";
@@ -26,11 +27,18 @@ import { useContext, useEffect, useState } from "react";
 import { LocationContext } from "../../contexts/LocationContext";
 import axios from "axios";
 // import { API_BASE_URL } from "@env";
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
 import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "../../../apiConfig";
 import { getToken } from "../../utils/token";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const [year, month, day] = dateString.split('-');
+  return `${day}-${month}-${year}`;
+};
 
 export default function HomeScreen() {
   const token = getToken();
@@ -38,6 +46,7 @@ export default function HomeScreen() {
   const navigation = useNavigation();
   const { setLocationText, setLocationStatus } = useContext(LocationContext);
   const [categories, setCategories] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchCategories = async () => {
@@ -61,8 +70,32 @@ export default function HomeScreen() {
     }
   };
 
+  const fetchTodaysBookings = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("userData");
+      const parsedUserData = (JSON.parse(userData));
+      const custID = parsedUserData.custID;
+      const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      const response = await axios.get(`${API_URL}Bookings/${custID}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // console.log(custID, response, 'bookkkkkiiiinnnnnnggggg');
+
+      if (response.data) {
+        // Filter bookings for today
+        const todaysBookings = response.data.filter(
+          (booking) => booking.BookingDate === today
+        );
+        setBookings(todaysBookings);
+      }
+    } catch (error) {
+      console.error('Failed to fetch bookings:', error);
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
+    fetchTodaysBookings();
   }, []);
 
   const handleCategoryPress = async (category) => {
@@ -136,7 +169,7 @@ export default function HomeScreen() {
   const SkeletonLoader = () => (
     <View>
       <View style={globalStyles.container}>
-        <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '50%', borderRadius: 4, marginBottom: 10, marginTop:40 }} />
+        <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '50%', borderRadius: 4, marginBottom: 10, marginTop: 40 }} />
         {/* Category Cards Placeholder */}
         <View style={[globalStyles.flexrow, globalStyles.justifysb]}>
           {[1, 2, 3].map((_, index) => (
@@ -292,6 +325,123 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               </View>
             </ImageBackground>
+            <View style={[globalStyles.mt4]}>
+              <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack, globalStyles.mb1]}>
+                Today's Bookings
+              </CustomText>
+              {bookings.length === 0 ? (
+                <CustomText style={[globalStyles.f14Regular, globalStyles.textGray, globalStyles.mt2]}>
+                  No bookings for today.
+                </CustomText>
+              ) : (
+                bookings.map((booking) => (
+                  <Pressable
+                    key={booking.BookingID}
+                    style={styles.bookingCard}
+                    onPress={() => navigation.navigate('BookingsInnerPage', { booking })}
+                  >
+                    <View>
+                      <View style={styles.bookingR1}>
+                        <CustomText style={styles.bookingID}>
+                          BID: {booking.BookingTrackID}
+                        </CustomText>
+                        <CustomText
+                          style={[
+                            styles.techStatus,
+                            {
+                              color: booking.TechID === null ? color.text : color.primary,
+                            },
+                          ]}
+                        >
+                          Tech {booking.TechID === null ? 'Not Assigned' : 'Assigned'}
+                        </CustomText>
+                      </View>
+                      <View style={styles.divider} />
+                      <View style={styles.bookingR1}>
+                        <View style={styles.bookingCarImage}>
+                          <Image
+                            source={{ uri: `${API_IMAGE_URL}${booking.VehicleImage}` }}
+                            style={{
+                              width: '60%',
+                              height: 60,
+                              borderRadius: 8,
+                              backgroundColor: '#eee',
+                            }}
+                            onError={(e) => console.log('Image load error:', e.nativeEvent.error)}
+                          />
+                          <CustomText style={styles.title}>
+                            {booking.BrandName} {booking.ModelName} (
+                            {booking.FuelTypeName === 'Petrol'
+                              ? 'P'
+                              : booking.FuelTypeName === 'Diesel'
+                                ? 'D'
+                                : 'E'}
+                            )
+                          </CustomText>
+                          <CustomText style={styles.subText}>{booking.VehicleNumber}</CustomText>
+                        </View>
+                        <View style={styles.bookingDetails}>
+                          <View style={styles.bookingDate}>
+                            <CustomText style={[globalStyles.f10Regular, { color: color.primary }]}>
+                              Booking Date:
+                            </CustomText>
+                            <CustomText style={[globalStyles.f12Bold]}>{formatDate(booking.BookingDate)}</CustomText>
+                          </View>
+                          <View style={styles.bookingDate}>
+                            <CustomText style={[globalStyles.f10Regular]}>Booked Slot:</CustomText>
+                            <CustomText style={[globalStyles.f12Bold]}>{booking.TimeSlot}</CustomText>
+                          </View>
+                          <View style={styles.bookingDate}>
+                            <CustomText style={[globalStyles.f10Regular]}>Service Amount:</CustomText>
+                            <CustomText style={[globalStyles.f12Bold]}>
+                              ₹ {booking.TotalPrice.toFixed(2)}
+                            </CustomText>
+                          </View>
+                        </View>
+                      </View>
+                      <View style={styles.divider} />
+                      <View style={styles.bookingServices}>
+                        <CustomText style={[globalStyles.f10Regular, { color: color.primary }]}>
+                          Services Booked:
+                        </CustomText>
+                        {(booking.Packages || []).map((pkg, index) => (
+                          <View
+                            key={pkg.PackageID}
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              justifyContent:
+                                index === booking.Packages.length - 1 ? 'space-between' : 'flex-start',
+                              marginVertical: 4,
+                            }}
+                          >
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                              <FontAwesome5
+                                name="tools"
+                                size={16}
+                                color={color.primary}
+                                style={{ marginRight: 6 }}
+                              />
+                              <CustomText style={[globalStyles.f12Bold, { color: '#333' }]}>
+                                {pkg.PackageName}
+                              </CustomText>
+                            </View>
+                            {index === booking.Packages.length - 1 && (
+                              <CustomText style={[globalStyles.f10Medium]}>
+                                Status:{' '}
+                                <CustomText style={[globalStyles.f10Bold, { color: color.primary }]}>
+                                  {booking.BookingStatus}
+                                </CustomText>
+                              </CustomText>
+                            )}
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  </Pressable>
+                ))
+              )}
+            </View>
           </View>
         </>
       )}
@@ -397,5 +547,69 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     paddingVertical: 10,
     alignItems: "center",
+  },
+  bookingCard: {
+    backgroundColor: color.white,
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  bookingR1: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  bookingID: {
+    ...globalStyles.f10Bold,
+    backgroundColor: color.secondary,
+    padding: 5,
+    borderRadius: 10,
+    color: color.white,
+  },
+  bookingCarImage: {
+    width: '50%',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  techStatus: {
+    ...globalStyles.f10Bold,
+  },
+  divider: {
+    borderBottomColor: '#ededed',
+    borderBottomWidth: 1,
+    marginVertical: 3,
+  },
+  bookingDetails: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignContent: 'flex-start',
+    flex: 1,
+    gap: 6,
+    padding: 5,
+  },
+  bookingDate: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  title: {
+    ...globalStyles.f12Bold,
+    color: '#222',
+  },
+  subText: {
+    ...globalStyles.f10Bold,
+    color: '#666',
+    marginTop: 2,
+  },
+  bookingServices: {
+    marginTop: 8,
   },
 });

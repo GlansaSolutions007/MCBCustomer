@@ -151,7 +151,7 @@ const CouponsList = () => {
                 marginBottom: 16,
             }}
         >
-            <View style={{ paddingVertical: 30, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ paddingVertical: 20, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center' }}>
                 <MaterialCommunityIcons name="tag-outline" size={24} color="white" style={{ marginRight: 8 }} />
                 <CustomText style={[{ color: color.white }, globalStyles.f24Bold]}>{item.Code}</CustomText>
             </View>

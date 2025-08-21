@@ -29,6 +29,8 @@ import { color } from "../styles/theme";
 import { API_URL } from "../../apiConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import Garage from "../../assets/icons/garageIcon.png";
+import { useCart } from "../contexts/CartContext";
 
 export default function CustomHeader({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -40,6 +42,8 @@ export default function CustomHeader({ navigation }) {
   const [addressList, setAddressList] = useState([]);
   const [name, setName] = useState('');
   const [primaryAddress, setPrimaryAddress] = useState(null);
+  const { cartItems, addToCart } = useCart();
+
   const [alertData, setAlertData] = useState({
     title: "",
     message: "",
@@ -220,16 +224,29 @@ export default function CustomHeader({ navigation }) {
               </CustomText>
             </Pressable>
           </View>
-
-          <Pressable
-            onPress={() => navigationTo.navigate("NotificationScreen")}
-          >
-            <Ionicons
-              name="notifications-outline"
-              size={24}
-              style={globalStyles.textWhite}
-            />
-          </Pressable>
+          <View style={[styles.rightIcons]}>
+            <Pressable
+              onPress={() => navigationTo.navigate("NotificationScreen")}
+            >
+              <Ionicons
+                name="notifications-outline"
+                size={24}
+                style={globalStyles.textWhite}
+              />
+            </Pressable>
+            <View style={styles.iconWrapper}>
+              <TouchableOpacity onPress={() => navigationTo.navigate('Cart')}>
+                <Image source={Garage} style={styles.garageIcon} />
+                {cartItems.length > 0 && (
+                  <View style={styles.badge}>
+                    <CustomText style={styles.badgeText}>
+                      {cartItems.length}
+                    </CustomText>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </View>
 
@@ -408,7 +425,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 12,
   },
-
+  rightIcons: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    alignItems: 'center'
+  },
   modalOverlay: {
     flex: 1,
     justifyContent: "flex-end",
@@ -420,5 +443,32 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: "70%",
+  },
+  iconWrapper: {
+    position: "relative",
+  },
+  garageIcon: {
+    width: 30,
+    height: 30,
+    resizeMode: "contain",
+  },
+  badge: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    backgroundColor: "yellow",
+    borderRadius: 8,
+    paddingHorizontal: 4,
+    minWidth: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeTextWrapper: {
+    alignItems: "center",
+  },
+  badgeText: {
+    color: "#000",
+    fontSize: 10,
+    fontWeight: "bold",
   },
 });

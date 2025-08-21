@@ -32,7 +32,7 @@ import { getToken } from "../../utils/token";
 import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
 
 const ConfirmAddressPage = ({ navigation }) => {
-  //
+
   const [formModalVisible, setFormModalVisible] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState("Home");
   const [region, setRegion] = useState(null);

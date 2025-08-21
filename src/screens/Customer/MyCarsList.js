@@ -348,6 +348,7 @@ const styles = StyleSheet.create({
     padding: 6,
     backgroundColor: color.secondary,
     borderRadius: 8,
+    marginTop:8
   },
   numberText: {
     borderWidth: 2,

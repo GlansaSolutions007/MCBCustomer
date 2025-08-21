@@ -511,14 +511,57 @@ const CartPage = () => {
 
       {/* Content Scrollable */}
       {cartItems.length === 0 ? (
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <CustomText
-            style={{ textAlign: "center", margin: 20, color: "black" }}
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
+          {/* Empty Cart Icon */}
+          <View
+            style={{
+              backgroundColor: "#F5F7FA",
+              padding: 30,
+              borderRadius: 60,
+              marginBottom: 20,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 6,
+              elevation: 4,
+            }}
           >
+            <Ionicons name="cart-outline" size={48} color={color.primary} />
+          </View>
+
+          {/* Title */}
+          <CustomText style={[{ color: "#333", textAlign: "center", marginBottom: 6 }, globalStyles.f14Bold]}>
             Your cart is empty
           </CustomText>
+
+          {/* Subtext */}
+          <CustomText style={[{ color: "#777", textAlign: "center", marginBottom: 20 },globalStyles.f10Medium]}>
+            Browse our services and add them to your cart to continue
+          </CustomText>
+
+          {/* Button */}
+          <TouchableOpacity
+            style={{
+              backgroundColor: color.secondary,
+              paddingVertical: 14,
+              paddingHorizontal: 24,
+              borderRadius: 12,
+              width: "80%",
+              alignItems: "center",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 3 },
+              shadowOpacity: 0.15,
+              shadowRadius: 6,
+              elevation: 5,
+            }}
+            onPress={() =>
+              navigation.navigate("CustomerTabNavigator", { screen: "Services" })
+            }
+          >
+            <CustomText style={[{ color: "#fff"}, globalStyles.f12Bold]}>
+              + Add Your Services
+            </CustomText>
+          </TouchableOpacity>
         </View>
       ) : (
         <>
