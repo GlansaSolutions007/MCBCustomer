@@ -1,4 +1,6 @@
 import "react-native-gesture-handler";
+import * as Notifications from "expo-notifications";
+import { useEffect } from "react";
 import { View } from "react-native";
 import React, { useCallback } from "react";
 import * as Font from "expo-font";
@@ -6,10 +8,11 @@ import * as SplashScreen from "expo-splash-screen";
 import RootNavigator from "./src/navigation/RootNavigator";
 import { AuthProvider } from "./src/contexts/AuthContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Text, TextInput } from 'react-native';
+import { Text, TextInput } from "react-native";
 import { LocationProvider } from "./src/contexts/LocationContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CouponProvider } from "./src/contexts/CouponContext";
+import { registerForPushNotificationsAsync } from "./src/config/Notifications";
 
 if (Text.defaultProps == null) Text.defaultProps = {};
 Text.defaultProps.allowFontScaling = false;
@@ -23,6 +26,20 @@ TextInput.defaultProps.allowFontScaling = false;
 // SplashScreen.preventAutoHideAsync();
 
 export default function App() {
+  useEffect(() => {
+    // Request permissions and get push token
+    registerForPushNotificationsAsync()
+      .then((token) => {
+        if (token) {
+          console.log("Push Token:", token); // Ensure this logs
+        } else {
+          console.log("No push token received");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching push token:", error);
+      });
+  }, []);
   const [fontsLoaded] = Font.useFonts({
     "Manrope-Medium": require("./assets/fonts/Manrope-Medium.ttf"),
     "Manrope-Bold": require("./assets/fonts/Manrope-Bold.ttf"),
@@ -51,6 +68,5 @@ export default function App() {
         </View>
       </SafeAreaProvider>
     </GestureHandlerRootView>
-
   );
 }

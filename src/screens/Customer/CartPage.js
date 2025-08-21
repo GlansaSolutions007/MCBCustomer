@@ -149,7 +149,7 @@ const CartPage = () => {
 
   useEffect(() => {
     fetchAddresses(); // Initial fetch on mount
-    const unsubscribe = navigation.addListener('focus', () => {
+    const unsubscribe = navigation.addListener("focus", () => {
       fetchAddresses(); // Re-fetch when screen is focused
     });
 
@@ -474,6 +474,8 @@ const CartPage = () => {
     }
   };
 
+  
+
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + 1 }]}>
       <StatusBar
@@ -511,7 +513,14 @@ const CartPage = () => {
 
       {/* Content Scrollable */}
       {cartItems.length === 0 ? (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 20,
+          }}
+        >
           {/* Empty Cart Icon */}
           <View
             style={{
@@ -530,12 +539,22 @@ const CartPage = () => {
           </View>
 
           {/* Title */}
-          <CustomText style={[{ color: "#333", textAlign: "center", marginBottom: 6 }, globalStyles.f14Bold]}>
+          <CustomText
+            style={[
+              { color: "#333", textAlign: "center", marginBottom: 6 },
+              globalStyles.f14Bold,
+            ]}
+          >
             Your cart is empty
           </CustomText>
 
           {/* Subtext */}
-          <CustomText style={[{ color: "#777", textAlign: "center", marginBottom: 20 },globalStyles.f10Medium]}>
+          <CustomText
+            style={[
+              { color: "#777", textAlign: "center", marginBottom: 20 },
+              globalStyles.f10Medium,
+            ]}
+          >
             Browse our services and add them to your cart to continue
           </CustomText>
 
@@ -555,10 +574,12 @@ const CartPage = () => {
               elevation: 5,
             }}
             onPress={() =>
-              navigation.navigate("CustomerTabNavigator", { screen: "Services" })
+              navigation.navigate("CustomerTabNavigator", {
+                screen: "Services",
+              })
             }
           >
-            <CustomText style={[{ color: "#fff"}, globalStyles.f12Bold]}>
+            <CustomText style={[{ color: "#fff" }, globalStyles.f12Bold]}>
               + Add Your Services
             </CustomText>
           </TouchableOpacity>
@@ -1028,7 +1049,7 @@ const CartPage = () => {
               </TouchableOpacity>
 
               {/* Option 2: Pay with RazorPay */}
-              {/* <TouchableOpacity
+              <TouchableOpacity
                 style={styles.option}
                 onPress={() => setPaymentMethod("razorpay")}
               >
@@ -1038,7 +1059,7 @@ const CartPage = () => {
                   )}
                 </View>
                 <Text style={styles.optionText}>Pay with RazorPay</Text>
-              </TouchableOpacity> */}
+              </TouchableOpacity>
             </View>
           </ScrollView>
 
@@ -1077,7 +1098,7 @@ const CartPage = () => {
                 }}
               >
                 {/* Prevent modal from closing when content is tapped */}
-                <TouchableWithoutFeedback onPress={() => { }}>
+                <TouchableWithoutFeedback onPress={() => {}}>
                   <View
                     style={{
                       backgroundColor: "white",

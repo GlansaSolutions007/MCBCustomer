@@ -3,6 +3,7 @@ export default {
   expo: {
     name: "My Car Buddy",
     slug: "my-car-buddy",
+    projectId:"6850b1f3-7aec-4d07-8b8b-1802366d658a",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
@@ -43,6 +44,16 @@ export default {
         projectId: "6850b1f3-7aec-4d07-8b8b-1802366d658a",
       },
     },
+    plugins: [
+      [
+        "expo-notifications",
+        {
+          icon: "./assets/icons/active.png",
+          color: "#ffffff",
+          sounds: ["./assets/notificationtone.wav"],
+        },
+      ],
+    ],
     owner: "itglansa",
   },
 };

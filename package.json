@@ -23,6 +23,7 @@
     "axios": "^1.10.0",
     "expo": "~53.0.20",
     "expo-checkbox": "~4.1.4",
+    "expo-constants": "^17.1.7",
     "expo-dev-client": "^5.2.4",
     "expo-device": "~7.1.4",
     "expo-font": "~13.3.2",
