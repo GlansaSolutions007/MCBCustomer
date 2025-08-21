@@ -136,7 +136,7 @@ const CartPage = () => {
       );
       const allAddresses = response.data;
 
-      console.log(allAddresses, "customer addresses");
+      // console.log(allAddresses, "customer addresses");
 
       setAddressList(allAddresses);
 
