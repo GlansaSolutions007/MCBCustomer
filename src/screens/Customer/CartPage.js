@@ -62,7 +62,7 @@ const CartPage = () => {
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   // for selection of payment method
-  const [paymentMethod, setPaymentMethod] = useState("razorpay");
+  const [paymentMethod, setPaymentMethod] = useState("Razorpay");
   const [disable, setDisable] = useState(false);
 
   const showCustomAlert = (status, title, message) => {
@@ -87,6 +87,7 @@ const CartPage = () => {
       if (user?.phone) {
         setCustomerPhone(user.phone);
         setCustomerName(user.name || "");
+        setCustomerEmail(user.email || "");
       }
     };
     loadPhone();
@@ -237,6 +238,8 @@ const CartPage = () => {
 
       if (
         !customerName ||
+        !customerPhone ||
+        !customerEmail ||
         !user ||
         !primaryAddress ||
         !vehicleId ||
@@ -373,7 +376,7 @@ const CartPage = () => {
           },
         }
       );
-      if (paymentMethod === "razorpay") {
+      if (paymentMethod === "Razorpay") {
         console.log("✅ Booking successful:", response.data);
         handlePayment(response.data.razorpay.orderID, response.data.bookingID);
       } else {
@@ -402,7 +405,6 @@ const CartPage = () => {
   };
 
   const handlePayment = (orderid, bookingID) => {
-    // alert(orderid);
     const options = {
       description: "MyCarBuddy Service Payment",
       image: "https://mycarsbuddy.com/logo2.png",
@@ -430,11 +432,12 @@ const CartPage = () => {
             const token = await getToken();
 
             const confirmPayload = {
-              bookingID: bookingID, // integer
+              bookingID: bookingID, 
               amountPaid: finalAmount,
               razorpayPaymentId: data.razorpay_payment_id,
               razorpayOrderId: data.razorpay_order_id,
               razorpaySignature: data.razorpay_signature,
+              paymentMode: "Razorpay",
             };
 
             console.log("Confirm payment JSON payload:", confirmPayload);
@@ -1052,10 +1055,10 @@ const CartPage = () => {
             <View style={styles.card}>
               <TouchableOpacity
                 style={styles.option}
-                onPress={() => setPaymentMethod("razorpay")}
+                onPress={() => setPaymentMethod("Razorpay")}
               >
                 <View style={styles.radioCircle}>
-                  {paymentMethod === "razorpay" && (
+                  {paymentMethod === "Razorpay" && (
                     <View style={styles.selectedRb} />
                   )}
                 </View>
@@ -1085,14 +1088,14 @@ const CartPage = () => {
               <TouchableOpacity
                 disabled={disable}
                 style={[
-                  paymentMethod === "razorpay"
+                  paymentMethod === "Razorpay"
                     ? styles.payNowBtn
                     : styles.bookNowBtn,
                 ]}
                 onPress={postBooking}
               >
                 <CustomText style={styles.payNowText}>
-                  {paymentMethod === "razorpay" ? "Pay Now" : "Book Now"}
+                  {paymentMethod === "Razorpay" ? "Pay Now" : "Book Now"}
                 </CustomText>
               </TouchableOpacity>
             </View>
