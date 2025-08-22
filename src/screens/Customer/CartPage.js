@@ -996,10 +996,10 @@ const CartPage = () => {
               <View style={styles.rowBetween}>
                 <View>
                   <CustomText style={styles.toPay}>
-                    To Pay ₹{finalAmount}
+                    To Pay: ₹{finalAmount}
                   </CustomText>
                   <CustomText style={styles.saved}>
-                    Saving ₹{savedAmount + discountAmount}
+                    Saving: ₹{savedAmount + discountAmount}
                   </CustomText>
                 </View>
               </View>
@@ -1075,7 +1075,7 @@ const CartPage = () => {
               </TouchableOpacity>
 
               {/* Option 2: Pay with RazorPay */}
-              
+
             </View>
           </ScrollView>
 
@@ -1097,133 +1097,134 @@ const CartPage = () => {
               </TouchableOpacity>
             </View>
           </View>
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={addressModalVisible}
-            onRequestClose={() => setAddressModalVisible(false)}
-          >
-            <TouchableWithoutFeedback
-              onPress={() => setAddressModalVisible(false)}
-            >
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: "flex-end",
-                  backgroundColor: "rgba(0,0,0,0.4)",
-                }}
-              >
-                {/* Prevent modal from closing when content is tapped */}
-                <TouchableWithoutFeedback onPress={() => {}}>
-                  <View
-                    style={{
-                      backgroundColor: "white",
-                      borderTopLeftRadius: 20,
-                      borderTopRightRadius: 20,
-                      padding: 20,
-                      maxHeight: "90%",
-                    }}
-                  >
-                    <TouchableOpacity
-                      style={{ alignSelf: "flex-end", marginBottom: 2 }}
-                      onPress={() => setAddressModalVisible(false)}
-                    >
-                      <Ionicons name="close-circle" size={30} color="black" />
-                    </TouchableOpacity>
-                    <CustomText
-                      style={[
-                        globalStyles.f20Bold,
-                        { color: color.secondary },
-                        globalStyles.mb5,
-                      ]}
-                    >
-                      Choose your address
-                    </CustomText>
 
-                    {/* Add new address */}
-                    <TouchableOpacity
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        marginBottom: 26,
-                      }}
-                      onPress={() => {
-                        setAddressModalVisible(false);
-                        navigation.navigate("ConfirmAddressPage");
-                      }}
-                    >
-                      <View
-                        style={{
-                          width: 30,
-                          height: 30,
-                          backgroundColor: color.yellow,
-                          borderRadius: 6,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          marginRight: 10,
-                        }}
-                      >
-                        <AntDesign name="plus" size={22} color="white" />
-                      </View>
-                      <CustomText
-                        style={[globalStyles.f14Bold, globalStyles.textBlack]}
-                      >
-                        Add new address
-                      </CustomText>
-                    </TouchableOpacity>
-
-                    {/* Address List */}
-                    <FlatList
-                      data={[...addressList].sort(
-                        (a, b) => b.IsPrimary - a.IsPrimary
-                      )}
-                      keyExtractor={(item) => item.AddressID.toString()}
-                      renderItem={({ item }) => (
-                        <TouchableOpacity
-                          onPress={() => makePrimaryAddress(item.AddressID)}
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "flex-start",
-                            marginBottom: 14,
-                          }}
-                        >
-                          <Ionicons
-                            name="location-outline"
-                            size={20}
-                            color={color.primary}
-                            style={{ marginRight: 10, marginTop: 4 }}
-                          />
-                          <View style={{ flex: 1, marginBottom: 10 }}>
-                            <CustomText
-                              style={[
-                                globalStyles.f14Bold,
-                                item.IsPrimary
-                                  ? { color: color.secondary }
-                                  : globalStyles.textBlack,
-                              ]}
-                            >
-                              {item.AddressLine1}
-                            </CustomText>
-                            <CustomText
-                              style={[
-                                globalStyles.f12Regular,
-                                { color: color.muted },
-                              ]}
-                            >
-                              {item.AddressLine2}, {item.CityName},{" "}
-                              {item.StateName}, {item.Pincode}
-                            </CustomText>
-                          </View>
-                        </TouchableOpacity>
-                      )}
-                    />
-                  </View>
-                </TouchableWithoutFeedback>
-              </View>
-            </TouchableWithoutFeedback>
-          </Modal>
         </>
       )}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={addressModalVisible}
+        onRequestClose={() => setAddressModalVisible(false)}
+      >
+        <TouchableWithoutFeedback
+          onPress={() => setAddressModalVisible(false)}
+        >
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "flex-end",
+              backgroundColor: "rgba(0,0,0,0.4)",
+            }}
+          >
+            {/* Prevent modal from closing when content is tapped */}
+            <TouchableWithoutFeedback onPress={() => { }}>
+              <View
+                style={{
+                  backgroundColor: "white",
+                  borderTopLeftRadius: 20,
+                  borderTopRightRadius: 20,
+                  padding: 20,
+                  maxHeight: "90%",
+                }}
+              >
+                <TouchableOpacity
+                  style={{ alignSelf: "flex-end", marginBottom: 2 }}
+                  onPress={() => setAddressModalVisible(false)}
+                >
+                  <Ionicons name="close-circle" size={30} color="black" />
+                </TouchableOpacity>
+                <CustomText
+                  style={[
+                    globalStyles.f20Bold,
+                    { color: color.secondary },
+                    globalStyles.mb5,
+                  ]}
+                >
+                  Choose your address
+                </CustomText>
+
+                {/* Add new address */}
+                <TouchableOpacity
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 26,
+                  }}
+                  onPress={() => {
+                    setAddressModalVisible(false);
+                    navigation.navigate("ConfirmAddressPage");
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 30,
+                      height: 30,
+                      backgroundColor: color.yellow,
+                      borderRadius: 6,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 10,
+                    }}
+                  >
+                    <AntDesign name="plus" size={22} color="white" />
+                  </View>
+                  <CustomText
+                    style={[globalStyles.f14Bold, globalStyles.textBlack]}
+                  >
+                    Add new address
+                  </CustomText>
+                </TouchableOpacity>
+
+                {/* Address List */}
+                <FlatList
+                  data={[...addressList].sort(
+                    (a, b) => b.IsPrimary - a.IsPrimary
+                  )}
+                  keyExtractor={(item) => item.AddressID.toString()}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      onPress={() => makePrimaryAddress(item.AddressID)}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "flex-start",
+                        marginBottom: 14,
+                      }}
+                    >
+                      <Ionicons
+                        name="location-outline"
+                        size={20}
+                        color={color.primary}
+                        style={{ marginRight: 10, marginTop: 4 }}
+                      />
+                      <View style={{ flex: 1, marginBottom: 10 }}>
+                        <CustomText
+                          style={[
+                            globalStyles.f14Bold,
+                            item.IsPrimary
+                              ? { color: color.secondary }
+                              : globalStyles.textBlack,
+                          ]}
+                        >
+                          {item.AddressLine1}
+                        </CustomText>
+                        <CustomText
+                          style={[
+                            globalStyles.f12Regular,
+                            { color: color.muted },
+                          ]}
+                        >
+                          {item.AddressLine2}, {item.CityName},{" "}
+                          {item.StateName}, {item.Pincode}
+                        </CustomText>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
       <CustomAlert
         visible={alertVisible}
         status={alertStatus}
@@ -1415,8 +1416,8 @@ const styles = StyleSheet.create({
   },
   optionText: {
     marginLeft: 10,
-    ...globalStyles.f10Bold,
-    fontSize: 16,
+    ...globalStyles.f12Bold,
+    marginBottom: 4
   },
   radioCircle: {
     height: 20,

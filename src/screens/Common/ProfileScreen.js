@@ -72,6 +72,8 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+      <StatusBar backgroundColor={color.secondary} barStyle="light-content" />
+
       {/* Profile Image */}
       <View style={styles.profileImageContainer}>
         <ImageBackground
@@ -327,7 +329,7 @@ export default function ProfileScreen() {
         {/* Bottom Buttons */}
         <View style={styles.cardContainer}>
           <TouchableOpacity
-            style={[styles.card, { backgroundColor: "#FF3333" }]}
+            style={[styles.card, { backgroundColor: color.alertError }]}
             onPress={handleLogout}
           >
             <Ionicons name="log-out-outline" size={24} color="white" />

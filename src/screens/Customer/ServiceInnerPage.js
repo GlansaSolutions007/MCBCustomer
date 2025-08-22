@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Image, ImageBackground, Platform, ScrollView, StatusBar, TouchableOpacity, View } from 'react-native'
 import CustomText from '../../components/CustomText'
 import globalStyles from '../../styles/globalStyles'
@@ -10,7 +10,8 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import { useCart } from '../../contexts/CartContext'
 import { color } from '../../styles/theme'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "../../../apiConfig";
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 
 const ServiceInnerPage = () => {
@@ -19,6 +20,22 @@ const ServiceInnerPage = () => {
     const { cartItems, addToCart } = useCart();
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
+    const [hasPrimaryVehicle, setHasPrimaryVehicle] = useState(false);
+
+    useEffect(() => {
+        const checkPrimaryVehicle = async () => {
+            try {
+                const primaryVehicleId = await AsyncStorage.getItem('primaryVehicleId');
+                setHasPrimaryVehicle(!!primaryVehicleId);
+                console.log("Primary: ", primaryVehicleId);
+
+            } catch (error) {
+                console.error('Error checking primary vehicle ID:', error);
+                setHasPrimaryVehicle(false);
+            }
+        };
+        checkPrimaryVehicle();
+    }, []);
 
     const serviceDetails = () => {
         console.log(`Service ID: ${pkg.id}`);
@@ -34,6 +51,9 @@ const ServiceInnerPage = () => {
         }
     };
 
+    const handleAddYourCar = () => {
+        navigation.navigate('SelectCarBrand');
+    };
 
     const DetailRow = ({ label, value, icon }) => (
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -166,19 +186,33 @@ const ServiceInnerPage = () => {
 
             </ScrollView>
             <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', padding: 16, paddingBottom: 16 + insets.bottom, borderTopWidth: 1, borderColor: '#eee' }}>
-                <TouchableOpacity
-                    style={{
-                        backgroundColor: color.primary,
-                        paddingVertical: 14,
-                        borderRadius: 12,
-                        alignItems: 'center',
-                    }}
-                    onPress={handleAddToCart}
-                >
-                    <CustomText style={[globalStyles.f14Bold, { color: '#fff' }]}>
-                        {isInCart ? 'View Cart' : 'Add to Cart'}
-                    </CustomText>
-                </TouchableOpacity>
+                {hasPrimaryVehicle ? (
+                    <TouchableOpacity
+                        style={{
+                            backgroundColor: color.primary,
+                            paddingVertical: 14,
+                            borderRadius: 12,
+                            alignItems: 'center',
+                        }}
+                        onPress={handleAddToCart}
+                    >
+                        <CustomText style={[globalStyles.f14Bold, { color: '#fff' }]}>
+                            {isInCart ? 'View Cart' : 'Add to Cart'}
+                        </CustomText>
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity
+                        style={{
+                            backgroundColor: color.black,
+                            paddingVertical: 14,
+                            borderRadius: 12,
+                            alignItems: 'center',
+                        }}
+                        onPress={handleAddYourCar}
+                    >
+                        <CustomText style={[globalStyles.f14Bold, { color: '#fff' }]}>Add Your Car</CustomText>
+                    </TouchableOpacity>
+                )}
             </View>
         </SafeAreaView>
     )

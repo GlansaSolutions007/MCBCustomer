@@ -19,11 +19,11 @@ import bluecar from "../../../assets/images/bluecar.png";
 import logo from "../../../assets/Logo/my car buddy-02 yellow-01.png";
 import { color } from "../../styles/theme";
 import CustomText from "../../components/CustomText";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Device from "expo-device";
 import * as Location from "expo-location";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { LocationContext } from "../../contexts/LocationContext";
 import axios from "axios";
 // import { API_BASE_URL } from "@env";
@@ -96,8 +96,13 @@ export default function HomeScreen() {
 
   useEffect(() => {
     fetchCategories();
-    fetchTodaysBookings();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchTodaysBookings();
+    }, [])
+  );
 
   const handleCategoryPress = async (category) => {
     try {
@@ -165,6 +170,8 @@ export default function HomeScreen() {
     })();
   }, []);
   const { refreshing, onRefresh } = useGlobalRefresh(async () => {
+    await fetchCategories();
+    await fetchTodaysBookings();
   });
 
   const SkeletonLoader = () => (
@@ -237,48 +244,96 @@ export default function HomeScreen() {
             </View>
           </View>
           <View style={globalStyles.container}>
-            <CustomText
+            <View
               style={[
                 globalStyles.mt4,
                 globalStyles.mb1,
-                globalStyles.f16Bold,
-                globalStyles.textBlack,
+                { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }
               ]}
             >
-              We Provide Services Like
-            </CustomText>
+              <CustomText
+                style={[
+                  globalStyles.f16Bold,
+                  globalStyles.textBlack,
+                ]}
+              >
+                We Provide Services Like
+              </CustomText>
+
+              {categories.length > 2 && (
+                <Ionicons
+                  name="arrow-forward-circle"
+                  size={20}
+                  color={color.primary}
+                />
+              )}
+            </View>
             <View style={[globalStyles.flexrow, globalStyles.justifysb]}>
-              {categories.map((cat) => (
-                <TouchableOpacity
-                  key={cat.CategoryID}
-                  style={styles.card}
-                  onPress={() => handleCategoryPress(cat)}
+              {categories.length === 2 ? (
+                <View style={[globalStyles.flexrow, globalStyles.justifysb]}>
+                  {categories.map((cat) => (
+                    <TouchableOpacity
+                      key={cat.CategoryID}
+                      style={styles.card}
+                      onPress={() => handleCategoryPress(cat)}
+                      activeOpacity={0.8}
+                    >
+                      <Image
+                        source={{
+                          uri: `${API_IMAGE_URL}/${cat.ThumbnailImage}`,
+                        }}
+                        style={styles.cardImage}
+                      />
+                      <LinearGradient
+                        colors={[color.primary, 'transparent']}
+                        start={{ x: 0.5, y: 1 }}
+                        end={{ x: 0.5, y: 0 }}
+                        style={styles.gradientOverlay}
+                      >
+                        <CustomText
+                          style={[globalStyles.f14Bold, globalStyles.textWhite]}
+                        >
+                          {cat.CategoryName}
+                        </CustomText>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.scrollContent}
                 >
-                  <Image
-                    source={{
-                      uri: `${API_IMAGE_URL}/${cat.ThumbnailImage}`,
-                    }}
-                    style={styles.cardImage}
-                  />
-                  <LinearGradient
-                    colors={[color.primary, 'transparent']}
-                    start={{ x: 0.5, y: 1 }}
-                    end={{ x: 0.5, y: 0 }}
-                    style={styles.gradientOverlay}
-                  >
-                    <CustomText
-                      style={[globalStyles.f12Bold, globalStyles.textWhite]}
+                  {categories.map((cat) => (
+                    <TouchableOpacity
+                      key={cat.CategoryID}
+                      style={styles.card}
+                      onPress={() => handleCategoryPress(cat)}
+                      activeOpacity={0.8}
                     >
-                      {cat.CategoryName.split(' ')[0]}
-                    </CustomText>
-                    <CustomText
-                      style={[globalStyles.f12Regular, globalStyles.textWhite]}
-                    >
-                      {cat.CategoryName.split(' ')[1] || 'Service'}
-                    </CustomText>
-                  </LinearGradient>
-                </TouchableOpacity>
-              ))}
+                      <Image
+                        source={{
+                          uri: `${API_IMAGE_URL}/${cat.ThumbnailImage}`,
+                        }}
+                        style={styles.cardImage}
+                      />
+                      <LinearGradient
+                        colors={[color.primary, 'transparent']}
+                        start={{ x: 0.5, y: 1 }}
+                        end={{ x: 0.5, y: 0 }}
+                        style={styles.gradientOverlay}
+                      >
+                        <CustomText
+                          style={[globalStyles.f14Bold, globalStyles.textWhite]}
+                        >
+                          {cat.CategoryName}
+                        </CustomText>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
             </View>
             <ImageBackground
               source={CTAbannerhome}
@@ -331,9 +386,45 @@ export default function HomeScreen() {
                 Today's Bookings
               </CustomText>
               {bookings.length === 0 ? (
-                <CustomText style={[globalStyles.f14Regular, globalStyles.textGray, globalStyles.mt2]}>
-                  No bookings for today.
-                </CustomText>
+                <Pressable
+                  onPress={() => navigation.navigate("CustomerTabNavigator", { screen: 'Services' })}
+                  style={{
+                    backgroundColor: "#fff",
+                    padding: 16,
+                    borderRadius: 12,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginTop: 16,
+                    shadowColor: "#000",
+                    shadowOpacity: 0.05,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowRadius: 4,
+                    elevation: 2,
+                  }}
+                >
+                  <Ionicons
+                    name="calendar-outline"
+                    size={40}
+                    color={color.primary}
+                    style={{ marginBottom: 8 }}
+                  />
+                  <CustomText
+                    style={[globalStyles.f16Bold, { color: color.primary }]}
+                  >
+                    No bookings for today.
+                  </CustomText>
+                  <View style={{ alignItems: "center", marginTop: 8 }}>
+                    <CustomText
+                      style={[
+                        globalStyles.f12Regular,
+                        { color: "#666", textAlign: "center" },
+                      ]}
+                    >
+                      Book your service now and enjoy a hassle-free experience!
+                    </CustomText>
+                  </View>
+                </Pressable>
+
               ) : (
                 bookings.map((booking) => (
                   <Pressable
@@ -502,27 +593,35 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    width: "47%",
+    width: 170,
     height: 150,
     borderRadius: 12,
-    overflow: "hidden",
-    position: "relative",
-    backgroundColor: "#ccc",
+    overflow: 'hidden',
+    position: 'relative',
+    marginRight: 12,
+    backgroundColor: '#f0f0f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-
   cardImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   gradientOverlay: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: "70%", // adjust how far the gradient fades up
-    justifyContent: "flex-end",
+    height: '50%',
+    justifyContent: 'flex-end',
     padding: 10,
+  },
+  scrollContent: {
+    paddingVertical: 8,
   },
   ctaContainer: {
     flexDirection: "row",

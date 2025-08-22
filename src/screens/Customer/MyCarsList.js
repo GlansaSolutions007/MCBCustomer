@@ -9,6 +9,7 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Pressable,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import globalStyles from "../../styles/globalStyles";
@@ -28,6 +29,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import carAddIcon from "../../../assets/icons/caddAddIcon.png";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
+import { Ionicons } from "@expo/vector-icons";
 
 export const MyCarsList = () => {
 
@@ -286,15 +288,55 @@ export const MyCarsList = () => {
           showsVerticalScrollIndicator={false}
         />
       ) : cars.length === 0 ? (
-        <View style={styles.centered}> 
-          <CustomText style={styles.emptyText}>Please add your car</CustomText>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => navigation.navigate("SelectCarBrand")}
+        <Pressable
+          onPress={() => navigation.navigate("SelectCarBrand")}
+          style={{
+            backgroundColor: "#fff",
+            padding: 20,
+            borderRadius: 12,
+            alignItems: "center",
+            justifyContent: "center",
+            marginTop: 16,
+            shadowColor: "#000",
+            shadowOpacity: 0.05,
+            shadowOffset: { width: 0, height: 2 },
+            shadowRadius: 4,
+            elevation: 2,
+          }}
+        >
+          <Ionicons
+            name="car-sport-outline"
+            size={40}
+            color={color.secondary}
+            style={{ marginBottom: 12 }}
+          />
+          <CustomText style={[globalStyles.f16Bold, { color: color.black }]}>
+            Please add your car
+          </CustomText>
+          <CustomText
+            style={[
+              globalStyles.f12Regular,
+              { color: "#666", marginTop: 6, textAlign: "center" },
+            ]}
           >
-            <CustomText style={styles.addButtonText}>Add Your Car</CustomText>
-          </TouchableOpacity>
-        </View>
+            Add your car now to start booking services hassle-free!
+          </CustomText>
+
+          <View
+            style={{
+              backgroundColor: color.secondary,
+              paddingVertical: 10,
+              paddingHorizontal: 20,
+              borderRadius: 6,
+              marginTop: 14,
+            }}
+          >
+            <CustomText style={[globalStyles.f12Bold, { color: "#fff" }]}>
+              Add Your Car
+            </CustomText>
+          </View>
+        </Pressable>
+
       ) : (
         <>
           {/* Header */}
@@ -348,7 +390,7 @@ const styles = StyleSheet.create({
     padding: 6,
     backgroundColor: color.secondary,
     borderRadius: 8,
-    marginTop:8
+    marginTop: 8
   },
   numberText: {
     borderWidth: 2,

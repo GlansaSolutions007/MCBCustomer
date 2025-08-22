@@ -29,7 +29,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { getToken } from "../../utils/token";
 // import { API_BASE_URL } from "@env";
-import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "../../../apiConfig";
 
 const ConfirmAddressPage = ({ navigation }) => {
 
@@ -84,9 +84,8 @@ const ConfirmAddressPage = ({ navigation }) => {
     const apiKey = GOOGLE_MAPS_APIKEY;
     const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
       searchText
-    )}&key=${apiKey}&location=${region?.latitude},${
-      region?.longitude
-    }&radius=50000`;
+    )}&key=${apiKey}&location=${region?.latitude},${region?.longitude
+      }&radius=50000`;
 
     try {
       const res = await fetch(url);
@@ -174,62 +173,70 @@ const ConfirmAddressPage = ({ navigation }) => {
     const apiKey = GOOGLE_MAPS_APIKEY;
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${region.latitude},${region.longitude}&key=${apiKey}`;
 
-    const response = await fetch(url);
-    const data = await response.json();
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
 
-    if (data.results?.length > 0) {
-      const addressComponents = data.results[0].address_components;
+      if (data.results?.length > 0) {
+        const addressComponents = data.results[0].address_components;
 
-      const getComponent = (types) =>
-        addressComponents.find((comp) =>
-          types.every((type) => comp.types.includes(type))
-        )?.long_name || "";
+        const getComponent = (types) =>
+          addressComponents.find((comp) =>
+            types.every((type) => comp.types.includes(type))
+          )?.long_name || "";
 
-      const city =
-        getComponent(["locality"]) ||
-        getComponent(["administrative_area_level_2"]);
-      const state = getComponent(["administrative_area_level_1"]);
-      const pincode = getComponent(["postal_code"]);
+        const city =
+          getComponent(["locality"]) ||
+          getComponent(["administrative_area_level_2"]);
+        const state = getComponent(["administrative_area_level_1"]);
+        const pincode = getComponent(["postal_code"]);
 
-      setAddress(data.results[0].formatted_address);
-      setCity(city);
-      setState(state);
-      setPincode(pincode);
+        setAddress(data.results[0].formatted_address);
+        setCity(city);
+        setState(state);
+        setPincode(pincode);
 
-      const matchedState = statesList.find(
-        (s) => s.StateName.toLowerCase() === state.toLowerCase()
-      );
-      setMatchedState(matchedState);
-      if (!matchedState) {
+        // Check if the pincode exists in the citiesList
+        const matchedCity = citiesList.find(
+          (c) => c.Pincode === pincode && c.IsActive
+        );
+
+        if (!matchedCity) {
+          setAlertStatus("error");
+          setAlertTitle("Service Unavailable");
+          setAlertMessage("We do not provide service at this pincode yet.");
+          setAlertVisible(true);
+          setMatchedCity(null);
+          setMatchedState(null);
+          return;
+        }
+
+        // Set matched city and state for form submission
+        setMatchedCity(matchedCity);
+        setMatchedState(
+          statesList.find((s) => s.StateID === matchedCity.StateID)
+        );
+        setFormModalVisible(true);
+      } else {
         setAlertStatus("error");
-        setAlertTitle("Not Serviced");
-        setAlertMessage("We do not provide service at your area yet.");
+        setAlertTitle("Error");
+        setAlertMessage("Could not retrieve address details.");
         setAlertVisible(true);
-        return;
       }
-
-      const matchedCity = citiesList.find(
-        (c) =>
-          c.CityName.toLowerCase() === city.toLowerCase() &&
-          c.StateID === matchedState.StateID
-      );
-      setMatchedCity(matchedCity);
-      if (!matchedCity) {
-        setAlertStatus("error");
-        setAlertTitle("City Not Supported");
-        setAlertMessage("We do not provide service in your city yet.");
-        setAlertVisible(true);
-        return;
-      }
-      setFormModalVisible(true);
+    } catch (error) {
+      console.error("Reverse geocoding failed:", error);
+      setAlertStatus("error");
+      setAlertTitle("Error");
+      setAlertMessage("Failed to retrieve address details. Try again later.");
+      setAlertVisible(true);
     }
   };
 
   const submitAddress = async () => {
-    if (!matchedState || !matchedCity) {
+    if (!matchedCity || !matchedState) {
       setAlertStatus("error");
-      setAlertTitle("Missing Location");
-      setAlertMessage("State or city is not supported.");
+      setAlertTitle("Invalid Location");
+      setAlertMessage("Please select a valid address with a supported pincode.");
       setAlertVisible(true);
       return;
     }
@@ -287,7 +294,6 @@ const ConfirmAddressPage = ({ navigation }) => {
       setAlertVisible(true);
     }
   };
-
   const iconMap = {
     Home: <Feather name="home" size={16} style={{ marginRight: 6 }} />,
     Office: (
@@ -371,7 +377,7 @@ const ConfirmAddressPage = ({ navigation }) => {
               });
 
               // Optional: also reverse geocode and update the address
-              const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyAC8UIiyDI55MVKRzNTHwQ9mnCnRjDymVo`;
+              const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_APIKEY}`;
               const response = await fetch(url);
               const data = await response.json();
 
@@ -386,7 +392,7 @@ const ConfirmAddressPage = ({ navigation }) => {
 
                 setCity(
                   getComponent(["locality"]) ||
-                    getComponent(["administrative_area_level_2"])
+                  getComponent(["administrative_area_level_2"])
                 );
                 setState(getComponent(["administrative_area_level_1"]));
                 setPincode(getComponent(["postal_code"]));

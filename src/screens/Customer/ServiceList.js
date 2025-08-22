@@ -255,7 +255,7 @@ export default function ServiceList() {
                       }
                     />
                     <CustomText style={styles.title}>
-                      {booking.BrandName} {booking.ModelName} (
+                       {booking.ModelName} (
                       {booking.FuelTypeName === "Petrol"
                         ? "P"
                         : booking.FuelTypeName === "Diesel"
@@ -333,7 +333,23 @@ export default function ServiceList() {
                     </View>
                   ))}
                 </View>
-
+                {booking.BookingStatus?.toLowerCase() === "completed" && (
+                  <>
+                    <View style={styles.divider} />
+                    <View style={styles.reviewSection}>
+                      <TouchableOpacity
+                        style={styles.reviewButton}
+                        onPress={() =>
+                          navigation.navigate("Reviews", { booking })
+                        }
+                      >
+                        <CustomText style={styles.reviewButtonText}>
+                          Write a Review
+                        </CustomText>
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                )}
               </View>
             </Pressable>
           ))
@@ -483,5 +499,19 @@ const styles = StyleSheet.create({
     // color: "#666",
     display: "flex",
     flexDirection: "column",
+  },
+    reviewSection: {
+    alignItems: "center",
+    marginTop: 14,
+  },
+  reviewButton: {
+    backgroundColor: color.secondary,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  reviewButtonText: {
+    ...globalStyles.f12Bold,
+    color: "#fff",
   },
 });

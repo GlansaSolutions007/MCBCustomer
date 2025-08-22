@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -22,7 +22,7 @@ import CustomText from "./CustomText";
 import globalStyles from "../styles/globalStyles";
 import { Linking } from "react-native";
 import { LocationContext } from "../contexts/LocationContext";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import * as Location from "expo-location";
 import CustomAlert from "./CustomAlert";
 import { color } from "../styles/theme";
@@ -126,9 +126,15 @@ export default function CustomHeader({ navigation }) {
     }
   };
 
-  useEffect(() => {
-    getUserData()
-  }, []);
+  // useEffect(() => {
+  //   getUserData()
+  // }, []);
+  
+  useFocusEffect(
+    useCallback(() => {
+      getUserData();
+    }, [])
+  );
 
   const fetchAddresses = async () => {
     try {
@@ -146,14 +152,11 @@ export default function CustomHeader({ navigation }) {
       );
       const allAddresses = response.data;
 
-      // console.log(allAddresses, "customer addresses");
-
       setAddressList(allAddresses);
 
       const primary = allAddresses.find((addr) => addr.IsPrimary);
       if (primary) {
         setPrimaryAddress(primary);
-        // 👇 update LocationContext so header shows it
         setLocationText(`${primary.AddressLine1}, ${primary.CityName}`);
         setLocationStatus("saved");
       }

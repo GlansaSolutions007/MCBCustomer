@@ -94,7 +94,7 @@ export default function BookingsInnerPage() {
               Location:
             </CustomText>
             <CustomText style={[styles.value, globalStyles.f12Regular]}>
-              {booking.CityName}, {booking.StateName}
+              {booking.FullAddress}, {booking.CityName}, {booking.StateName}, {booking.Pincode}
             </CustomText>
           </View>
           <View style={styles.section}>

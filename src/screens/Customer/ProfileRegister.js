@@ -63,7 +63,7 @@ export const ProfileRegister = () => {
         setFirstName(data.FullName || "");
         setPhoneNumber(data.PhoneNumber || "");
         setAltPhoneNumber(data.AlternateNumber || "");
-        setEmail(data.Email || "");
+         setEmail(data.Email && data.Email !== "null" ? data.Email : "");
         setImage(
           data.ProfileImage ? `${API_IMAGE_URL}${data.ProfileImage}` : null
         );
@@ -224,7 +224,7 @@ export const ProfileRegister = () => {
             />
             {errors.email ? (
               <Text style={styles.errorText}>{errors.email}</Text>
-            ) : null}
+            ) : ''}
           </View>
 
           <View style={styles.inputGroup}>

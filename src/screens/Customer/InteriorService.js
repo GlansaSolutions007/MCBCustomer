@@ -14,6 +14,7 @@ import {
   RefreshControl,
   Alert,
   InteractionManager,
+  Pressable,
 } from "react-native";
 import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
@@ -305,12 +306,12 @@ const InteriorService = () => {
 
   const SkeletonLoader = () => (
     <View style={styles.rowCard}>
-      <View style={[styles.sideImage, { backgroundColor: '#f1f1f1ff',borderRadius:10 }]} />
+      <View style={[styles.sideImage, { backgroundColor: '#f1f1f1ff', borderRadius: 10 }]} />
       <View style={styles.cardRight}>
-        <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '80%', marginBottom: 5, borderRadius:10 }} />
-        <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '70%', marginBottom: 5, borderRadius:10 }} />
-        <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '60%', marginBottom: 5, borderRadius:10 }} />
-        <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '50%', borderRadius:10 }} />
+        <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '80%', marginBottom: 5, borderRadius: 10 }} />
+        <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '70%', marginBottom: 5, borderRadius: 10 }} />
+        <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '60%', marginBottom: 5, borderRadius: 10 }} />
+        <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '50%', borderRadius: 10 }} />
       </View>
     </View>
   );
@@ -337,7 +338,7 @@ const InteriorService = () => {
                 {Math.round(
                   ((item.originalPrice - item.price) /
                     item.originalPrice) *
-                    100
+                  100
                 )}
                 %
               </CustomText>
@@ -506,7 +507,7 @@ const InteriorService = () => {
                     <CustomText
                       style={[globalStyles.textWhite, globalStyles.f12Regular]}
                     >
-                      Here you can find the suitable packages for your car
+                      Here you can find the suitable packages for your car!
                     </CustomText>
                   </View>
                   <View style={styles.chooseCarRow}>
@@ -516,24 +517,28 @@ const InteriorService = () => {
                         onChangeText={setSearchQuery}
                       />
                     </View>
-                    <TouchableOpacity
-                      style={styles.chooseCarButton}
-                      onPress={() => setShowCarModal(true)}
-                    >
-                      {selectedCar?.image?.uri && (
-                        <Image
-                          source={{ uri: selectedCar.image.uri }}
-                          style={{
-                            width: 40,
-                            height: 40,
-                            resizeMode: 'contain',
-                            backgroundColor: color.white,
-                            borderRadius: 10,
-                          }}
-                        />
-                      )}
-                      <CustomText style={styles.chooseCarText}>Change</CustomText>
-                    </TouchableOpacity>
+                    {cars.length > 0 && (
+                      <Pressable
+                        style={styles.chooseCarButton}
+                        onPress={() => setShowCarModal(true)}
+                      >
+                        {selectedCar?.image?.uri && (
+                          <Image
+                            source={{ uri: selectedCar.image.uri }}
+                            style={{
+                              width: 40,
+                              height: 40,
+                              resizeMode: 'contain',
+                              backgroundColor: color.white,
+                              borderRadius: 10,
+                            }}
+                          />
+                        )}
+                        {cars.length > 1 && (
+                          <CustomText style={styles.chooseCarText}>Change</CustomText>
+                        )}
+                      </Pressable>)}
+
                   </View>
                 </View>
               </LinearGradient>
@@ -832,7 +837,7 @@ const styles = StyleSheet.create({
     height: 55,
     width: 70,
     marginLeft: 8,
-    marginTop: 18,
+    marginTop: 14,
   },
   chooseCarDiv: {
     width: "80%",

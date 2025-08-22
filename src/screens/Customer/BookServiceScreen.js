@@ -104,7 +104,7 @@ export default function BookServiceScreen() {
         <SearchBox
           value={searchQuery}
           onChangeText={setSearchQuery}
-          onSubmitEditing={() => { }} // Optional: Add logic if needed
+          onSubmitEditing={() => { }} 
         />
         <ScrollView
           contentContainerStyle={styles.scrollContent}

@@ -21,6 +21,7 @@ import PrivacyPolicyScreen from "../screens/Common/PrivacyPolicyScreen";
 import RefundPolicyScreen from "../screens/Common/RefundPolicyScreen";
 import TermsConditionsScreen from "../screens/Common/TermsConditionsScreen";
 import AddressListScreen from "../screens/Customer/AddressList";
+import Reviews from "../screens/Customer/Reviews";
 
 const Stack = createNativeStackNavigator();
 
@@ -127,6 +128,11 @@ export default function CustomerStackNavigator() {
           name="AddressList"
           component={AddressListScreen}
           options={{ title: "My Address" }}
+        />
+        <Stack.Screen
+          name="Reviews"
+          component={Reviews}
+          options={{ title: "Reviews" }}
         />
       </Stack.Navigator>
     </CartProvider>
