@@ -40,7 +40,7 @@ import {
   API_IMAGE_URL,
   GOOGLE_MAPS_APIKEY,
   RAZORPAY_KEY,
-} from "../../../apiConfig";
+} from "@env";
 import moment from "moment";
 import CustomAlert from "../../components/CustomAlert";
 
@@ -96,6 +96,7 @@ const CartPage = () => {
   useEffect(() => {
     const getPrimaryVehicle = async () => {
       const id = await AsyncStorage.getItem("primaryVehicleId");
+      console.log(id, "primary vehicle id in cart page");
       setVehicleId(id);
     };
     getPrimaryVehicle();

@@ -27,7 +27,7 @@ import {
   API_IMAGE_URL,
   GOOGLE_MAPS_APIKEY,
   RAZORPAY_KEY,
-} from "../../../apiConfig";
+} from "@env";
 
 // import Constants from "expo-constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";

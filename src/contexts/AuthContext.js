@@ -1,7 +1,7 @@
 // src/contexts/AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_URL } from "../../apiConfig";
+import { API_URL } from "@env";
 import axios from "axios";
 
 const AuthContext = createContext();

@@ -35,7 +35,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { all } from "axios";
 import { getToken } from "../../utils/token";
 // import { API_BASE_URL } from "@env";
-import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "@env";
 import moment from "moment";
 import CustomAlert from "../../components/CustomAlert";
 

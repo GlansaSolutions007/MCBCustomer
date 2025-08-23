@@ -11,17 +11,18 @@ import {
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import CustomText from "../../components/CustomText";
 import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
-import { API_URL } from "../../../apiConfig";
+import { API_URL } from "@env";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 
 const formatDate = (dateString) => {
-  if (!dateString) return '';
-  const [year, month, day] = dateString.split('-');
+  if (!dateString) return "";
+  const [year, month, day] = dateString.split("-");
   return `${day}-${month}-${year}`;
 };
 
@@ -41,9 +42,7 @@ export default function ServiceList() {
       const custID = parsedData?.custID;
       console.log("Customer ID:", custID);
 
-      const response = await axios.get(
-        `${API_URL}Bookings/${custID}`
-      );
+      const response = await axios.get(`${API_URL}Bookings/${custID}`);
 
       let bookingsData = response.data;
 
@@ -114,41 +113,172 @@ export default function ServiceList() {
     <View style={styles.bookingCard}>
       <View>
         <View style={styles.bookingR1}>
-          <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '40%', borderRadius: 4 }} />
-          <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '30%', borderRadius: 4 }} />
+          <View
+            style={{
+              backgroundColor: "#f1f1f1ff",
+              height: 20,
+              width: "40%",
+              borderRadius: 4,
+            }}
+          />
+          <View
+            style={{
+              backgroundColor: "#f1f1f1ff",
+              height: 20,
+              width: "30%",
+              borderRadius: 4,
+            }}
+          />
         </View>
-        <View style={[styles.divider, { backgroundColor: '#f1f1f1ff' }]} />
+        <View style={[styles.divider, { backgroundColor: "#f1f1f1ff" }]} />
         <View style={styles.bookingR1}>
           <View style={styles.bookingCarImage}>
-            <View style={{ backgroundColor: '#f1f1f1ff', width: '60%', height: 60, borderRadius: 8 }} />
-            <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '80%', borderRadius: 4, marginTop: 5 }} />
-            <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '60%', borderRadius: 4, marginTop: 5 }} />
+            <View
+              style={{
+                backgroundColor: "#f1f1f1ff",
+                width: "60%",
+                height: 60,
+                borderRadius: 8,
+              }}
+            />
+            <View
+              style={{
+                backgroundColor: "#f1f1f1ff",
+                height: 20,
+                width: "80%",
+                borderRadius: 4,
+                marginTop: 5,
+              }}
+            />
+            <View
+              style={{
+                backgroundColor: "#f1f1f1ff",
+                height: 15,
+                width: "60%",
+                borderRadius: 4,
+                marginTop: 5,
+              }}
+            />
           </View>
           <View style={styles.bookingDetails}>
             <View style={styles.bookingDate}>
-              <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '70%', borderRadius: 4 }} />
-              <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '50%', borderRadius: 4, marginTop: 5 }} />
+              <View
+                style={{
+                  backgroundColor: "#f1f1f1ff",
+                  height: 15,
+                  width: "70%",
+                  borderRadius: 4,
+                }}
+              />
+              <View
+                style={{
+                  backgroundColor: "#f1f1f1ff",
+                  height: 15,
+                  width: "50%",
+                  borderRadius: 4,
+                  marginTop: 5,
+                }}
+              />
             </View>
             <View style={styles.bookingDate}>
-              <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '70%', borderRadius: 4 }} />
-              <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '50%', borderRadius: 4, marginTop: 5 }} />
+              <View
+                style={{
+                  backgroundColor: "#f1f1f1ff",
+                  height: 15,
+                  width: "70%",
+                  borderRadius: 4,
+                }}
+              />
+              <View
+                style={{
+                  backgroundColor: "#f1f1f1ff",
+                  height: 15,
+                  width: "50%",
+                  borderRadius: 4,
+                  marginTop: 5,
+                }}
+              />
             </View>
             <View style={styles.bookingDate}>
-              <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '70%', borderRadius: 4 }} />
-              <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '50%', borderRadius: 4, marginTop: 5 }} />
+              <View
+                style={{
+                  backgroundColor: "#f1f1f1ff",
+                  height: 15,
+                  width: "70%",
+                  borderRadius: 4,
+                }}
+              />
+              <View
+                style={{
+                  backgroundColor: "#f1f1f1ff",
+                  height: 15,
+                  width: "50%",
+                  borderRadius: 4,
+                  marginTop: 5,
+                }}
+              />
             </View>
           </View>
         </View>
-        <View style={[styles.divider, { backgroundColor: '#f1f1f1ff' }]} />
+        <View style={[styles.divider, { backgroundColor: "#f1f1f1ff" }]} />
         <View style={styles.bookingServices}>
-          <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '60%', borderRadius: 4 }} />
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 4 }}>
-            <View style={{ backgroundColor: '#f1f1f1ff', height: 16, width: 16, borderRadius: 4, marginRight: 6 }} />
-            <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '80%', borderRadius: 4 }} />
+          <View
+            style={{
+              backgroundColor: "#f1f1f1ff",
+              height: 15,
+              width: "60%",
+              borderRadius: 4,
+            }}
+          />
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginVertical: 4,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#f1f1f1ff",
+                height: 16,
+                width: 16,
+                borderRadius: 4,
+                marginRight: 6,
+              }}
+            />
+            <View
+              style={{
+                backgroundColor: "#f1f1f1ff",
+                height: 15,
+                width: "80%",
+                borderRadius: 4,
+              }}
+            />
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 4 }}>
-            <View style={{ backgroundColor: '#f1f1f1ff', height: 16, width: 16, borderRadius: 4, marginRight: 6 }} />
-            <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '80%', borderRadius: 4 }} />
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginVertical: 4,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#f1f1f1ff",
+                height: 16,
+                width: 16,
+                borderRadius: 4,
+                marginRight: 6,
+              }}
+            />
+            <View
+              style={{
+                backgroundColor: "#f1f1f1ff",
+                height: 15,
+                width: "80%",
+                borderRadius: 4,
+              }}
+            />
           </View>
         </View>
       </View>
@@ -168,9 +298,14 @@ export default function ServiceList() {
                 console.log("Tab switched to:", tab);
                 setSelectedTab(tab);
               }}
-              style={[styles.tabButton, isActive && {
-                backgroundColor: isCancelled ? color.alertError : color.yellow,
-              },]}
+              style={[
+                styles.tabButton,
+                isActive && {
+                  backgroundColor: isCancelled
+                    ? color.alertError
+                    : color.yellow,
+                },
+              ]}
             >
               <CustomText
                 style={[
@@ -198,11 +333,53 @@ export default function ServiceList() {
             {/* <SkeletonLoader /> */}
           </View>
         ) : bookings.length === 0 ? (
-          <View style={{ marginTop: 20, alignItems: "center" }}>
-            <CustomText style={{ color: "#999", ...globalStyles.f12Regular }}>
-              No bookings available.
+          <Pressable
+            onPress={() =>
+              navigation.navigate("CustomerTabNavigator", {
+                screen: "Services",
+              })
+            }
+            style={{
+              backgroundColor: "#fff",
+              padding: 16,
+              borderRadius: 12,
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: 8,
+              shadowColor: "#000",
+              shadowOpacity: 0.05,
+              shadowOffset: { width: 0, height: 2 },
+              shadowRadius: 4,
+              elevation: 2,
+            }}
+          >
+            <Ionicons
+              name="calendar-outline"
+              size={40}
+              color={color.primary}
+              style={{ marginBottom: 8 }}
+            />
+            <CustomText
+              style={[globalStyles.f16Bold, { color: color.primary, textAlign: "center" }]}
+            >
+              No bookings for today
             </CustomText>
-          </View>
+            <CustomText
+              style={[globalStyles.f16Bold, { color: color.primary, textAlign: "center" }]}
+            >
+              Explore our services!
+            </CustomText>
+            <View style={{ alignItems: "center", marginTop: 8 }}>
+              <CustomText
+                style={[
+                  globalStyles.f12Regular,
+                  { color: "#666", textAlign: "center" },
+                ]}
+              >
+                Book your service now and enjoy a hassle-free experience!
+              </CustomText>
+            </View>
+          </Pressable>
         ) : filteredBookings.length === 0 ? (
           <View style={{ marginTop: 20, alignItems: "center" }}>
             <CustomText style={{ color: "#999", ...globalStyles.f12Regular }}>
@@ -229,11 +406,14 @@ export default function ServiceList() {
                         styles.techStatus,
                         {
                           color:
-                            booking.TechID === null ? color.text : color.primary,
+                            booking.TechID === null
+                              ? color.text
+                              : color.primary,
                         },
                       ]}
                     >
-                      Tech {booking.TechID === null ? "Not Assigned" : "Assigned"}
+                      Tech{" "}
+                      {booking.TechID === null ? "Not Assigned" : "Assigned"}
                     </CustomText>
                   )}
                 </View>
@@ -255,12 +435,12 @@ export default function ServiceList() {
                       }
                     />
                     <CustomText style={styles.title}>
-                       {booking.ModelName} (
+                      {booking.ModelName} (
                       {booking.FuelTypeName === "Petrol"
                         ? "P"
                         : booking.FuelTypeName === "Diesel"
-                          ? "D"
-                          : "E"}
+                        ? "D"
+                        : "E"}
                       )
                     </CustomText>
                     <CustomText style={styles.subText}>
@@ -269,10 +449,17 @@ export default function ServiceList() {
                   </View>
                   <View style={styles.bookingDetails}>
                     <View style={styles.bookingDate}>
-                      <CustomText style={[globalStyles.f10Regular, { color: color.primary }]}>
+                      <CustomText
+                        style={[
+                          globalStyles.f10Regular,
+                          { color: color.primary },
+                        ]}
+                      >
                         Booking Date:
                       </CustomText>
-                      <CustomText style={[globalStyles.f12Bold]}>{formatDate(booking.BookingDate)}</CustomText>
+                      <CustomText style={[globalStyles.f12Bold]}>
+                        {formatDate(booking.BookingDate)}
+                      </CustomText>
                     </View>
                     <View style={styles.bookingDate}>
                       <CustomText style={[globalStyles.f10Regular]}>
@@ -307,19 +494,23 @@ export default function ServiceList() {
                         justifyContent:
                           index === booking.Packages.length - 1
                             ? "space-between" // ✅ last package row → push status to right
-                            : "flex-start",   // other rows → normal alignment
+                            : "flex-start", // other rows → normal alignment
                         marginVertical: 4,
                       }}
                     >
                       {/* Left: icon + package name */}
-                      <View style={{ flexDirection: "row", alignItems: "center" }}>
+                      <View
+                        style={{ flexDirection: "row", alignItems: "center" }}
+                      >
                         <FontAwesome5
                           name="tools"
                           size={16}
                           color={color.primary}
                           style={{ marginRight: 6 }}
                         />
-                        <CustomText style={[globalStyles.f12Bold, { color: "#333" }]}>
+                        <CustomText
+                          style={[globalStyles.f12Bold, { color: "#333" }]}
+                        >
                           {pkg.PackageName}
                         </CustomText>
                       </View>
@@ -327,7 +518,15 @@ export default function ServiceList() {
                       {/* Right: status only for last package */}
                       {index === booking.Packages.length - 1 && (
                         <CustomText style={[globalStyles.f10Medium]}>
-                          Status: <CustomText style={[globalStyles.f10Bold, { color: color.primary }]}>{booking.BookingStatus}</CustomText>
+                          Status:{" "}
+                          <CustomText
+                            style={[
+                              globalStyles.f10Bold,
+                              { color: color.primary },
+                            ]}
+                          >
+                            {booking.BookingStatus}
+                          </CustomText>
                         </CustomText>
                       )}
                     </View>
@@ -500,7 +699,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
   },
-    reviewSection: {
+  reviewSection: {
     alignItems: "center",
     marginTop: 14,
   },

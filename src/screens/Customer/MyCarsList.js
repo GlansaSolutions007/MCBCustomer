@@ -24,7 +24,7 @@ import {
   API_IMAGE_URL,
   GOOGLE_MAPS_APIKEY,
   RAZORPAY_KEY,
-} from "../../../apiConfig";
+} from "@env";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import carAddIcon from "../../../assets/icons/caddAddIcon.png";

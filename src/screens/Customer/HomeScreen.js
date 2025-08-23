@@ -29,7 +29,7 @@ import axios from "axios";
 // import { API_BASE_URL } from "@env";
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
-import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "../../../apiConfig";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "@env";
 import { getToken } from "../../utils/token";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -42,7 +42,7 @@ const formatDate = (dateString) => {
 
 export default function HomeScreen() {
   const token = getToken();
-
+  // alert(API_URL);
   const navigation = useNavigation();
   const { setLocationText, setLocationStatus } = useContext(LocationContext);
   const [categories, setCategories] = useState([]);

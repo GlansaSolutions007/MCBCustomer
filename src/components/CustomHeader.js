@@ -26,7 +26,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import * as Location from "expo-location";
 import CustomAlert from "./CustomAlert";
 import { color } from "../styles/theme";
-import { API_URL } from "../../apiConfig";
+import { API_URL } from "@env";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import Garage from "../../assets/icons/garageIcon.png";

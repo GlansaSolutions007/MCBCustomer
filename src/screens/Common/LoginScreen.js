@@ -28,7 +28,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import Logo from '../../../assets/Logo/logo2.png'
 import BgImage from '../../../assets/images/loginbg5.png'
 // import { API_BASE_URL } from "@env";
-import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "../../../apiConfig";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "@env";
 
 export default function LoginScreen() {
   // Alert.alert("Debug", `API URL: ${API_URL}`);

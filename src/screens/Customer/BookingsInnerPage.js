@@ -12,7 +12,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
 import CustomText from "../../components/CustomText";
-import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "../../../apiConfig";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "@env";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useSafeAreaInsets } from "react-native-safe-area-context";

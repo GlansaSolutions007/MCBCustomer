@@ -39,7 +39,7 @@ export default {
       API_BASE_URL: process.env.API_BASE_URL,
       API_IMAGE_URL: process.env.API_IMAGE_URL,
       RAZORPAY_KEY: process.env.RAZORPAY_KEY,
-      GOOGLE_MAPS_APIKEY: "AIzaSyAC8UIiyDI55MVKRzNTHwQ9mnCnRjDymVo",
+      GOOGLE_MAPS_APIKEY: "AIzaSyB1e_nM-v-G5EYZSrXjElyHo61I4qb5rNc",
       eas: {
         projectId: "6850b1f3-7aec-4d07-8b8b-1802366d658a",
       },
