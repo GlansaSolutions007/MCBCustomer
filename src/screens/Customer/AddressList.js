@@ -18,7 +18,7 @@ import globalStyles from "../../styles/globalStyles";
 import { LocationContext } from "../../contexts/LocationContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { API_URL } from "../../../apiConfig";
+import { API_URL } from "@env";
 import CustomAlert from "../../components/CustomAlert";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 

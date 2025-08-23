@@ -13,7 +13,7 @@ import { useRoute } from "@react-navigation/native";
 import { ref, onValue } from "firebase/database";
 import { db } from "../../config/firebaseConfig";
 // import { GOOGLE_MAPS_APIKEY } from "@env";
-import { GOOGLE_MAPS_APIKEY } from "../../../apiConfig";
+import { GOOGLE_MAPS_APIKEY } from "@env";
 import polyline from "@mapbox/polyline";
 import technMarker from "../../../assets/images/techMarker.png";
 import recenter from "../../../assets/images/recenter.png";

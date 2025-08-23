@@ -8,7 +8,7 @@ import globalStyles from '../../styles/globalStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCoupon } from '../../contexts/CouponContext';
 import { useNavigation } from '@react-navigation/native';
-import { API_URL } from '../../../apiConfig';
+import { API_URL } from '@env';
 import { useCart } from '../../contexts/CartContext';
 import useGlobalRefresh from '../../hooks/useGlobalRefresh';
 
