@@ -142,7 +142,7 @@ export default function BookServiceScreen() {
                       {cat.CategoryName.split(' ')[0]}
                     </CustomText>
                     <CustomText style={[globalStyles.f20Regular, globalStyles.textWhite]}>
-                      {cat.CategoryName.split(' ')[1] || 'Service'}
+                      {cat.CategoryName.split(' ')[1] || 'Service'} {cat.CategoryName.split(' ')[2] || ''}
                     </CustomText>
                   </LinearGradient>
                 </TouchableOpacity>
