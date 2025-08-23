@@ -43,8 +43,8 @@ export default function BookingsInnerPage() {
           actionType: 'Cancelled',
         }
       );
-      console.log(response,'rressssss');
-      
+      console.log(response, 'rressssss');
+
       if (response.status === 200) {
         setShowCancelAlert(false);
         navigation.goBack();
@@ -158,6 +158,7 @@ export default function BookingsInnerPage() {
               {booking.BookingStatus}
             </CustomText>
           </View>
+
           <View style={styles.section}>
             <CustomText style={[styles.label, globalStyles.f12Bold]}>
               Package Price:
@@ -213,6 +214,44 @@ export default function BookingsInnerPage() {
             </View>
           )}
         </View>
+
+        {booking.BookingStatus?.toLowerCase() !== "completed" &&
+          booking.BookingStatus?.toLowerCase() !== "cancelled" && (
+            <View
+              style={{
+                backgroundColor: "#fff",
+                borderRadius: 12,
+                padding: 16,
+                marginVertical: 12,
+                shadowColor: "#000",
+                shadowOpacity: 0.1,
+                shadowRadius: 6,
+                elevation: 4,
+                alignItems: "center",
+              }}
+            >
+              <CustomText
+                style={[
+                  globalStyles.f14Bold,
+                  { color: "#555",  letterSpacing: 1 },
+                ]}
+              >
+                Booking OTP
+              </CustomText>
+
+              <CustomText
+                style={[
+                  globalStyles.f20Bold,
+                  {
+                    color: color.primary,
+                    letterSpacing: 8,
+                  },
+                ]}
+              >
+                {booking.BookingOTP}
+              </CustomText>
+            </View>
+          )}
 
         <CustomText
           style={[styles.sectionTitle, globalStyles.f14Bold, { marginTop: 20 }]}
@@ -290,13 +329,13 @@ export default function BookingsInnerPage() {
             </View>
             {(pkg.Category.SubCategories || []).map((subCat) => (
               <View key={subCat.SubCategoryID} style={styles.subSection}>
-                <CustomText style={[styles.subLabel, globalStyles.f10Bold]}>
+                <CustomText style={[styles.subLabel, globalStyles.f12Bold]}>
                   {subCat.SubCategoryName}
                 </CustomText>
                 {(subCat.Includes || []).map((include) => (
                   <CustomText
                     key={include.IncludeID}
-                    style={[styles.includeText, globalStyles.f10Regular]}
+                    style={[styles.includeText, globalStyles.f12Regular]}
                   >
                     • {include.IncludeName}
                   </CustomText>
@@ -349,7 +388,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   subSection: {
-    marginLeft: 10,
     marginTop: 8,
   },
   sectionTitle: {
