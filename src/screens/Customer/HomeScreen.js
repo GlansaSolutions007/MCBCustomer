@@ -104,6 +104,22 @@ export default function HomeScreen() {
     }, [])
   );
 
+  const checkStorage = async () => {
+  try {
+    const allKeys = await AsyncStorage.getAllKeys();
+    console.log("All Keys:", allKeys);
+
+    const allData = await AsyncStorage.multiGet(allKeys);
+    console.log("All Data:", allData);
+  } catch (e) {
+    console.error("Error reading AsyncStorage:", e);
+  }
+};
+
+useEffect(() => {
+  checkStorage();
+}, []);
+
   const handleCategoryPress = async (category) => {
     try {
       // const token = await getToken();

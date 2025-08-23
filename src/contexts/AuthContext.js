@@ -15,8 +15,9 @@ export const AuthProvider = ({ children }) => {
       try {
         const token = await AsyncStorage.getItem("authToken");
         const userData = await AsyncStorage.getItem("userData");
+        const primaryVehicleId = await AsyncStorage.getItem("primaryVehicleId");
         if (token && userData) {
-          setUser({ token, ...JSON.parse(userData) });
+          setUser({ token, ...JSON.parse(userData), primaryVehicleId: primaryVehicleId ? Number(primaryVehicleId) : null });
         }
       } catch (e) {
         console.log("Error loading user data:", e);
@@ -34,7 +35,7 @@ export const AuthProvider = ({ children }) => {
     await AsyncStorage.setItem("authToken", userData.token);
     await AsyncStorage.setItem("userData", JSON.stringify(userData));
 
-    
+
     const response1 = await axios.get(
       `${API_URL}CustomerVehicles/CustId?CustId=${userData.custID}`
     );
@@ -44,8 +45,8 @@ export const AuthProvider = ({ children }) => {
     const primaryCarId = primaryCar?.VehicleID || null;
 
     console.log(response1, "Carrrrr Data");
-    await AsyncStorage.setItem("primaryVehicleId", primaryCarId);
-    
+    await AsyncStorage.setItem("primaryVehicleId", primaryCarId ? String(primaryCarId) : "");
+    setUser((prev) => ({ ...prev, primaryVehicleId: primaryCarId }));
   };
 
   const logout = async () => {

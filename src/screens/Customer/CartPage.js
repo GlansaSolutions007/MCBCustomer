@@ -82,7 +82,7 @@ const CartPage = () => {
   useEffect(() => {
     const loadPhone = async () => {
       const userData = await AsyncStorage.getItem("userData");
-      // console.log("userData in cart page:", userData);
+      console.log("userData in cart page:", userData);
       const user = JSON.parse(userData);
       if (user?.phone) {
         setCustomerPhone(user.phone);
@@ -306,6 +306,23 @@ const CartPage = () => {
         return;
       }
 
+      const custFormData = new FormData();
+      custFormData.append("custID", user.custID);
+      custFormData.append("FullName", customerName);
+      custFormData.append("PhoneNumber", customerPhone);
+      custFormData.append("Email", customerEmail);
+      custFormData.append("IsActive", true);
+
+      await axios.post(`${API_URL}Customer/update-customer`, custFormData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const updatedUser = { ...user, name: customerName, email: customerEmail };
+      await AsyncStorage.setItem("userData", JSON.stringify(updatedUser));
+
       const bookingPayload = {
         custID: user.custID,
         CustFullName: customerName || "Customer",
@@ -347,25 +364,25 @@ const CartPage = () => {
         console.log(`${pair[0]}: ${pair[1]}`);
       }
 
-      if (user.name == "") {
-        const custFormData = new FormData();
-        custFormData.append("custID", user.custID);
-        custFormData.append("FullName", customerName);
-        custFormData.append("PhoneNumber", customerPhone);
-        custFormData.append("Email", customerEmail);
-        custFormData.append("IsActive", true);
-        custFormData.append("ProfileImageFile", ""); // Assuming no profile image
+      // if (user.name == "") {
+      //   const custFormData = new FormData();
+      //   custFormData.append("custID", user.custID);
+      //   custFormData.append("FullName", customerName);
+      //   custFormData.append("PhoneNumber", customerPhone);
+      //   custFormData.append("Email", customerEmail);
+      //   custFormData.append("IsActive", true);
+      //   custFormData.append("ProfileImageFile", ""); // Assuming no profile image
 
-        await axios.post(`${API_URL}Customer/update-customer`, custFormData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      //   await axios.post(`${API_URL}Customer/update-customer`, custFormData, {
+      //     headers: {
+      //       "Content-Type": "multipart/form-data",
+      //       Authorization: `Bearer ${token}`,
+      //     },
+      //   });
 
-        const updatedUser = { ...user, name: customerName };
-        await AsyncStorage.setItem("userData", JSON.stringify(updatedUser));
-      }
+      //   const updatedUser = { ...user, name: customerName,email: customerEmail };
+      //   await AsyncStorage.setItem("userData", JSON.stringify(updatedUser));
+      // }
 
       const response = await axios.post(
         `${API_URL}Bookings/insert-booking`,
@@ -393,7 +410,7 @@ const CartPage = () => {
           navigation.navigate("CustomerTabNavigator", {
             screen: "My Bookings",
           });
-        }, 300);
+        }, 300); 
       }
     } catch (error) {
       console.error("❌ Booking failed:", error?.response || error);
@@ -433,7 +450,7 @@ const CartPage = () => {
             const token = await getToken();
 
             const confirmPayload = {
-              bookingID: bookingID, 
+              bookingID: bookingID,
               amountPaid: finalAmount,
               razorpayPaymentId: data.razorpay_payment_id,
               razorpayOrderId: data.razorpay_order_id,
@@ -519,17 +536,33 @@ const CartPage = () => {
           onPress={() => setAddressModalVisible(true)}
           style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
         >
-          <View style={{ flex: 1 }}>
-            <CustomText style={styles.headerTitle}>
+          <View style={{ flex: 1, maxWidth: 300 }}>
+            <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={[
+                globalStyles.f12Bold,
+                globalStyles.mt1,
+                { flexShrink: 1, color: color.primary },
+              ]}
+            >
               {primaryAddress
                 ? `${primaryAddress.AddressLine1}`
                 : "Choose delivery address"}
-            </CustomText>
-            <CustomText numberOfLines={1} style={styles.headerSubtitle}>
+            </Text>
+            <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={[
+                globalStyles.f10Regular,
+                globalStyles.mt1,
+                { flexShrink: 1 },
+              ]}
+            >
               {primaryAddress
                 ? `${primaryAddress.AddressLine2}, ${primaryAddress.CityName},${primaryAddress.StateName},${primaryAddress.Pincode}`
                 : "Choose delivery address"}
-            </CustomText>
+            </Text>
           </View>
           <Feather name="chevron-down" size={20} color="black" />
         </TouchableOpacity>
@@ -1068,10 +1101,10 @@ const CartPage = () => {
               {/* Option 1: Cash On Service */}
               <TouchableOpacity
                 style={styles.option}
-                onPress={() => setPaymentMethod("cos")}
+                onPress={() => setPaymentMethod("COS")}
               >
                 <View style={styles.radioCircle}>
-                  {paymentMethod === "cos" && (
+                  {paymentMethod === "COS" && (
                     <View style={styles.selectedRb} />
                   )}
                 </View>
