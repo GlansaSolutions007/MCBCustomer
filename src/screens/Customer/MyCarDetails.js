@@ -90,6 +90,23 @@ export const MyCarDetails = () => {
 
   const { brandId, modelId, fuelId, fuelType } = route.params;
 
+  const validateVehicleNumber = (number) => {
+    const regex = /^[A-Z0-9]+$/; // Only capital letters and numbers
+    return regex.test(number);
+  };
+
+  const handleVehicleNumberChange = (text) => {
+    const upperText = text.toUpperCase(); // Convert to uppercase
+    setVehicleNumber(upperText);
+    if (!upperText.trim()) {
+      setVehicleNumberError("Registration number is required");
+    } else if (!validateVehicleNumber(upperText)) {
+      setVehicleNumberError("Only capital letters and numbers are allowed");
+    } else {
+      setVehicleNumberError("");
+    }
+  };
+
   const handleSubmit = async () => {
     let hasError = false;
 
@@ -240,52 +257,19 @@ export const MyCarDetails = () => {
                       <CustomText style={styles.optional}> *</CustomText>
                     </CustomText>
                     <TextInput
-                      placeholder="e.g. TS08-AB-1234"
+                      placeholder="e.g. TS08AB1234"
                       placeholderTextColor="#888"
                       value={vehicleNumber}
-                      onChangeText={(text) => {
-                        setVehicleNumber(text);
-                        setVehicleNumberError(false);
-                      }}
+                      onChangeText={handleVehicleNumberChange}
                       style={[
                         styles.input,
                         vehicleNumberError && styles.inputError,
                       ]}
                       editable={!isViewOnly}
+                      autoCapitalize="characters"
                     />
 
                     <View style={styles.row}>
-                      {/* <View style={{ flex: 1, marginRight: 8 }}>
-                                        <CustomText style={styles.label}>
-                                            Year of Purchase
-                                        </CustomText>
-                                        <TouchableOpacity onPress={() => setShowYearPicker(true)}>
-                                            <TextInput
-                                                value={formatDate(yearOfPurchase)}
-                                                placeholder="YYYY"
-                                                style={styles.input}
-                                                placeholderTextColor="#888"
-                                                editable={false}
-                                                pointerEvents="none"
-
-                                            />
-                                        </TouchableOpacity>
-                                        {showYearPicker && (
-                                            <DateTimePicker
-                                                value={yearOfPurchase || new Date()}
-                                                mode="date"
-                                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                                onChange={(event, selectedDate) => {
-                                                    setShowYearPicker(false);
-                                                    if (selectedDate) {
-                                                        setYearOfPurchase(selectedDate);
-                                                    }
-                                                }}
-                                                maximumDate={new Date()}
-                                            />
-                                        )}
-                                    </View> */}
-
                       <View style={{ flex: 1, marginRight: 8 }}>
                         <CustomText style={styles.label}>
                           Year of Purchase
@@ -319,7 +303,7 @@ export const MyCarDetails = () => {
                                 justifyContent: "center",
                               }}
                             >
-                              <TouchableWithoutFeedback onPress={() => {}}>
+                              <TouchableWithoutFeedback onPress={() => { }}>
                                 <View
                                   style={{
                                     backgroundColor: "white",

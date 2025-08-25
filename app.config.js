@@ -23,7 +23,7 @@ export default {
       permissions: ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
       config: {
         googleMaps: {
-          apiKey: "AIzaSyAC8UIiyDI55MVKRzNTHwQ9mnCnRjDymVo",
+          apiKey: "AIzaSyB1e_nM-v-G5EYZSrXjElyHo61I4qb5rNc",
         },
       },
       usesCleartextTraffic: true, // optional, for HTTP URLs

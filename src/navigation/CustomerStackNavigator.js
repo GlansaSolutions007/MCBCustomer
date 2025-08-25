@@ -22,6 +22,7 @@ import RefundPolicyScreen from "../screens/Common/RefundPolicyScreen";
 import TermsConditionsScreen from "../screens/Common/TermsConditionsScreen";
 import AddressListScreen from "../screens/Customer/AddressList";
 import Reviews from "../screens/Customer/Reviews";
+import MapTest from "../screens/Customer/MapTest";
 
 const Stack = createNativeStackNavigator();
 
@@ -134,7 +135,13 @@ export default function CustomerStackNavigator() {
           component={Reviews}
           options={{ title: "Reviews" }}
         />
+         <Stack.Screen
+          name="MapTest"
+          component={MapTest}
+          options={{ title: "Map Test" }}
+        />
       </Stack.Navigator>
+      
     </CartProvider>
   );
 }
