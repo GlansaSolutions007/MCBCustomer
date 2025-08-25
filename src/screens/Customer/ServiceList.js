@@ -474,7 +474,7 @@ export default function ServiceList() {
                         Service Amount:
                       </CustomText>
                       <CustomText style={[globalStyles.f12Bold]}>
-                        ₹ {booking.TotalPrice.toFixed(2)}
+                        ₹ {booking.Payments[0].AmountPaid  || "Payment Failed"}
                       </CustomText>
                     </View>
                   </View>

@@ -12,6 +12,7 @@ import {
   Platform,
   ScrollView,
   TouchableWithoutFeedback,
+  StatusBar,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import globalStyles from "../../styles/globalStyles";
@@ -310,6 +311,7 @@ const ConfirmAddressPage = ({ navigation }) => {
       edges={["bottom"]}
     >
       <View style={{ flex: 1, backgroundColor: "#fff" }}>
+        <StatusBar barStyle="light-content" backgroundColor={color.primary} />
         <View style={{ paddingHorizontal: 16 }}>
           <SearchBox value={searchText} onChangeText={setSearchText} />
         </View>
@@ -715,7 +717,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   mapContainer: {
-    height: 550,
+    height: 500,
     backgroundColor: "#eee",
     borderRadius: 12,
     overflow: "hidden",

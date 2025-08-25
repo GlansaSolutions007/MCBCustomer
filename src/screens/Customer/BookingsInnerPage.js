@@ -164,7 +164,7 @@ export default function BookingsInnerPage() {
               Package Price:
             </CustomText>
             <CustomText style={[styles.value, globalStyles.f12Bold]}>
-              ₹ {booking.PackagePrice}
+              ₹ {booking.TotalPrice}
             </CustomText>
           </View>
 
@@ -180,7 +180,7 @@ export default function BookingsInnerPage() {
           )}
           <View style={styles.section}>
             <CustomText style={[styles.label, globalStyles.f12Bold]}>
-              GST:
+              GST Amount:
             </CustomText>
             <CustomText style={[styles.value, globalStyles.f12Bold]}>
               ₹ {booking.GSTAmount}
@@ -191,7 +191,7 @@ export default function BookingsInnerPage() {
               Total Price:
             </CustomText>
             <CustomText style={[styles.value, globalStyles.f12Bold]}>
-              ₹ {booking.TotalPrice.toFixed(2)}
+              ₹ {booking.Payments[0].AmountPaid  || "Payment Failed"}
             </CustomText>
           </View>
           {booking.BookingStatus.toLowerCase() === 'pending' && (

@@ -247,38 +247,11 @@ const CartPage = () => {
         !scheduledDate ||
         !scheduledTimeLabel
       ) {
-        if (!customerName) {
-          showCustomAlert(
-            "error",
-            "Missing Information",
-            "Please fill Customer Details"
-          );
-          return;
-        }
-
-        if (!primaryAddress) {
-          showCustomAlert(
-            "error",
-            "Missing Address",
-            "Please select or add your primary address."
-          );
-          return;
-        }
-
-        if (!vehicleId) {
-          showCustomAlert(
-            "error",
-            "Missing Vehicle",
-            "Please select your vehicle for booking."
-          );
-          return;
-        }
-
         if (!scheduledDate) {
           showCustomAlert(
             "error",
             "Missing Date",
-            "Please choose a scheduled date."
+            "Please choose a date to schedule your service."
           );
           return;
         }
@@ -291,6 +264,43 @@ const CartPage = () => {
           );
           return;
         }
+        if (!primaryAddress) {
+          showCustomAlert(
+            "error",
+            "Missing Address",
+            "Please select or add your primary address."
+          );
+          return;
+        }
+
+        if (!customerName) {
+          showCustomAlert(
+            "error",
+            "Missing Information",
+            "Please fill Customer Name"
+          );
+          return;
+        }
+        if (!customerEmail) {
+          showCustomAlert(
+            "error",
+            "Missing Information",
+            "Please fill Customer Email"
+          );
+          return;
+        }
+
+        
+        if (!vehicleId) {
+          showCustomAlert(
+            "error",
+            "Missing Vehicle",
+            "Please select your vehicle for booking."
+          );
+          return;
+        }
+
+
         console.log("Missing information for booking:", {
           user,
           primaryAddress,
@@ -335,8 +345,8 @@ const CartPage = () => {
         Longitude: primaryAddress.Longitude,
         Latitude: primaryAddress.Latitude,
         PackageIds: cartItems.map((item) => item.id).join(","),
-        PackagePrice: totalServiceAmount,
-        TotalPrice: finalAmount,
+        PackagePrice: cartItems.map((item) => item.price).join(","),
+        TotalPrice: totalServiceAmount,
         CouponCode: couponCode,
         CouponAmount: discountAmount,
         GSTAmount: gst,
@@ -410,7 +420,7 @@ const CartPage = () => {
           navigation.navigate("CustomerTabNavigator", {
             screen: "My Bookings",
           });
-        }, 300); 
+        }, 300);
       }
     } catch (error) {
       console.error("❌ Booking failed:", error?.response || error);
