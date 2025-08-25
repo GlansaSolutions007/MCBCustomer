@@ -7,135 +7,162 @@ import { color } from "../../styles/theme";
 import { API_URL } from "@env";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import CustomAlert from "../../components/CustomAlert";
 
 export default function ReviewsPage({ route }) {
-    const { booking } = route.params;
-    const [serviceRating, setServiceRating] = useState(0);
-    const [technicianRating, setTechnicianRating] = useState(0);
-    const [reviewText, setReviewText] = useState("");
-    const [existingReview, setExistingReview] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [serviceStarAnim] = useState([1, 2, 3, 4, 5].map(() => new Animated.Value(1)));
-    const [techStarAnim] = useState([1, 2, 3, 4, 5].map(() => new Animated.Value(1)));
+  const { booking } = route.params;
+  const [serviceRating, setServiceRating] = useState(0);
+  const [technicianRating, setTechnicianRating] = useState(0);
+  const [reviewText, setReviewText] = useState('');
+  const [existingReview, setExistingReview] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [serviceStarAnim] = useState([1, 2, 3, 4, 5].map(() => new Animated.Value(1)));
+  const [techStarAnim] = useState([1, 2, 3, 4, 5].map(() => new Animated.Value(1)));
+  // State for CustomAlert
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertStatus, setAlertStatus] = useState('info');
 
-    useEffect(() => {
-        fetchExistingReview();
-    }, []);
+  const navigation = useNavigation();
 
-    const fetchExistingReview = async () => {
-        try {
-            const token = await AsyncStorage.getItem("authToken");
-            if (!token) {
-                Alert.alert("Error", "No token found");
-                return;
-            }
+  useEffect(() => {
+    fetchExistingReview();
+  }, []);
 
-            const response = await axios.get(
-                `${API_URL}Feedback/feedback?custId=${booking.CustID}&techId=${booking.TechID}&bookingId=${booking.BookingID}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
-            );
+  const fetchExistingReview = async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) {
+        setAlertTitle('Error');
+        setAlertMessage('No token found');
+        setAlertStatus('error');
+        setAlertVisible(true);
+        return;
+      }
 
-            if (response.data) {
-                setExistingReview(response.data);
-                console.log("Existing review fetched:", response.data);
-            }
-        } catch (error) {
-            console.log("No existing review or error:", error.response?.data || error.message);
-        } finally {
-            setLoading(false);
+      const response = await axios.get(
+        `${API_URL}Feedback/feedback?custId=${booking.CustID}&techId=${booking.TechID}&bookingId=${booking.BookingID}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
         }
-    };
+      );
 
-    const handleServiceRating = (rating) => {
-        setServiceRating(rating);
-        serviceStarAnim.forEach((anim, index) => {
-            Animated.spring(anim, {
-                toValue: index < rating ? 1.2 : 1,
-                friction: 5,
-                tension: 40,
-                useNativeDriver: true,
-            }).start(() => {
-                Animated.spring(anim, {
-                    toValue: 1,
-                    friction: 5,
-                    tension: 40,
-                    useNativeDriver: true,
-                }).start();
-            });
-        });
-    };
-
-    const handleTechnicianRating = (rating) => {
-        setTechnicianRating(rating);
-        techStarAnim.forEach((anim, index) => {
-            Animated.spring(anim, {
-                toValue: index < rating ? 1.2 : 1,
-                friction: 5,
-                tension: 40,
-                useNativeDriver: true,
-            }).start(() => {
-                Animated.spring(anim, {
-                    toValue: 1,
-                    friction: 5,
-                    tension: 40,
-                    useNativeDriver: true,
-                }).start();
-            });
-        });
-    };
-
-    const handleSubmitReview = async () => {
-        try {
-            const token = await AsyncStorage.getItem("authToken"); // adjust key if stored inside `userData`
-            if (!token) {
-                Alert.alert("Error", "No token found, please login again.");
-                return;
-            }
-
-            const payload = {
-                feedbackID: 0,
-                bookingID: booking.BookingID,
-                custID: booking.CustID,
-                techID: booking.TechID,
-                serviceReview: reviewText,
-                techRating: technicianRating.toString(),
-                serviceRating: serviceRating.toString(),
-            };
-
-            const response = await axios.post(`${API_URL}Feedback`, payload, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-            });
-
-            if (response.status === 200 || response.status === 201) {
-                Alert.alert("Success", "Your review has been submitted.");
-                setReviewText("");
-                setServiceRating(0);
-                setTechnicianRating(0);
-            } else {
-                Alert.alert("Error", "Failed to submit review. Please try again.");
-            }
-        } catch (error) {
-            console.error("Review submit error:", error.response?.data || error.message);
-            Alert.alert("Error", "Something went wrong. Please try again later.");
-        }
-    };
-
-    if (loading) {
-        return (
-            <View style={styles.container}>
-                <CustomText>Loading...</CustomText>
-            </View>
-        );
+      if (response.data && response.data.length > 0) {
+        const review = response.data[0];
+        setExistingReview(review);
+        setServiceRating(parseInt(review.ServiceRating));
+        setTechnicianRating(parseInt(review.TechRating));
+        animateStars(review.ServiceRating, serviceStarAnim);
+        animateStars(review.TechRating, techStarAnim);
+        console.log('Existing review fetched:', review);
+      }
+    } catch (error) {
+      console.log('No existing review or error:', error.response?.data || error.message);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  const animateStars = (rating, starAnim) => {
+    starAnim.forEach((anim, index) => {
+      Animated.spring(anim, {
+        toValue: index < rating ? 1.2 : 1,
+        friction: 5,
+        tension: 40,
+        useNativeDriver: true,
+      }).start(() => {
+        Animated.spring(anim, {
+          toValue: 1,
+          friction: 5,
+          tension: 40,
+          useNativeDriver: true,
+        }).start();
+      });
+    });
+  };
 
+  const handleServiceRating = (rating) => {
+    setServiceRating(rating);
+    animateStars(rating, serviceStarAnim);
+  };
+
+  const handleTechnicianRating = (rating) => {
+    setTechnicianRating(rating);
+    animateStars(rating, techStarAnim);
+  };
+
+  const handleSubmitReview = async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      if (!token) {
+        setAlertTitle('Error');
+        setAlertMessage('No token found, please login again.');
+        setAlertStatus('error');
+        setAlertVisible(true);
+        return;
+      }
+
+      const payload = {
+        feedbackID: 0,
+        bookingID: booking.BookingID,
+        custID: booking.CustID,
+        techID: booking.TechID,
+        serviceReview: reviewText,
+        techRating: technicianRating.toString(),
+        serviceRating: serviceRating.toString(),
+      };
+
+      const response = await axios.post(`${API_URL}Feedback`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        setAlertTitle('Success');
+        setAlertMessage('Your review has been submitted.');
+        setAlertStatus('success');
+        setAlertVisible(true);
+        // Note: Navigation will happen in handleAlertClose
+        setReviewText('');
+        setServiceRating(0);
+        setTechnicianRating(0);
+        fetchExistingReview();
+      } else {
+        setAlertTitle('Error');
+        setAlertMessage('Failed to submit review. Please try again.');
+        setAlertStatus('error');
+        setAlertVisible(true);
+      }
+    } catch (error) {
+      console.error('Review submit error:', error.response?.data || error.message);
+      setAlertTitle('Error');
+      setAlertMessage('Something went wrong. Please try again later.');
+      setAlertStatus('error');
+      setAlertVisible(true);
+    }
+  };
+
+  const handleAlertClose = () => {
+    setAlertVisible(false);
+    if (alertStatus === 'success') {
+      navigation.goBack();
+    }
+  };
+
+  if (loading) {
     return (
-      <KeyboardAvoidingView
+      <View style={styles.container}>
+        <CustomText>Loading...</CustomText>
+      </View>
+    );
+  }
+
+  return (
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
@@ -151,16 +178,43 @@ export default function ReviewsPage({ route }) {
         </View>
 
         {existingReview ? (
-          <View style={styles.summaryCard}>
-            <CustomText style={styles.summaryTitle}>Service Review</CustomText>
-            <CustomText>⭐ {existingReview.ServiceRating}/5</CustomText>
-            <CustomText>{existingReview.ServiceReview || 'No comments'}</CustomText>
-
-            <CustomText style={[styles.summaryTitle, { marginTop: 12 }]}>
-              Technician Review ({existingReview.Technician_Name})
+          <View style={styles.reviewCard}>
+            <CustomText style={styles.sectionHeader}>Service Rating</CustomText>
+            <View style={styles.starRow}>
+              {[1, 2, 3, 4, 5].map((star, index) => (
+                <Animated.View key={star} style={{ transform: [{ scale: serviceStarAnim[index] }] }}>
+                  <FontAwesome
+                    name={star <= existingReview.ServiceRating ? 'star' : 'star-o'}
+                    size={28}
+                    color={star <= existingReview.ServiceRating ? '#facc15' : '#e5e7eb'}
+                    style={styles.starIcon}
+                  />
+                </Animated.View>
+              ))}
+            </View>
+            <View style={styles.divider} />
+            <CustomText style={styles.sectionHeader}>
+              Technician Rating <CustomText style={styles.subText}>({existingReview.Technician_Name})</CustomText>
             </CustomText>
-            <CustomText>⭐ {existingReview.TechRating}/5</CustomText>
-            <CustomText>{existingReview.TechReview || 'No comments'}</CustomText>
+            <View style={styles.starRow}>
+              {[1, 2, 3, 4, 5].map((star, index) => (
+                <Animated.View key={star} style={{ transform: [{ scale: techStarAnim[index] }] }}>
+                  <FontAwesome
+                    name={star <= existingReview.TechRating ? 'star' : 'star-o'}
+                    size={28}
+                    color={star <= existingReview.TechRating ? '#facc15' : '#e5e7eb'}
+                    style={styles.starIcon}
+                  />
+                </Animated.View>
+              ))}
+            </View>
+            <View style={styles.divider} />
+            <CustomText style={styles.sectionHeader}>Service Review</CustomText>
+            <View style={styles.reviewBox}>
+              <CustomText style={styles.reviewText}>
+                {existingReview.ServiceReview || 'No comments'}
+              </CustomText>
+            </View>
           </View>
         ) : (
           <>
@@ -190,7 +244,6 @@ export default function ReviewsPage({ route }) {
 
             <View style={styles.section}>
               <CustomText style={styles.sectionTitle}>Rate Your Experience</CustomText>
-
               <View style={styles.ratingSection}>
                 <CustomText style={styles.subSectionTitle}>Service Quality</CustomText>
                 <CustomText style={styles.sectionDescription}>
@@ -212,7 +265,6 @@ export default function ReviewsPage({ route }) {
                 </View>
               </View>
               <View style={styles.divider} />
-
               <View style={styles.ratingSection}>
                 <CustomText style={styles.subSectionTitle}>
                   Technician ({booking.TechFullName})
@@ -266,14 +318,25 @@ export default function ReviewsPage({ route }) {
           </>
         )}
       </ScrollView>
+
+      {/* Add CustomAlert component */}
+      <CustomAlert
+        visible={alertVisible}
+        status={alertStatus}
+        onClose={handleAlertClose}
+        title={alertTitle}
+        message={alertMessage}
+        buttonText="OK"
+        showButton={true}
+      />
     </KeyboardAvoidingView>
-    );
+  );
 }
 
 const styles = {
     container: {
         flex: 1,
-        backgroundColor: "#F9FAFB",
+        backgroundColor: '#F9FAFB',
     },
     scrollContent: {
         padding: 20,
@@ -281,24 +344,24 @@ const styles = {
     },
     header: {
         marginBottom: 24,
-        alignItems: "center",
+        alignItems: 'center',
     },
     headerText: {
         ...globalStyles.f16Bold,
-        color: "#1f2937",
+        color: '#1f2937',
     },
     subHeaderText: {
         ...globalStyles.f12Regular,
-        color: "#6b7280",
+        color: '#6b7280',
         marginTop: 8,
-        textAlign: "center",
+        textAlign: 'center',
     },
     summaryCard: {
-        backgroundColor: "#fff",
+        backgroundColor: '#fff',
         borderRadius: 12,
         padding: 16,
         marginBottom: 24,
-        shadowColor: "#0000007d",
+        shadowColor: '#0000007d',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 4,
@@ -310,26 +373,26 @@ const styles = {
         marginBottom: 12,
     },
     summaryRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         marginBottom: 8,
     },
     summaryLabel: {
         ...globalStyles.f12Regular,
-        color: "#6b7280",
+        color: '#6b7280',
     },
     summaryValue: {
         ...globalStyles.f12Bold,
-        color: "#1f2937",
+        color: '#1f2937',
         flex: 1,
-        textAlign: "right",
+        textAlign: 'right',
     },
     section: {
-        backgroundColor: "#fff",
+        backgroundColor: '#fff',
         borderRadius: 12,
         padding: 20,
         marginBottom: 20,
-        shadowColor: "#0000007b",
+        shadowColor: '#0000007b',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.08,
         shadowRadius: 4,
@@ -342,48 +405,88 @@ const styles = {
     },
     subSectionTitle: {
         ...globalStyles.f14Bold,
-        color: "#1f2937",
+        color: '#1f2937',
         marginBottom: 8,
     },
     sectionDescription: {
         ...globalStyles.f12Regular,
-        color: "#6b7280",
+        color: '#6b7280',
         marginBottom: 16,
     },
     starContainer: {
-        flexDirection: "row",
-        justifyContent: "center",
+        flexDirection: 'row',
+        justifyContent: 'center',
     },
     star: {
         marginHorizontal: 8,
     },
     textArea: {
         borderWidth: 1,
-        borderColor: "#e5e7eb",
+        borderColor: '#e5e7eb',
         borderRadius: 12,
         padding: 16,
         fontSize: 14,
-        color: "#1f2937",
-        backgroundColor: "#f9fafb",
-        textAlignVertical: "top",
+        color: '#1f2937',
+        backgroundColor: '#f9fafb',
+        textAlignVertical: 'top',
         ...globalStyles.f14Regular,
     },
     submitButton: {
         backgroundColor: color.secondary,
         paddingVertical: 14,
         borderRadius: 12,
-        alignItems: "center",
+        alignItems: 'center',
         marginTop: 16,
     },
     submitButtonText: {
         ...globalStyles.f16Bold,
-        color: "#fff",
+        color: '#fff',
     },
     divider: {
-        borderBottomColor: "#ededed",
+        borderBottomColor: '#ededed',
         borderBottomWidth: 1,
         marginVertical: 20,
-        alignSelf: "center",
-        width: '100%'
+        alignSelf: 'center',
+        width: '100%',
     },
+     reviewCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 16,
+    marginVertical: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  sectionHeader: {
+    ...globalStyles.f14Bold,
+    color: "#111827",
+    marginBottom: 8,
+  },
+  subText: {
+    ...globalStyles.f12Regular,
+    color: "#6b7280",
+    fontWeight: "400",
+  },
+  starRow: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    marginBottom: 12,
+  },
+  starIcon: {
+    marginHorizontal: 4,
+  },
+
+  reviewBox: {
+    backgroundColor: "#f9fafb",
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 4,
+  },
+  reviewText: {
+    ...globalStyles.f12Regular,
+    color: "#374151",
+    lineHeight: 20,
+  },
 };
