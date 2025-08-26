@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     },
     dropdownButton: {
         borderColor: '#ccc',
-        padding: 6,
+        padding: 10,
         borderRadius: 8,
         backgroundColor: '#ffff',
         justifyContent: 'center',
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     dropdownText: {
-        ...globalStyles.f10Bold,
+        ...globalStyles.f14Bold,
         color: '#333',
         flex: 1,
     },

@@ -601,8 +601,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     color: "#111111",
     borderRadius: 8,
-    padding: 6,
-    ...globalStyles.f16Bold,
+    padding: 8,
+    ...globalStyles.f14Bold,
     marginBottom: 10,
   },
   itemTextStyle: {

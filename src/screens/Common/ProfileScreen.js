@@ -72,7 +72,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <StatusBar backgroundColor={color.secondary} barStyle="light-content" />
+      <StatusBar backgroundColor={color.primary} barStyle="light-content" />
 
       {/* Profile Image */}
       <View style={styles.profileImageContainer}>
