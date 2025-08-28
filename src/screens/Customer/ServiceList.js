@@ -332,7 +332,7 @@ export default function ServiceList() {
             <SkeletonLoader />
             {/* <SkeletonLoader /> */}
           </View>
-        ) : !bookings.some(b => b.BookingStatus?.toLowerCase() === "pending") ? (
+        ) : (bookings.length === 0) ? (
           <Pressable
             onPress={() =>
               navigation.navigate("CustomerTabNavigator", {
@@ -382,177 +382,177 @@ export default function ServiceList() {
           </Pressable>
 
         ) : filteredBookings.length === 0 ? (
-        <View style={{ marginTop: 20, alignItems: "center" }}>
-          <CustomText style={{ color: "#999", ...globalStyles.f12Regular }}>
-            No {selectedTab.toLowerCase()} services yet.
-          </CustomText>
-        </View>
+          <View style={{ marginTop: 20, alignItems: "center" }}>
+            <CustomText style={{ color: "#999", ...globalStyles.f12Regular }}>
+              No {selectedTab.toLowerCase()} services yet.
+            </CustomText>
+          </View>
         ) : (
           filteredBookings.map((booking) => (
-        <Pressable
-          key={booking.BookingID}
-          style={styles.bookingCard}
-          onPress={() =>
-            navigation.navigate("BookingsInnerPage", { booking })
-          }
-        >
-          <View>
-            <View style={styles.bookingR1}>
-              <CustomText style={styles.bookingID}>
-                BID: {booking.BookingTrackID}
-              </CustomText>
-              {booking.BookingStatus?.toLowerCase() !== "cancelled" && (
-                <CustomText
-                  style={[
-                    styles.techStatus,
-                    {
-                      color:
-                        booking.TechID === null
-                          ? color.text
-                          : color.primary,
-                    },
-                  ]}
-                >
-                  Tech{" "}
-                  {booking.TechID === null ? "Not Assigned" : "Assigned"}
-                </CustomText>
-              )}
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.bookingR1}>
-              <View style={styles.bookingCarImage}>
-                <Image
-                  source={{
-                    uri: `https://api.mycarsbuddy.com/Images${booking.VehicleImage}`,
-                  }}
-                  style={{
-                    width: "60%",
-                    height: 60,
-                    borderRadius: 8,
-                    backgroundColor: "#eee",
-                  }}
-                  onError={(e) =>
-                    console.log("Image load error:", e.nativeEvent.error)
-                  }
-                />
-                <CustomText style={styles.title}>
-                  {booking.ModelName} (
-                  {booking.FuelTypeName === "Petrol"
-                    ? "P"
-                    : booking.FuelTypeName === "Diesel"
-                      ? "D"
-                      : "E"}
-                  )
-                </CustomText>
-                <CustomText style={styles.subText}>
-                  {booking.VehicleNumber}
-                </CustomText>
-              </View>
-              <View style={styles.bookingDetails}>
-                <View style={styles.bookingDate}>
-                  <CustomText
-                    style={[
-                      globalStyles.f10Regular,
-                      { color: color.primary },
-                    ]}
-                  >
-                    Booking Date:
+            <Pressable
+              key={booking.BookingID}
+              style={styles.bookingCard}
+              onPress={() =>
+                navigation.navigate("BookingsInnerPage", { booking })
+              }
+            >
+              <View>
+                <View style={styles.bookingR1}>
+                  <CustomText style={styles.bookingID}>
+                    BID: {booking.BookingTrackID}
                   </CustomText>
-                  <CustomText style={[globalStyles.f12Bold]}>
-                    {formatDate(booking.BookingDate)}
-                  </CustomText>
-                </View>
-                <View style={styles.bookingDate}>
-                  <CustomText style={[globalStyles.f10Regular]}>
-                    Booked Slot:
-                  </CustomText>
-                  <CustomText style={[globalStyles.f12Bold]}>
-                    {booking.TimeSlot}
-                  </CustomText>
-                </View>
-                <View style={styles.bookingDate}>
-                  <CustomText style={[globalStyles.f10Regular]}>
-                    Service Amount:
-                  </CustomText>
-                  <CustomText style={[globalStyles.f12Bold]}>
-                    ₹ {booking.Payments[0].AmountPaid || "Payment Failed"}
-                  </CustomText>
-                </View>
-              </View>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.bookingServices}>
-              <CustomText style={[globalStyles.f10Regular, color.primary]}>
-                Services Booked:
-              </CustomText>
-
-              {(booking.Packages || []).map((pkg, index) => (
-                <View
-                  key={pkg.PackageID}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent:
-                      index === booking.Packages.length - 1
-                        ? "space-between" // ✅ last package row → push status to right
-                        : "flex-start", // other rows → normal alignment
-                    marginVertical: 4,
-                  }}
-                >
-                  {/* Left: icon + package name */}
-                  <View
-                    style={{ flexDirection: "row", alignItems: "center" }}
-                  >
-                    <FontAwesome5
-                      name="tools"
-                      size={16}
-                      color={color.primary}
-                      style={{ marginRight: 6 }}
-                    />
+                  {booking.BookingStatus?.toLowerCase() !== "cancelled" && (
                     <CustomText
-                      style={[globalStyles.f12Bold, { color: "#333" }]}
+                      style={[
+                        styles.techStatus,
+                        {
+                          color:
+                            booking.TechID === null
+                              ? color.text
+                              : color.primary,
+                        },
+                      ]}
                     >
-                      {pkg.PackageName}
-                    </CustomText>
-                  </View>
-
-                  {/* Right: status only for last package */}
-                  {index === booking.Packages.length - 1 && (
-                    <CustomText style={[globalStyles.f10Medium]}>
-                      Status:{" "}
-                      <CustomText
-                        style={[
-                          globalStyles.f10Bold,
-                          { color: color.primary },
-                        ]}
-                      >
-                        {booking.BookingStatus}
-                      </CustomText>
+                      Tech{" "}
+                      {booking.TechID === null ? "Not Assigned" : "Assigned"}
                     </CustomText>
                   )}
                 </View>
-              ))}
-            </View>
-            {booking.BookingStatus?.toLowerCase() === "completed" && (
-              <>
                 <View style={styles.divider} />
-                <View style={styles.reviewSection}>
-                  <TouchableOpacity
-                    style={styles.reviewButton}
-                    onPress={() =>
-                      navigation.navigate("Reviews", { booking })
-                    }
-                  >
-                    <CustomText style={styles.reviewButtonText}>
-                      Write a Review
+                <View style={styles.bookingR1}>
+                  <View style={styles.bookingCarImage}>
+                    <Image
+                      source={{
+                        uri: `https://api.mycarsbuddy.com/Images${booking.VehicleImage}`,
+                      }}
+                      style={{
+                        width: "60%",
+                        height: 60,
+                        borderRadius: 8,
+                        backgroundColor: "#eee",
+                      }}
+                      onError={(e) =>
+                        console.log("Image load error:", e.nativeEvent.error)
+                      }
+                    />
+                    <CustomText style={styles.title}>
+                      {booking.ModelName} (
+                      {booking.FuelTypeName === "Petrol"
+                        ? "P"
+                        : booking.FuelTypeName === "Diesel"
+                          ? "D"
+                          : "E"}
+                      )
                     </CustomText>
-                  </TouchableOpacity>
+                    <CustomText style={styles.subText}>
+                      {booking.VehicleNumber}
+                    </CustomText>
+                  </View>
+                  <View style={styles.bookingDetails}>
+                    <View style={styles.bookingDate}>
+                      <CustomText
+                        style={[
+                          globalStyles.f10Regular,
+                          { color: color.primary },
+                        ]}
+                      >
+                        Booking Date:
+                      </CustomText>
+                      <CustomText style={[globalStyles.f12Bold]}>
+                        {formatDate(booking.BookingDate)}
+                      </CustomText>
+                    </View>
+                    <View style={styles.bookingDate}>
+                      <CustomText style={[globalStyles.f10Regular]}>
+                        Booked Slot:
+                      </CustomText>
+                      <CustomText style={[globalStyles.f12Bold]}>
+                        {booking.TimeSlot}
+                      </CustomText>
+                    </View>
+                    <View style={styles.bookingDate}>
+                      <CustomText style={[globalStyles.f10Regular]}>
+                        Service Amount:
+                      </CustomText>
+                      <CustomText style={[globalStyles.f12Bold]}>
+                        ₹ {booking.Payments[0].AmountPaid || "Payment Failed"}
+                      </CustomText>
+                    </View>
+                  </View>
                 </View>
-              </>
-            )}
-          </View>
-        </Pressable>
-        ))
+                <View style={styles.divider} />
+                <View style={styles.bookingServices}>
+                  <CustomText style={[globalStyles.f10Regular, color.primary]}>
+                    Services Booked:
+                  </CustomText>
+
+                  {(booking.Packages || []).map((pkg, index) => (
+                    <View
+                      key={pkg.PackageID}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent:
+                          index === booking.Packages.length - 1
+                            ? "space-between" // ✅ last package row → push status to right
+                            : "flex-start", // other rows → normal alignment
+                        marginVertical: 4,
+                      }}
+                    >
+                      {/* Left: icon + package name */}
+                      <View
+                        style={{ flexDirection: "row", alignItems: "center" }}
+                      >
+                        <FontAwesome5
+                          name="tools"
+                          size={16}
+                          color={color.primary}
+                          style={{ marginRight: 6 }}
+                        />
+                        <CustomText
+                          style={[globalStyles.f12Bold, { color: "#333" }]}
+                        >
+                          {pkg.PackageName}
+                        </CustomText>
+                      </View>
+
+                      {/* Right: status only for last package */}
+                      {index === booking.Packages.length - 1 && (
+                        <CustomText style={[globalStyles.f10Medium]}>
+                          Status:{" "}
+                          <CustomText
+                            style={[
+                              globalStyles.f10Bold,
+                              { color: color.primary },
+                            ]}
+                          >
+                            {booking.BookingStatus}
+                          </CustomText>
+                        </CustomText>
+                      )}
+                    </View>
+                  ))}
+                </View>
+                {booking.BookingStatus?.toLowerCase() === "completed" && (
+                  <>
+                    <View style={styles.divider} />
+                    <View style={styles.reviewSection}>
+                      <TouchableOpacity
+                        style={styles.reviewButton}
+                        onPress={() =>
+                          navigation.navigate("Reviews", { booking })
+                        }
+                      >
+                        <CustomText style={styles.reviewButtonText}>
+                          Write a Review
+                        </CustomText>
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                )}
+              </View>
+            </Pressable>
+          ))
         )}
       </ScrollView>
     </View>

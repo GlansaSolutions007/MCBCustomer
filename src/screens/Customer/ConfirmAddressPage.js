@@ -36,7 +36,12 @@ const ConfirmAddressPage = ({ navigation }) => {
 
   const [formModalVisible, setFormModalVisible] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState("Home");
-  const [region, setRegion] = useState(null);
+  const [region, setRegion] = useState({
+    latitude: 17.4389998,
+    longitude: 78.3873419,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  });
   const [locationPermission, setLocationPermission] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [address, setAddress] = useState("");
