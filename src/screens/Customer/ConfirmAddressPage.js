@@ -315,11 +315,11 @@ const ConfirmAddressPage = ({ navigation }) => {
         <View style={{ paddingHorizontal: 16 }}>
           <SearchBox value={searchText} onChangeText={setSearchText} />
         </View>
-        <TouchableOpacity onPress={()=>navigation.navigate("MapTest") } style={{alignItems:"center", justifyContent:"center", marginVertical:10}}>
+        {/* <TouchableOpacity onPress={()=>navigation.navigate("MapTest") } style={{alignItems:"center", justifyContent:"center", marginVertical:10}}>
           <CustomText style={{ fontSize: 16, fontWeight: "bold" }}>
             Test
           </CustomText> 
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         {predictions.length > 0 && (
           <Animated.View style={{ opacity: predictionOpacity }}>
             <FlatList
