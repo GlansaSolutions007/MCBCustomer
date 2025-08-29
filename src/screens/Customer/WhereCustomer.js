@@ -30,37 +30,75 @@ export default function LiveTracking() {
 
   const mapRef = useRef(null);
 
-  // Set customer location
-  useEffect(() => {
-    if (latitude && longitude) {
-      setCustomerLocation({
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
-      });
-    }
-  }, [latitude, longitude]);
-
-  // Subscribe to technician location from Firebase
+  // Subscribe to technician live location from Firebase
   useEffect(() => {
     if (!techId) return;
 
-    const locationRef = ref(db, `technicians/${techId}`);
-    const unsubscribe = onValue(locationRef, (snapshot) => {
+    const technicianRef = ref(db, `technicians/${techId}`);
+    const unsubscribe = onValue(technicianRef, (snapshot) => {
       const data = snapshot.val();
-      if (data?.lat && data?.lng) {
-        setTechnicianLocation({
-          latitude: parseFloat(data.lat),
-          longitude: parseFloat(data.lng),
-        });
+      if (!data) return;
+
+      const latNum = typeof data.latitude === "number" ? data.latitude : parseFloat(data.latitude);
+      const lngNum = typeof data.longitude === "number" ? data.longitude : parseFloat(data.longitude);
+
+      if (Number.isFinite(latNum) && Number.isFinite(lngNum)) {
+        const nextTechLoc = { latitude: latNum, longitude: lngNum };
+        setTechnicianLocation(nextTechLoc);
+
+        // Smoothly move camera towards technician for live-tracking feel
+        if (mapRef.current) {
+          mapRef.current.animateCamera({ center: nextTechLoc, zoom: 16 }, { duration: 800 });
+        }
+
+        // Refresh route on every tech update when customer location and API key are available
+        if (customerLocation && GOOGLE_MAPS_APIKEY) {
+          fetchRoute(nextTechLoc, customerLocation);
+        }
       }
     });
 
     return () => unsubscribe();
   }, [techId]);
 
-  // Fetch route initially and every 10 seconds
+  // Set customer location
+  useEffect(() => {
+    console.log("latitude", latitude);
+    console.log("longitude", longitude);
+    console.log("techId", techId);
+    const latNum = Number(latitude);
+    const lngNum = Number(longitude);
+    const hasValidCoords =
+      latitude !== null &&
+      longitude !== null &&
+      latitude !== undefined &&
+      longitude !== undefined &&
+      !Number.isNaN(latNum) &&
+      !Number.isNaN(lngNum);
+    if (hasValidCoords) {
+      
+      const cusLoc = {
+        latitude: latNum,
+        longitude: lngNum,
+      }
+      setCustomerLocation(cusLoc);
+      console.log("Set customerLocation from params", cusLoc);
+    }
+  }, [latitude, longitude]);
+
+  // Log when customerLocation actually updates (state updates are async)
+  useEffect(() => {
+    if (customerLocation) {
+      console.log("customerLocation updated", customerLocation);
+    }
+  }, [customerLocation]);
+
+  // Route calculation will re-run every 10 seconds; technician location is live-updated
+
+  // Fetch route initially and every 10 seconds when both points exist and API key is present
   useEffect(() => {
     if (!technicianLocation || !customerLocation) return;
+    if (!GOOGLE_MAPS_APIKEY) return;
 
     fetchRoute(technicianLocation, customerLocation);
 
@@ -73,6 +111,10 @@ export default function LiveTracking() {
 
   const fetchRoute = async (techLoc, custLoc) => {
     try {
+      if (!GOOGLE_MAPS_APIKEY) {
+        console.warn("GOOGLE_MAPS_APIKEY is missing. Skipping route fetch.");
+        return;
+      }
       const origin = `${techLoc.latitude},${techLoc.longitude}`;
       const destination = `${custLoc.latitude},${custLoc.longitude}`;
 
@@ -114,26 +156,24 @@ export default function LiveTracking() {
     }
   };
 
-  if (!technicianLocation || !customerLocation) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={color.secondary} />
-      </View>
-    );
-  }
+  // Compute an initial region based on whichever location is available
+  const initialRegion = technicianLocation || customerLocation
+    ? {
+        latitude: (technicianLocation || customerLocation).latitude,
+        longitude: (technicianLocation || customerLocation).longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      }
+    : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
-      <MapView
-        ref={mapRef}
-        style={{ flex: 1 }}
-        initialRegion={{
-          latitude: technicianLocation.latitude,
-          longitude: technicianLocation.longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}
-      >
+      {initialRegion ? (
+        <MapView
+          ref={mapRef}
+          style={{ flex: 1 }}
+          initialRegion={initialRegion}
+        >
         {/* Technician Marker */}
         {technicianLocation && (
           <Marker coordinate={technicianLocation} title="Technician">
@@ -158,7 +198,12 @@ export default function LiveTracking() {
             strokeColor={color.mapTracking}
           />
         )}
-      </MapView>
+        </MapView>
+      ) : (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={color.secondary} />
+        </View>
+      )}
 
       {/* Recenter Button */}
       <TouchableOpacity onPress={recenterMap} style={styles.recenterButton}>

@@ -139,6 +139,7 @@ export default function BookingsInnerPage() {
                   }
                   style={{ marginLeft: 8 }}
                 >
+                  <CustomText>{booking.Latitude} , {booking.Longitude}</CustomText>
                   <FontAwesome5 name="map-marker-alt" size={20} color={color.primary} />
                 </TouchableOpacity>
               )}
