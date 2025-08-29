@@ -116,33 +116,45 @@ export default function BookingsInnerPage() {
           <View style={styles.section}>
             <CustomText style={[styles.label, globalStyles.f12Bold]}>Technician:</CustomText>
             <View style={{ flexDirection: "row", alignItems: "center", flex: 2, justifyContent: "flex-end" }}>
-              <CustomText
-                style={[
-                  styles.value,
-                  globalStyles.f12Regular,
-                  {
-                    color: booking.TechID === null ? "#FF9500" : "#333",
-                    fontWeight: booking.TechID === null ? "bold" : "normal",
-                  },
-                ]}
-              >
-                {booking.TechID === null ? "Not Assigned Yet" : `Assigned (${booking.TechFullName})`}
-              </CustomText>
-              {booking.BookingStatus.toLowerCase() === "startjourney" && booking.TechID !== null && (
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation.navigate("WhereCustomer", {
-                      techId: booking.TechID,
-                      latitude: booking.Latitude,
-                      longitude: booking.Longitude,
-                    })
-                  }
-                  style={{ marginLeft: 8 }}
+              <View>
+                <CustomText
+                  style={[
+                    styles.value,
+                    globalStyles.f12Regular,
+                    {
+                      color: booking.TechID === null ? "#FF9500" : "#333",
+                      fontWeight: booking.TechID === null ? "bold" : "normal",
+                    },
+                  ]}
                 >
-                  <CustomText>{booking.Latitude} , {booking.Longitude}</CustomText>
-                  <FontAwesome5 name="map-marker-alt" size={20} color={color.primary} />
-                </TouchableOpacity>
-              )}
+                  {booking.TechID === null ? "Not Assigned Yet" : `Assigned (${booking.TechFullName})`}
+                </CustomText>
+                {booking.BookingStatus.toLowerCase() === "startjourney" && booking.TechID !== null && (
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate("WhereCustomer", {
+                        techId: booking.TechID,
+                        latitude: booking.Latitude,
+                        longitude: booking.Longitude,
+                      })
+                    }
+                    style={{ marginRight: 4 }}
+                  >
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                      <CustomText
+                        style={[
+                          styles.value,
+                          globalStyles.f12Regular,
+                          { color: color.yellow || "#007AFF", fontWeight: "bold" },
+                        ]}
+                      >
+                        Track Location
+                      </CustomText>
+                      <FontAwesome5 name="map-marker-alt" size={20} color={color.yellow} />
+                    </View>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           </View>
           <View style={styles.section}>
@@ -156,7 +168,9 @@ export default function BookingsInnerPage() {
                 { color: color.primary || "#007AFF", fontWeight: "bold" },
               ]}
             >
-              {booking.BookingStatus}
+              {booking.BookingStatus.toLowerCase() === "startjourney"
+                ? "Started Journey"
+                : booking.BookingStatus}
             </CustomText>
           </View>
 
@@ -192,7 +206,7 @@ export default function BookingsInnerPage() {
               Total Price:
             </CustomText>
             <CustomText style={[styles.value, globalStyles.f12Bold]}>
-              ₹ {booking.Payments[0].AmountPaid  || "Payment Failed"}
+              ₹ {booking.Payments[0].AmountPaid || "Payment Failed"}
             </CustomText>
           </View>
           {booking.BookingStatus.toLowerCase() === 'pending' && (
@@ -234,7 +248,7 @@ export default function BookingsInnerPage() {
               <CustomText
                 style={[
                   globalStyles.f14Bold,
-                  { color: "#555",  letterSpacing: 1 },
+                  { color: "#555", letterSpacing: 1 },
                 ]}
               >
                 Booking OTP

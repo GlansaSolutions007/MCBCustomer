@@ -526,7 +526,9 @@ export default function ServiceList() {
                               { color: color.primary },
                             ]}
                           >
-                            {booking.BookingStatus}
+                            {booking.BookingStatus.toLowerCase() === "startjourney"
+                              ? "Started Journey"
+                              : booking.BookingStatus}
                           </CustomText>
                         </CustomText>
                       )}
@@ -711,7 +713,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   reviewButtonText: {
-    ...globalStyles.f12Bold,
+    ...globalStyles.f12Medium,
     color: "#fff",
   },
 });
