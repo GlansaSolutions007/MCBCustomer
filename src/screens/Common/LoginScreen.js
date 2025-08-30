@@ -28,7 +28,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import Logo from '../../../assets/Logo/logo2.png'
 import BgImage from '../../../assets/images/loginbg5.png'
 // import { API_BASE_URL } from "@env";
-import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY} from "@env";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "@env";
 
 export default function LoginScreen() {
   // Alert.alert("Debug", `API URL: ${API_URL}`);
@@ -94,10 +94,10 @@ export default function LoginScreen() {
         throw new Error(errorText);
       }
     } catch (error) {
-      console.log('error:',error.message);
-      
+      console.log('error:', error.message);
+
       setTitle("Send OTP Failed");
-      setMessage(error.message || "Something went wrong.");
+      setMessage(error.message.message || "Unable to send OTP.");
       setStatus("error");
     } finally {
       setShowAlert(true);
@@ -134,8 +134,8 @@ export default function LoginScreen() {
       const result = await response.json();
       console.log("Device Id:", DeviceId);
       console.log("Device Token:", DeviceToken);
-      console.log("User: " , result);
-      
+      console.log("User: ", result);
+
 
       if (response.ok && result?.success) {
         await login({
@@ -151,6 +151,7 @@ export default function LoginScreen() {
         throw new Error(result?.message || "Invalid OTP.");
       }
     } catch (error) {
+      console.log("OTP Verification Error:", error.message);
       setTitle("OTP Verification Failed");
       setMessage(error.message || "Unable to verify OTP.");
       setStatus("error");
@@ -209,26 +210,31 @@ export default function LoginScreen() {
           placeholderTextColor={color.textInputDark}
           value={loginId}
           onChangeText={setLoginId}
-          style={styles.textInput}
-          keyboardType="email-address"
+          style={[
+            styles.textInput,
+            otpSent && { backgroundColor: "#f2f2f2", color: "#888" }
+          ]}
+          keyboardType="phone-pad"
           autoCapitalize="none"
+          editable={!otpSent}
         />
 
-        {otpSent && (
-          <TextInput
-            placeholder="Enter OTP"
-            placeholderTextColor={color.textInputDark}
-            value={otp}
-            onChangeText={setOtp}
-            style={styles.textInput}
-            keyboardType="number-pad"
-            maxLength={6}
-          />
-        )}
+        {/* {otpSent && ( */}
+        <TextInput
+          placeholder="Enter OTP"
+          placeholderTextColor={color.textInputDark}
+          value={otp}
+          onChangeText={setOtp}
+          style={styles.textInput}
+          keyboardType="number-pad"
+          maxLength={6}
+        />
+        {/* )} */}
 
         <TouchableOpacity
           style={styles.button}
-          onPress={otpSent ? handleVerifyOtp : handleSendOtp}
+          // onPress={otpSent ? handleVerifyOtp : handleSendOtp}
+          onPress={handleVerifyOtp}
           disabled={loading}
         >
           <CustomText style={styles.buttonText}>
