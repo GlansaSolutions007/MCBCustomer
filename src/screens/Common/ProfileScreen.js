@@ -149,6 +149,27 @@ export default function ProfileScreen() {
             <View style={styles.profileDetails}>
               <TouchableOpacity
                 style={styles.eachTouchable}
+                onPress={() => navigation.navigate("NotificationSettings")}
+              >
+                <View style={styles.row}>
+                  <Ionicons name="notifications" size={22} color={color.primary} />
+                  <CustomText
+                    style={[styles.touchableText, globalStyles.f16Medium]}
+                  >
+                    Notifications Settings
+                  </CustomText>
+                </View>
+                <Ionicons
+                  name="chevron-forward-outline"
+                  size={20}
+                  color={color.primary}
+                />
+              </TouchableOpacity>
+              <View style={styles.divider} />
+            </View>
+            <View style={styles.profileDetails}>
+              <TouchableOpacity
+                style={styles.eachTouchable}
                 onPress={() => navigation.navigate("AddressList")}
               >
                 <View style={styles.row}>

@@ -13,6 +13,9 @@ import { LocationProvider } from "./src/contexts/LocationContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CouponProvider } from "./src/contexts/CouponContext";
 import { registerForPushNotificationsAsync } from "./src/config/Notifications";
+import { initializeNotificationSystem } from "./src/utils/notificationService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNotificationSystem } from "./src/hooks/useNotificationSystem";
 
 if (Text.defaultProps == null) Text.defaultProps = {};
 Text.defaultProps.allowFontScaling = false;
@@ -26,41 +29,34 @@ TextInput.defaultProps.allowFontScaling = false;
 // SplashScreen.preventAutoHideAsync();
 
 export default function App() {
+  // Initialize notification system
+  useNotificationSystem();
+
   // Ensure notifications show while app is in foreground
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
-      shouldShowAlert: true,
+      shouldShowBanner: true, // replaces shouldShowAlert
+      shouldShowList: true, // ensures it appears in Notification Center
       shouldPlaySound: true,
       shouldSetBadge: false,
     }),
   });
 
   useEffect(() => {
-    const receivedSub = Notifications.addNotificationReceivedListener((notification) => {
-      console.log("Notification received (customer):", notification);
-    });
-    const responseSub = Notifications.addNotificationResponseReceivedListener((response) => {
-      console.log("Notification response (customer):", response);
-    });
+    const receivedSub = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        console.log("Notification received (customer):", notification);
+      }
+    );
+    const responseSub = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        console.log("Notification response (customer):", response);
+      }
+    );
     return () => {
       receivedSub.remove();
       responseSub.remove();
     };
-  }, []);
-
-  useEffect(() => {
-    // Request permissions and get push token
-    registerForPushNotificationsAsync()
-      .then((token) => {
-        if (token) {
-          console.log("Push Token:", token); // Ensure this logs
-        } else {
-          console.log("No push token received");
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching push token:", error);
-      });
   }, []);
   const [fontsLoaded] = Font.useFonts({
     "Manrope-Medium": require("./assets/fonts/Manrope-Medium.ttf"),

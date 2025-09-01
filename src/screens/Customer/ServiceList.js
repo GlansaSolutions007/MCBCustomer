@@ -19,6 +19,7 @@ import globalStyles from "../../styles/globalStyles";
 import { API_URL } from "@env";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import { monitorBookingsForNotifications } from "../../utils/notificationService";
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
@@ -69,6 +70,11 @@ export default function ServiceList() {
       setBookings((prev) => {
         return [...bookingsData];
       });
+      
+      // Monitor bookings for notification changes
+      if (custID) {
+        monitorBookingsForNotifications(bookingsData, custID);
+      }
     } catch (error) {
       console.error("Failed to fetch bookings:", error.message);
       setBookings([]);

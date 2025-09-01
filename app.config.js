@@ -20,7 +20,14 @@ export default {
       },
       edgeToEdgeEnabled: true,
       package: "com.itglansa.mcbc",
-      permissions: ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+      permissions: [
+        "ACCESS_FINE_LOCATION", 
+        "ACCESS_COARSE_LOCATION",
+        "WAKE_LOCK",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "SYSTEM_ALERT_WINDOW"
+      ],
       config: {
         googleMaps: {
           apiKey: "AIzaSyB1e_nM-v-G5EYZSrXjElyHo61I4qb5rNc",
@@ -51,6 +58,12 @@ export default {
           icon: "./assets/icons/active.png",
           color: "#ffffff",
           sounds: ["./assets/notificationtone.wav"],
+        },
+      ],
+      [
+        "expo-background-fetch",
+        {
+          minimumInterval: 15 * 60, // 15 minutes
         },
       ],
     ],

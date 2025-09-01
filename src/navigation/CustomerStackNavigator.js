@@ -23,6 +23,7 @@ import TermsConditionsScreen from "../screens/Common/TermsConditionsScreen";
 import AddressListScreen from "../screens/Customer/AddressList";
 import Reviews from "../screens/Customer/Reviews";
 import MapTest from "../screens/Customer/MapTest";
+import NotificationSettingsScreen from "../screens/Customer/NotificationSettingsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -47,11 +48,11 @@ export default function CustomerStackNavigator() {
           component={MyCars}
           options={{ title: "Select Your Car" }}
         />
-        {/* <Stack.Screen
-          name="MyCarsList"
-          component={MyCarsList}
-          options={{ title: "Select Your Car" }}
-        /> */}
+        <Stack.Screen
+          name="NotificationSettings"
+          component={NotificationSettingsScreen}
+          options={{ title: "Notifications Settings" }}
+        />
         <Stack.Screen
           name="MyCarDetails"
           component={MyCarDetails}

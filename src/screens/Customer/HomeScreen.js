@@ -34,6 +34,7 @@ import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "@env";
 import { getToken } from "../../utils/token";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { monitorBookingsForNotifications } from "../../utils/notificationService";
 
 const formatDate = (dateString) => {
   if (!dateString) return '';
@@ -90,42 +91,10 @@ export default function HomeScreen() {
             booking.BookingStatus?.toLowerCase() !== "cancelled");
         setBookings(todaysBookings);
 
-        // Detect technician assignment transitions and notify once
-        try {
-          for (const b of todaysBookings) {
-            const key = `booking_assign_${b.BookingID}`;
-            const prev = await AsyncStorage.getItem(key);
-            const wasAssigned = prev === "1";
-            const isAssigned = b.TechID !== null && b.TechID !== undefined;
-            if (!wasAssigned && isAssigned) {
-              // Local notification on assignment
-              try {
-                await Notifications.scheduleNotificationAsync({
-                  content: {
-                    title: "Technician Assigned",
-                    body: `Technician ${b.TechFullName || ''} has been assigned to booking ${b.BookingTrackID}.`,
-                    data: { type: "TechnicianAssigned", bookingId: String(b.BookingID) },
-                  },
-                  trigger: null,
-                });
-              } catch (_) {}
-              // Best-effort server push (optional)
-              try {
-                await axios.post(`${API_URL}Push/sendToCustomer`, {
-                  id: Number(custID),
-                  title: "Technician Assigned",
-                  body: `Technician ${b.TechFullName || ''} is assigned to your booking ${b.BookingTrackID}.`,
-                  data: { type: "TechnicianAssigned", bookingId: String(b.BookingID) },
-                });
-              } catch (_) {}
-              await AsyncStorage.setItem(key, "1");
-            } else if (isAssigned && !wasAssigned) {
-              await AsyncStorage.setItem(key, "1");
-            } else if (!isAssigned && wasAssigned) {
-              await AsyncStorage.setItem(key, "0");
-            }
-          }
-        } catch (_) {}
+        // Monitor bookings for notification changes
+        if (custID) {
+          monitorBookingsForNotifications(todaysBookings, custID);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch bookings:', error);
