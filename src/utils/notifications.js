@@ -35,6 +35,7 @@ export async function registerForPushNotificationsAsync() {
   try {
     const deviceToken = await Notifications.getDevicePushTokenAsync();
     fcmToken = deviceToken?.data || null;
+    console.log("FCM Token:", fcmToken);
   } catch (_) {}
 
   return { expoPushToken, fcmToken };

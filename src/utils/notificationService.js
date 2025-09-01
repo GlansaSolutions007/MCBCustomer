@@ -167,18 +167,29 @@ export const sendLocalNotification = async (title, body, data = {}, channelId = 
   }
 };
 
-// Send push notification via backend
+// Send push notification via backend (Primary method for live notifications)
 export const sendPushNotification = async (customerId, title, body, data = {}) => {
   try {
-    await axios.post(`${API_URL}Push/sendToCustomer`, {
+    console.log('Sending push notification to customer:', customerId);
+    console.log('Notification data:', { title, body, data });
+    
+    const response = await axios.post(`${API_URL}Push/sendToCustomer`, {
       id: Number(customerId),
       title,
       body,
-      data,
+      data: {
+        ...data,
+        timestamp: new Date().toISOString(),
+        type: data.type || 'service_update'
+      },
     });
-    console.log("Push notification sent via backend:", title);
+    
+    console.log("Push notification sent successfully:", response.data);
+    return response.data;
   } catch (error) {
-    console.error("Error sending push notification:", error);
+    console.error("Error sending push notification:", error.response?.data || error.message);
+    // Fallback to local notification if push fails
+    await sendLocalNotification(title, body, data);
   }
 };
 
@@ -250,23 +261,22 @@ export const handleTechnicianAssignment = async (booking, customerId) => {
   const title = 'Technician Assigned! 🚗';
   const body = `${techName} has been assigned to your booking ${trackId}. They will contact you soon.`;
 
-  // Send local notification
+  // Always send push notification first (for live notifications)
+  await sendPushNotification(customerId, title, body, {
+    type: 'technician_assigned',
+    bookingId: String(bookingId),
+    trackId: trackId,
+    techName: techName,
+    priority: 'high'
+  });
+
+  // Send local notification as backup
   await sendLocalNotification(title, body, {
     type: 'technician_assigned',
     bookingId: String(bookingId),
     trackId: trackId,
     techName: techName
   }, 'urgent');
-
-  // Send push notification if enabled
-  if (settings.pushNotifications) {
-    await sendPushNotification(customerId, title, body, {
-      type: 'technician_assigned',
-      bookingId: String(bookingId),
-      trackId: trackId,
-      techName: techName
-    });
-  }
 
   // Mark as sent
   await markNotificationAsSent(bookingId, NOTIFICATION_KEYS.TECH_ASSIGNED);
@@ -314,11 +324,22 @@ export const handleStatusChange = async (booking, customerId, previousStatus) =>
   // Add booking ID for reference
   body += ` (Booking: ${trackId})`;
 
-  // Determine channel based on urgency
+  // Determine priority based on urgency
   const isUrgent = ['Reached', 'StartService', 'Completed'].includes(currentStatus);
-  const channelId = isUrgent ? 'urgent' : 'default';
+  const priority = isUrgent ? 'high' : 'normal';
 
-  // Send local notification
+  // Always send push notification first (for live notifications)
+  await sendPushNotification(customerId, title, body, {
+    type: statusMessage.type,
+    bookingId: String(bookingId),
+    trackId: trackId,
+    status: currentStatus,
+    techName: techName,
+    priority: priority
+  });
+
+  // Send local notification as backup
+  const channelId = isUrgent ? 'urgent' : 'default';
   await sendLocalNotification(title, body, {
     type: statusMessage.type,
     bookingId: String(bookingId),
@@ -326,17 +347,6 @@ export const handleStatusChange = async (booking, customerId, previousStatus) =>
     status: currentStatus,
     techName: techName
   }, channelId);
-
-  // Send push notification if enabled
-  if (settings.pushNotifications) {
-    await sendPushNotification(customerId, title, body, {
-      type: statusMessage.type,
-      bookingId: String(bookingId),
-      trackId: trackId,
-      status: currentStatus,
-      techName: techName
-    });
-  }
 
   // Mark as sent
   await markNotificationAsSent(bookingId, `${NOTIFICATION_KEYS.STATUS_CHANGE}${currentStatus}`);

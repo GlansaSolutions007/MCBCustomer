@@ -46,11 +46,24 @@ export default function App() {
     const receivedSub = Notifications.addNotificationReceivedListener(
       (notification) => {
         console.log("Notification received (customer):", notification);
+        // Handle foreground notifications
+        const data = notification.request.content.data;
+        if (data?.type) {
+          console.log("Notification type:", data.type);
+          // You can add specific handling for different notification types here
+        }
       }
     );
     const responseSub = Notifications.addNotificationResponseReceivedListener(
       (response) => {
         console.log("Notification response (customer):", response);
+        // Handle notification tap
+        const data = response.notification.request.content.data;
+        if (data?.bookingId) {
+          // Navigate to booking details
+          console.log("Navigate to booking:", data.bookingId);
+          // You can add navigation logic here
+        }
       }
     );
     return () => {

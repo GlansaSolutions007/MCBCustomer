@@ -12,6 +12,7 @@ import * as Notifications from "expo-notifications";
 import CustomText from "../../components/CustomText";
 import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
+import { testPushNotification } from "../../utils/pushNotificationTrigger";
 import { Ionicons } from "@expo/vector-icons";
 
 const NotificationSettingsScreen = () => {
@@ -86,18 +87,21 @@ const NotificationSettingsScreen = () => {
 
   const testNotification = async () => {
     try {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: 'Test Notification',
-          body: 'This is a test notification to verify your settings.',
-          sound: settings.soundEnabled ? "notificationtone.wav" : null,
-        },
-        trigger: null,
-      });
-      Alert.alert('Success', 'Test notification sent!');
+      // Get customer ID
+      const userData = await AsyncStorage.getItem('userData');
+      const customerId = userData ? JSON.parse(userData)?.custID : null;
+      
+      if (!customerId) {
+        Alert.alert('Error', 'Customer ID not found. Please login again.');
+        return;
+      }
+
+      // Test push notification
+      await testPushNotification(customerId);
+      Alert.alert('Success', 'Push notification test sent! Check if you receive it even when app is closed.');
     } catch (error) {
       console.error('Error sending test notification:', error);
-      Alert.alert('Error', 'Failed to send test notification.');
+      Alert.alert('Error', 'Failed to send test notification. Please check your internet connection.');
     }
   };
 

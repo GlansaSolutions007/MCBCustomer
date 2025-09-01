@@ -120,7 +120,9 @@ export default function LoginScreen() {
       const DeviceId = Device.osInternalBuildId || Device.osBuildId || "unknown-device-id";
       const tokens = await registerForPushNotificationsAsync();
       const DeviceToken = tokens?.fcmToken || tokens?.expoPushToken || 'unknown-token';
-
+      console.log("Tokens:", tokens);
+      console.log("Device Token:", DeviceToken);
+      console.log("Device Id:", DeviceId);
       const response = await fetch(`${API_URL}Auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
