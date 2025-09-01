@@ -39,3 +39,15 @@ yarn-error.*
 
 # API config
 apiconfig.js
+
+# Firebase credentials
+mycarbuddycustomer-firebase-adminsdk-fbsvc-60bfeaca44.json
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!babel.config.js
+!app.json
+!eas.json
+!firestore.rules
+!firestore.indexes.json
