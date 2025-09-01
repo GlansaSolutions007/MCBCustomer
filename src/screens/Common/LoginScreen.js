@@ -23,7 +23,8 @@ import { color } from "../../styles/theme";
 import CustomText from "../../components/CustomText";
 import { useNavigation } from "@react-navigation/native";
 import * as Device from "expo-device";
-import { registerForPushNotificationsAsync } from "../../utils/notifications";
+import { registerForPushNotificationsAsync, saveCustomerPushToken } from "../../utils/notifications";
+import axios from "axios";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Logo from '../../../assets/Logo/logo2.png'
 import BgImage from '../../../assets/images/loginbg5.png'
@@ -117,8 +118,8 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const DeviceId = Device.osInternalBuildId || Device.osBuildId || "unknown-device-id";
-      // const deviceToken = await registerForPushNotificationsAsync();
-      const DeviceToken = 'dummy_token';
+      const tokens = await registerForPushNotificationsAsync();
+      const DeviceToken = tokens?.fcmToken || tokens?.expoPushToken || 'unknown-token';
 
       const response = await fetch(`${API_URL}Auth/verify-otp`, {
         method: "POST",
@@ -146,6 +147,24 @@ export default function LoginScreen() {
           DeviceToken,
           DeviceId,
         });
+        try {
+          if (result?.custID && tokens) {
+            await saveCustomerPushToken(result.custID, tokens);
+            try {
+              await AsyncStorage.setItem("pushToken", DeviceToken);
+              await AsyncStorage.setItem("pushTokenType", tokens.fcmToken ? "fcm" : (tokens.expoPushToken ? "expo" : "unknown"));
+            } catch (_) {}
+            try {
+              await axios.post(`${API_URL}Push/register`, {
+                userType: "customer",
+                id: Number(result.custID),
+                fcmToken: tokens.fcmToken || null,
+                expoPushToken: tokens.expoPushToken || null,
+                platform: Platform.OS,
+              });
+            } catch (_) {}
+          }
+        } catch (_) {}
         navigation.replace("CustomerTabs");
       } else {
         throw new Error(result?.message || "Invalid OTP.");

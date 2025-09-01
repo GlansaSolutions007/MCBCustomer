@@ -26,6 +26,28 @@ TextInput.defaultProps.allowFontScaling = false;
 // SplashScreen.preventAutoHideAsync();
 
 export default function App() {
+  // Ensure notifications show while app is in foreground
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+
+  useEffect(() => {
+    const receivedSub = Notifications.addNotificationReceivedListener((notification) => {
+      console.log("Notification received (customer):", notification);
+    });
+    const responseSub = Notifications.addNotificationResponseReceivedListener((response) => {
+      console.log("Notification response (customer):", response);
+    });
+    return () => {
+      receivedSub.remove();
+      responseSub.remove();
+    };
+  }, []);
+
   useEffect(() => {
     // Request permissions and get push token
     registerForPushNotificationsAsync()

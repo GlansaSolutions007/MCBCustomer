@@ -1,6 +1,10 @@
 // NotificationScreen.js
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, Image } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity, Platform } from 'react-native';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from '@env';
+import * as Notifications from 'expo-notifications';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import globalStyles from '../../styles/globalStyles';
 import { color } from '../../styles/theme';
@@ -44,6 +48,82 @@ const notifications = [
 ];
 
 const NotificationScreen = () => {
+    const sendTest = async () => {
+        try {
+            const userDataRaw = await AsyncStorage.getItem('userData');
+            const userData = userDataRaw ? JSON.parse(userDataRaw) : null;
+            const id = userData?.custID ? Number(userData.custID) : 0;
+            if (!id) return;
+            const testNote = await axios.post(`${API_URL}Push/sendToCustomer`, {
+                id,
+                title: 'Test Notification',
+                body: 'This is a test notification from the app.',
+                data: { type: 'test' },
+            });
+            console.log('testNote', testNote);
+        } catch (e) {
+            console.log('sendTest error (customer):', e?.response?.data || e?.message || e);
+            alert(`Send failed: ${e?.response?.data?.message || e?.message || 'Unknown error'}`);
+        }
+    };
+
+    const triggerLocal = async () => {
+        try {
+            await Notifications.scheduleNotificationAsync({
+                content: { title: 'My Car Buddy ', body: 'This is a local test notification.' },
+                trigger: null,
+            });
+        } catch (e) {
+            console.log('local notification error:', e?.message || e);
+        }
+    };
+
+    const logAndReregister = async () => {
+        try {
+            const userDataRaw = await AsyncStorage.getItem('userData');
+            const userData = userDataRaw ? JSON.parse(userDataRaw) : null;
+            const id = userData?.custID ? Number(userData.custID) : 0;
+            let pushToken = await AsyncStorage.getItem('pushToken');
+            let pushTokenType = await AsyncStorage.getItem('pushTokenType');
+
+            // Fallback: fetch fresh tokens if not present in storage
+            if (!pushToken || !pushTokenType) {
+                try {
+                    const devToken = await Notifications.getDevicePushTokenAsync();
+                    if (devToken?.data) {
+                        pushToken = devToken.data;
+                        pushTokenType = 'fcm';
+                        await AsyncStorage.setItem('pushToken', pushToken);
+                        await AsyncStorage.setItem('pushTokenType', 'fcm');
+                    }
+                } catch (_) {}
+                if (!pushToken) {
+                    try {
+                        const expoRes = await Notifications.getExpoPushTokenAsync();
+                        if (expoRes?.data) {
+                            pushToken = expoRes.data;
+                            pushTokenType = 'expo';
+                            await AsyncStorage.setItem('pushToken', pushToken);
+                            await AsyncStorage.setItem('pushTokenType', 'expo');
+                        }
+                    } catch (_) {}
+                }
+            }
+
+            console.log('custID:', id, 'pushTokenType:', pushTokenType, 'pushToken:', pushToken);
+            if (!id) return;
+            await axios.post(`${API_URL}Push/register`, {
+                userType: 'customer',
+                id,
+                fcmToken: pushTokenType === 'fcm' ? pushToken : null,
+                expoPushToken: pushTokenType === 'expo' ? pushToken : null,
+                platform: Platform.OS,
+            });
+            alert('Re-registered token with backend');
+        } catch (e) {
+            console.log('reregister error:', e?.response?.data || e?.message || e);
+        }
+    };
     return (
         <View style={styles.container}>
 
@@ -70,6 +150,15 @@ const NotificationScreen = () => {
                     </View>
                 ))}
             </ScrollView>
+            <TouchableOpacity onPress={sendTest} style={{ margin: 16, padding: 12, backgroundColor: color.primary, borderRadius: 8, alignItems: 'center' }}>
+                <Text style={{ color: '#fff' }}>Send Test Push</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={triggerLocal} style={{ marginHorizontal: 16, marginBottom: 8, padding: 12, backgroundColor: '#444', borderRadius: 8, alignItems: 'center' }}>
+                <Text style={{ color: '#fff' }}>Trigger Local Notification</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={logAndReregister} style={{ marginHorizontal: 16, marginBottom: 16, padding: 12, backgroundColor: '#888', borderRadius: 8, alignItems: 'center' }}>
+                <Text style={{ color: '#fff' }}>Log & Re-register Token</Text>
+            </TouchableOpacity>
         </View>
     );
 };

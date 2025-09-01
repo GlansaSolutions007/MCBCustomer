@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    // "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "cover",
@@ -25,6 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.itglansa.mcbc",
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION"
@@ -44,6 +44,16 @@
         "projectId": "6850b1f3-7aec-4d07-8b8b-1802366d658a"
       }
     },
-    "owner": "itglansa"
+    "owner": "itglansa",
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#017F77",
+          "sounds": []
+        }
+      ]
+    ]
   }
 }

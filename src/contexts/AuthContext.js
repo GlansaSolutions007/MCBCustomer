@@ -31,10 +31,8 @@ export const AuthProvider = ({ children }) => {
   const login = async (userData) => {
     setUser(userData);
 
-
     await AsyncStorage.setItem("authToken", userData.token);
     await AsyncStorage.setItem("userData", JSON.stringify(userData));
-
 
     const response1 = await axios.get(
       `${API_URL}CustomerVehicles/CustId?CustId=${userData.custID}`
@@ -50,9 +48,33 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    const storedToken = await AsyncStorage.getItem("pushToken");
+    const userDataRaw = await AsyncStorage.getItem("userData");
+    let custID = null;
+    try {
+      if (userDataRaw) {
+        const parsed = JSON.parse(userDataRaw);
+        custID = parsed?.custID ?? null;
+      }
+    } catch (_) {}
+
     setUser(null);
+
+    try {
+      if (custID && storedToken) {
+        await axios.post(`${API_URL}Push/unregister`, {
+          userType: "customer",
+          id: Number(custID),
+          token: storedToken,
+        });
+      }
+    } catch (e) {}
+
     await AsyncStorage.removeItem("authToken");
     await AsyncStorage.removeItem("userData");
+    await AsyncStorage.removeItem("primaryVehicleId");
+    await AsyncStorage.removeItem("pushToken");
+    await AsyncStorage.removeItem("pushTokenType");
   };
 
   return (
