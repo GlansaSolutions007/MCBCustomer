@@ -18,6 +18,7 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomAlert from "../../components/CustomAlert";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const formatDate = (dateString) => {
   if (!dateString) return '';
@@ -33,13 +34,17 @@ export default function BookingsInnerPage() {
   const [showCancelAlert, setShowCancelAlert] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelReasons, setCancelReasons] = useState([]);
+  const [selectedCancelReason, setSelectedCancelReason] = useState('');
 
   useEffect(() => {
     const fetchCancelReasons = async () => {
       try {
-        const response = await axios.get(`${API_URL}CancellationReasons`);
-        const reasons = response.data.map(item => item.reason);
+        const response = await axios.get(`${API_URL}AfterServiceLeads`);
+        const reasons = response.data
+          .filter(item => item.ReasonType === 'Cancel' && item.IsActive)
+          .map(item => item.Reason);
         setCancelReasons([...reasons, 'Other']);
+
       } catch (error) {
         console.error('Error fetching cancellation reasons:', error);
         setCancelReasons([
@@ -55,17 +60,22 @@ export default function BookingsInnerPage() {
   }, []);
 
 
-  const handleCancelBooking = async () => {
+  const handleCancelBooking = async (reason) => {
+    const userData = await AsyncStorage.getItem("userData");
+    const parsedData = JSON.parse(userData);
+    const custID = parsedData?.custID;
     setIsCancelling(true);
     try {
       const response = await axios.post(
-        `${API_URL}TechnicianTracking/UpdateTechnicianTracking`,
+        `${API_URL}Cancellations`,
         {
           bookingID: booking.BookingID,
-          actionType: 'Cancelled',
+          cancelledBy: custID,
+          reason: reason,
+          refundStatus: ""
         }
       );
-      console.log(response, 'rressssss');
+      console.log(response.data, 'rressssss');
 
       if (response.status === 200) {
         setShowCancelAlert(false);
@@ -196,6 +206,17 @@ export default function BookingsInnerPage() {
             </CustomText>
           </View>
 
+          {booking.BookingStatus.toLowerCase() === "cancelled" && (
+            <View style={styles.section}>
+              <CustomText style={[styles.label, globalStyles.f12Bold]}>
+                Cancellation Reason:
+              </CustomText>
+              <CustomText style={[styles.value, globalStyles.f12Regular]}>
+                {booking.Reason || "N/A"}
+              </CustomText>
+            </View>
+          )}
+
           <View style={styles.section}>
             <CustomText style={[styles.label, globalStyles.f12Bold]}>
               Package Price:
@@ -228,7 +249,9 @@ export default function BookingsInnerPage() {
               Total Price:
             </CustomText>
             <CustomText style={[styles.value, globalStyles.f12Bold]}>
-              ₹ {booking.Payments[0].AmountPaid || "Payment Failed"}
+              {booking.Payments && booking.Payments.length > 0
+                ? `₹ ${booking.Payments[0].AmountPaid}`
+                : "Payment Pending"}
             </CustomText>
           </View>
           {booking.BookingStatus.toLowerCase() === 'pending' && (
