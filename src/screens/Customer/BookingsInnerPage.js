@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   ScrollView,
@@ -32,6 +32,28 @@ export default function BookingsInnerPage() {
   const insets = useSafeAreaInsets();
   const [showCancelAlert, setShowCancelAlert] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [cancelReasons, setCancelReasons] = useState([]);
+
+  useEffect(() => {
+    const fetchCancelReasons = async () => {
+      try {
+        const response = await axios.get(`${API_URL}CancellationReasons`);
+        const reasons = response.data.map(item => item.reason);
+        setCancelReasons([...reasons, 'Other']);
+      } catch (error) {
+        console.error('Error fetching cancellation reasons:', error);
+        setCancelReasons([
+          'Change of plans',
+          'Found a better option',
+          'Financial constraints',
+          'Scheduling conflict',
+          'Other',
+        ]); // Fallback reasons
+      }
+    };
+    fetchCancelReasons();
+  }, []);
+
 
   const handleCancelBooking = async () => {
     setIsCancelling(true);
@@ -367,22 +389,9 @@ export default function BookingsInnerPage() {
         message="Are you sure you want to cancel this booking?"
         onClose={() => setShowCancelAlert(false)}
         showButton={false}
-        children={
-          <TouchableOpacity
-            style={{
-              backgroundColor: color.alertError || '#FF3B30',
-              padding: 12,
-              borderRadius: 8,
-              alignItems: 'center',
-              marginTop: 10,
-            }}
-            onPress={handleCancelBooking}
-          >
-            <CustomText style={[globalStyles.f10Bold, { color: '#FFF' }]}>
-              Confirm Cancel
-            </CustomText>
-          </TouchableOpacity>
-        }
+        showCancelReasons={true}
+        reasons={cancelReasons}
+        onConfirm={handleCancelBooking}
       />
     </>
   );

@@ -474,8 +474,13 @@ export default function ServiceList() {
                       <CustomText style={[globalStyles.f10Regular]}>
                         Service Amount:
                       </CustomText>
-                      <CustomText style={[globalStyles.f12Bold]}>
+                      {/* <CustomText style={[globalStyles.f12Bold]}>
                         ₹ {booking.Payments[0].AmountPaid || "Payment Failed"}
+                      </CustomText> */}
+                      <CustomText style={[globalStyles.f12Bold]}>
+                        {booking.Payments && booking.Payments.length > 0
+                          ? `₹ ${booking.Payments[0].AmountPaid}`
+                          : "Payment Pending"}
                       </CustomText>
                     </View>
                   </View>
