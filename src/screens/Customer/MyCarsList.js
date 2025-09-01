@@ -238,30 +238,29 @@ export const MyCarsList = () => {
           alignItems: "center",
         }}
       >
-        <TouchableOpacity style={styles.detailsButton}>
-          <CustomText
-            style={{ color: "#fff" }}
-            onPress={() =>
-              navigation.navigate("MyCarDetails", {
-                vehicleId: item.id,
-                model: {
-                  name: item.model,
-                  image: item.image.uri,
-                },
-                vehicleNumber: item.vehicleNumber,
-                fuelType: item.fuel,
-                manufacturer: item.manufacturer,
-                yearOfPurchase: item.yearOfPurchase,
-                transmission: item.transmission,
-                engineType: item.engineType,
-                kilometersDriven: item.kilometersDriven,
-                isPrimary: item.isPrimary,
-              })
-            }
-          >
+        <Pressable
+          style={styles.detailsButton}
+          onPress={() =>
+            navigation.navigate("MyCarDetails", {
+              vehicleId: item.id,
+              model: {
+                name: item.model,
+                image: item.image.uri,
+              },
+              vehicleNumber: item.vehicleNumber,
+              fuelType: item.fuel,
+              manufacturer: item.manufacturer,
+              yearOfPurchase: item.yearOfPurchase,
+              transmission: item.transmission,
+              engineType: item.engineType,
+              kilometersDriven: item.kilometersDriven,
+              isPrimary: item.isPrimary,
+            })
+          }>
+          <CustomText style={{ color: "#fff" }}>
             View Details
           </CustomText>
-        </TouchableOpacity>
+        </Pressable>
 
         {item.isPrimary ? (
           <CustomText style={styles.primaryBadge}>Primary Car</CustomText>

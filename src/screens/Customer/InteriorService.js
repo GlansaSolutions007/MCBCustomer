@@ -660,7 +660,7 @@ const InteriorService = () => {
       <CustomAlert
         visible={showCarModal}
         onClose={() => setShowCarModal(false)}
-        title="Select Your Car"
+        title={cars.length === 1 ? "Your Car" : "Select Your Car"}
         showButton={false}
       >
         <View style={{ marginTop: 10 }}>
@@ -814,33 +814,30 @@ const styles = StyleSheet.create({
   searchContainer: {
     backgroundColor: "transparent",
     flexDirection: "column",
-    justifyContent: "space-between",
-    height: 140, // adjust as needed
+    justifyContent: "space-between", 
+    height: 140,
   },
-
   textContainer: {
     flex: 1,
     marginBottom: 10,
   },
-
   chooseCarRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-
   chooseCarButton: {
-    // backgroundColor: color.white,
     borderRadius: 12,
-    alignItems: "center",
+    display: "flex",
+    alignItems: "flex-end",
     justifyContent: "center",
     height: 55,
     width: 70,
-    marginLeft: 8,
     marginTop: 14,
+    marginRight: 6,
   },
   chooseCarDiv: {
-    width: "80%",
+    width: "82%",
   },
   chooseCarText: {
     color: color.white,
