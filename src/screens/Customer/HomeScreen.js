@@ -104,7 +104,7 @@ export default function HomeScreen() {
   useEffect(() => {
     fetchCategories();
   }, []);
-
+ 
   useFocusEffect(
     useCallback(() => {
       fetchTodaysBookings();
