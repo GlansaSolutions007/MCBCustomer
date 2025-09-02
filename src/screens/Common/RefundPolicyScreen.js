@@ -10,7 +10,7 @@ export default function PrivacyPolicyScreen() {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <CustomText style={[globalStyles.f14SemiBold, styles.title]}>
+        <CustomText style={[globalStyles.f14Bold, styles.title]}>
           Cancellation & Refund Policy
         </CustomText>
 
@@ -59,12 +59,12 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   contentContainer: { padding: 20 },
   title: {
-    fontSize: 18,
+    ...globalStyles.f16Bold,
     marginBottom: 15,
     color: "#000",
   },
   subtitle: {
-    fontSize: 14,
+    ...globalStyles.f12Bold,
     marginTop: 10,
     marginBottom: 5,
     color: "#111",

@@ -117,7 +117,7 @@ export default function HomeScreen() {
     console.log("All Keys:", allKeys);
 
     const allData = await AsyncStorage.multiGet(allKeys);
-    console.log("All Data:", allData);
+    // console.log("All Data:", allData);
   } catch (e) {
     console.error("Error reading AsyncStorage:", e);
   }
