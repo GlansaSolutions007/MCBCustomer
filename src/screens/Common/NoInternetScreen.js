@@ -3,6 +3,7 @@ import { View, StyleSheet, Image } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
 import { Button } from "react-native"; // replace with your custom button if you have
 import CustomText from "../../components/CustomText";
+import NetworkImage from "../../../assets/images/networkissue.png";
 
 export default function NoInternetScreen({ onRetry }) {
   const [isConnected, setIsConnected] = useState(true);
@@ -19,9 +20,9 @@ export default function NoInternetScreen({ onRetry }) {
   return (
     <View style={styles.container}>
       <Image
-        source={require("../assets/no-internet.png")} // put your own illustration here
-        style={styles.image}
-        resizeMode="contain"
+        source={NetworkImage} // put your own illustration here
+        style={{ width: 200, height: 200 }}
+        
       />
       <CustomText style={styles.title}>No Internet Connection</CustomText>
       <CustomText style={styles.subtitle}>

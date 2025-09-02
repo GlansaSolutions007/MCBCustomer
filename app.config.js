@@ -18,6 +18,7 @@ export default {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#136D6E",
       },
+      googleServicesFile: "google-services.json",
       edgeToEdgeEnabled: true,
       package: "com.itglansa.mcbc",
       permissions: [

@@ -71,10 +71,7 @@ export default function ProfileScreen() {
       <StatusBar backgroundColor={color.primary} barStyle="light-content" />
 
       {/* Profile Image */}
-      <View style={{ flex: 1 }}>
-        <NoInternetScreen onRetry={() => console.log("Retry pressed")} />
-        {/* Your normal navigation / screens go here */}
-      </View>
+     
       <View style={styles.profileImageContainer}>
         <ImageBackground
           source={image ? { uri: image } : DefaultProfileImage}
