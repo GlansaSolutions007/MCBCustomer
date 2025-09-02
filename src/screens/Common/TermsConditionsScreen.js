@@ -15,111 +15,59 @@ export default function TermsAndConditionsScreen() {
         </CustomText>
 
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          These Terms and Conditions (“Terms”) govern your use of the MyCarBuddy
-          mobile application, website, and services (collectively, the
-          “Platform”).
+          By using the My Car Buddy app, you agree to the following:
         </CustomText>
 
+        <CustomText style={styles.subHeading}>1. Services</CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          For the purpose of these Terms: The terms "we", "us", "our" shall mean
-          Glansa Solutions Private Limited, a company incorporated under the
-          Companies Act, 2013, with its registered/operational office at Flat
-          No. 102, Mahalaxmi Paradise, Aswini Colony, West Maredpally,
-          Secunderabad, Hyderabad, Telangana – 500026, India. The terms "you",
-          "your", "user", or "customer" shall mean any person accessing or using
-          the Platform. MyCarBuddy is a registered product and service brand
-          owned by Glansa Solutions Pvt. Ltd.
+          We provide car wash, cleaning, detailing, and other vehicle services
+          through verified partners.
         </CustomText>
 
-        <CustomText style={styles.subHeading}>1. Scope of Services</CustomText>
+        <CustomText style={styles.subHeading}>2. Use of App</CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          MyCarBuddy provides on-demand and scheduled vehicle care and car
-          service solutions, including car wash, cleaning, detailing,
-          diagnostics, repairs, and other technician services through verified
-          partners and dealers.
+          • You must be 18 years or older.{"\n"}
+          • Provide accurate details when creating or updating your account.{"\n"}
+          • Misuse or fraud may lead to suspension.
         </CustomText>
 
-        <CustomText style={styles.subHeading}>2. Use of Platform</CustomText>
+        <CustomText style={styles.subHeading}>3. Bookings & Payments</CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          • You must be at least 18 years old to use the Platform.{"\n"}
-          • You agree to provide accurate, current, and complete information.{"\n"}
-          • You are responsible for maintaining the confidentiality of your
-          account.{"\n"}• Fraudulent or unauthorized use may result in
-          suspension/termination.
+          • All bookings must be made through the app.{"\n"}
+          • Payments can be made via cards, UPI, wallets, or other methods.{"\n"}
+          • Prepaid bookings not availed and not canceled on time will be marked
+          as completed.
         </CustomText>
 
-        <CustomText style={styles.subHeading}>3. Booking & Payment</CustomText>
+        <CustomText style={styles.subHeading}>4. Cancellations & Refunds</CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          • All bookings must be made through the app or website.{"\n"}• Payments
-          can be made via cash, debit/credit card, UPI, wallets, or other
-          supported gateways.{"\n"}• Prepaid bookings not availed on time will be
-          considered completed unless canceled as per our policy.
+          • You can cancel before the service starts.{"\n"}
+          • Refunds are processed as per our Cancellation & Refund Policy.
         </CustomText>
 
-        <CustomText style={styles.subHeading}>4. Pricing & Billing</CustomText>
+        <CustomText style={styles.subHeading}>5. Service Quality</CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          Prices are subject to change without prior notice. Final billing is
-          based on actual services availed, applicable taxes (GST), and
-          discounts. An e-invoice will be generated and shared electronically.
+          • We work with trusted partners but are not liable for delays beyond
+          our control.{"\n"}
+          • Customers must ensure vehicles are accessible and remove valuables
+          before service.
         </CustomText>
 
-        <CustomText style={styles.subHeading}>5. Cancellation & Refunds</CustomText>
+        <CustomText style={styles.subHeading}>6. Ownership & Rights</CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          Customers may cancel or reschedule before service begins. Refunds, if
-          applicable, will be processed to the original payment method in line
-          with the MyCarBuddy Cancellation & Refund Policy.
+          The My Car Buddy brand, app design, and content belong to Glansa
+          Solutions Pvt. Ltd. Unauthorized copying or misuse is prohibited.
         </CustomText>
 
-        <CustomText style={styles.subHeading}>6. Service Quality & Liability</CustomText>
+        <CustomText style={styles.subHeading}>7. Governing Law</CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          While we ensure reliable services via verified partners, MyCarBuddy /
-          Glansa Solutions Pvt. Ltd. shall not be liable for incidental or
-          consequential damages, inaccurate service details provided by
-          customers, or delays beyond our reasonable control.
+          These terms are governed by Indian law. Disputes fall under Hyderabad
+          jurisdiction.
         </CustomText>
 
-        <CustomText style={styles.subHeading}>7. Intellectual Property</CustomText>
+        <CustomText style={styles.subHeading}>Contact Us</CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          All logos, trademarks, designs, and content are the property of Glansa
-          Solutions Pvt. Ltd. Unauthorized reproduction or modification is
-          strictly prohibited.
-        </CustomText>
-
-        <CustomText style={styles.subHeading}>8. Customer Responsibilities</CustomText>
-        <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          • Ensure vehicle location is accessible and safe.{"\n"}• Remove
-          valuables before handing over for service.{"\n"}• Provide accurate
-          service/vehicle details and be available on time.
-        </CustomText>
-
-        <CustomText style={styles.subHeading}>9. Privacy & Data Protection</CustomText>
-        <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          We collect and process personal data in accordance with our Privacy
-          Policy. Data is only shared with third parties as necessary for
-          service fulfillment, payment, or legal compliance.
-        </CustomText>
-
-        <CustomText style={styles.subHeading}>10. Governing Law</CustomText>
-        <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          These Terms are governed by the laws of India. All disputes shall be
-          subject to the exclusive jurisdiction of the courts in Hyderabad,
-          Telangana, India.
-        </CustomText>
-
-        <CustomText style={styles.subHeading}>11. Amendments</CustomText>
-        <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          We may update these Terms from time to time. Continued use of the
-          Platform implies acceptance of the revised Terms.
-        </CustomText>
-
-        <CustomText style={styles.subHeading}>12. Contact Information</CustomText>
-        <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          Glansa Solutions Private Limited{"\n"}
-          Flat No. 102, Mahalaxmi Paradise, Aswini Colony, West Maredpally,
-          Secunderabad, Hyderabad, Telangana – 500026, India.{"\n"}
-          📧 Email: info@glansa.com{"\n"}
-          📞 Phone: +91 9885653865{"\n"}
-          📞 Phone: +91 70752 43939
+          📧 info@mycarbuddy.in
         </CustomText>
       </ScrollView>
     </View>
@@ -129,11 +77,7 @@ export default function TermsAndConditionsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   contentContainer: { padding: 20 },
-  heading: {
-    fontSize: 18,
-    marginBottom: 15,
-    color: "#000",
-  },
+  heading: { fontSize: 18, marginBottom: 15, color: "#000" },
   subHeading: {
     fontSize: 15,
     fontWeight: "600",
@@ -141,9 +85,5 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     color: "#222",
   },
-  paragraph: {
-    marginBottom: 15,
-    lineHeight: 22,
-    color: "#333",
-  },
+  paragraph: { marginBottom: 15, lineHeight: 22, color: "#333" },
 });

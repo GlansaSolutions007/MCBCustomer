@@ -1,64 +1,54 @@
 import React from "react";
-import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import CustomText from "../../components/CustomText";
 import globalStyles from "../../styles/globalStyles";
 
-export default function RefundPolicyScreen() {
+export default function PrivacyPolicyScreen() {
   const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <CustomText style={[globalStyles.f14Bold, styles.heading]}>
+        <CustomText style={[globalStyles.f14SemiBold, styles.title]}>
           Cancellation & Refund Policy
         </CustomText>
 
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          At My Car Buddy (GLANSA SOLUTIONS PRIVATE LIMITED), we value our
-          customers and follow a fair cancellation and refund policy to ensure
-          transparency and satisfaction.
+          At My Car Buddy, we value our customers and aim to provide a fair and
+          transparent cancellation and refund process.
         </CustomText>
 
-        <CustomText style={styles.subHeading}>Cancellation Policy</CustomText>
+        <CustomText style={[globalStyles.f12SemiBold, styles.subtitle]}>
+          Cancellations
+        </CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          • Cancellations will be considered only if the request is made within
-          7 days of placing the order/booking. However, the cancellation request
-          may not be entertained if the service or order process has already
-          been initiated.{"\n\n"}• Cancellation requests are not accepted for
-          perishable or consumable items (e.g., flowers, eatables). However,
-          refund/replacement can be made if the customer establishes that the
-          quality of the product or service delivered is not satisfactory.
+          • You can cancel a booking before the service has started.{"\n"}
+          • Once the service has begun, cancellations will not be accepted.{"\n"}
+          • Some services (like consumables or special packages) may not be
+          eligible for cancellation.
         </CustomText>
 
-        <CustomText style={styles.subHeading}>
-          Damaged/Defective Services
+        <CustomText style={[globalStyles.f12SemiBold, styles.subtitle]}>
+          Refunds
         </CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          • In case of damaged, defective, or unsatisfactory services/products,
-          customers must report the same to our Customer Support Team within 7
-          days of receiving the service/product. The request will be verified by
-          our merchant/partner before processing.{"\n\n"}• If you feel the
-          service/product delivered is not as shown or as per expectations,
-          please contact our support team within 7 days. After review, our team
-          will take an appropriate decision.{"\n\n"}• For products/services
-          covered under manufacturer warranty, complaints should be directed to
-          the respective manufacturer.
+          • If a booking is prepaid and canceled before service starts, a full
+          refund will be processed.{"\n"}
+          • If you face issues with service quality, damaged/defective products,
+          or if the service is not delivered as promised, please report it to
+          our support team within 7 days.{"\n"}
+          • Approved refunds will be credited back to your original payment
+          method within 3–5 business days.
         </CustomText>
 
-        <CustomText style={styles.subHeading}>Refund Policy</CustomText>
-        <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          • In case of approved refunds by My Car Buddy, the amount will be
-          processed within 3–5 business days to the original payment method.
+        <CustomText style={[globalStyles.f12SemiBold, styles.subtitle]}>
+          Contact Us
         </CustomText>
-
-        <CustomText style={styles.subHeading}>Contact Us</CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          For any refund or cancellation related queries, please contact our My
-          Car Buddy Support team with your details at{" "}
-          <CustomText style={{ fontWeight: "600" }}>info@glansa.com</CustomText>
-          .
+          For any cancellation or refund-related queries, please contact our
+          support team at: {"\n"}
+          📧 info@mycarbuddy.in
         </CustomText>
       </ScrollView>
     </View>
@@ -68,20 +58,19 @@ export default function RefundPolicyScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   contentContainer: { padding: 20 },
-  heading: {
+  title: {
     fontSize: 18,
     marginBottom: 15,
     color: "#000",
   },
-  subHeading: {
-    fontSize: 15,
-    fontWeight: "600",
+  subtitle: {
+    fontSize: 14,
     marginTop: 10,
     marginBottom: 5,
-    color: "#222",
+    color: "#111",
   },
   paragraph: {
-    marginBottom: 15,
+    marginBottom: 12,
     lineHeight: 22,
     color: "#333",
   },
