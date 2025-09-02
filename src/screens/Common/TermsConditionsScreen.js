@@ -23,9 +23,9 @@ export default function TermsAndConditionsScreen() {
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
           For the purpose of these Terms: The terms "we", "us", "our" shall mean
           Glansa Solutions Private Limited, a company incorporated under the
-          Companies Act, 2013, with its registered/operational office at Flat
-          No. 102, Mahalaxmi Paradise, Aswini Colony, West Maredpally,
-          Secunderabad, Hyderabad, Telangana – 500026, India. The terms "you",
+          Companies Act, 2013, with its registered/operational office at
+          Unit #B1, Second Floor Spaces & More Business Park,Vittal Rao Nagar Rd,
+          Madhapur, Hyderabad, Telangana – 500081, India. The terms "you",
           "your", "user", or "customer" shall mean any person accessing or using
           the Platform. MyCarBuddy is a registered product and service brand
           owned by Glansa Solutions Pvt. Ltd.
@@ -114,10 +114,10 @@ export default function TermsAndConditionsScreen() {
 
         <CustomText style={styles.subHeading}>12. Contact Information</CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          Glansa Solutions Private Limited{"\n"}
-          Flat No. 102, Mahalaxmi Paradise, Aswini Colony, West Maredpally,
-          Secunderabad, Hyderabad, Telangana – 500026, India.{"\n"}
-          📧 Email: info@glansa.com{"\n"}
+          Glansa Solutions Private Limited,{"\n"}
+          Unit #B1, Second Floor Spaces & More Business Park,Vittal Rao Nagar Rd,
+          Madhapur, Hyderabad, Telangana – 500081, India.{"\n"}
+          📧 Email: info@mycarbuddy.in{"\n"}
           📞 Phone: +91 9885653865{"\n"}
           📞 Phone: +91 70752 43939
         </CustomText>

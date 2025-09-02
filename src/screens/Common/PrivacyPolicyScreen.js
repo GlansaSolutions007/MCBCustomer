@@ -54,11 +54,11 @@ export default function PrivacyPolicyScreen() {
           as required to complete the service.
         </CustomText>
 
-        <CustomText style={styles.subHeading}>Cookies</CustomText>
+        {/* <CustomText style={styles.subHeading}>Cookies</CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
           Our website may use cookies to improve user experience, track
           preferences, and provide personalized content.
-        </CustomText>
+        </CustomText> */}
 
         <CustomText style={styles.subHeading}>Your Choices</CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
@@ -69,7 +69,7 @@ export default function PrivacyPolicyScreen() {
         <CustomText style={styles.subHeading}>Policy Updates</CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
           This Privacy Policy may be updated periodically, and the latest
-          version will always be available on our website/app.
+          version will always be available on our app/website.
         </CustomText>
 
         <CustomText style={styles.subHeading}>Contact Us</CustomText>
@@ -77,7 +77,7 @@ export default function PrivacyPolicyScreen() {
           For any questions regarding this Privacy Policy, please contact Glansa
           Solutions Private Limited at{" "}
           <CustomText style={{ fontWeight: "600" }}>
-            info@glansa.com
+            info@mycarbuddy.in
           </CustomText>
           .
         </CustomText>

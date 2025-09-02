@@ -57,7 +57,7 @@ export default function RefundPolicyScreen() {
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
           For any refund or cancellation related queries, please contact our My
           Car Buddy Support team with your details at{" "}
-          <CustomText style={{ fontWeight: "600" }}>info@glansa.com</CustomText>
+          <CustomText style={{ fontWeight: "600" }}>info@mycarbuddy.in</CustomText>
           .
         </CustomText>
       </ScrollView>
