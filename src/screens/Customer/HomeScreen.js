@@ -16,7 +16,7 @@ import CTAbannerhome from "../../../assets/images/CTAbannerhome.png";
 import exteriorservice from "../../../assets/images/exteriorservice.png";
 import interiorservice from "../../../assets/images/interiorservice.png";
 import bluecar from "../../../assets/images/bluecar.png";
-import logo from "../../../assets/Logo/my car buddy-02 yellow-01.png";
+import logo from "../../../assets/Logo/logoWhite.png";
 import { color } from "../../styles/theme";
 import CustomText from "../../components/CustomText";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";

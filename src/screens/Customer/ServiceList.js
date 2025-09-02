@@ -469,7 +469,7 @@ export default function ServiceList() {
                       </CustomText>
                     </View>
                     <View style={styles.bookingDate}>
-                      <CustomText style={[globalStyles.f10Regular]}>
+                      <CustomText style={[globalStyles.f10Regular,{ color: color.primary },]}>
                         Booked Slot:
                       </CustomText>
                       <CustomText style={[globalStyles.f12Bold]}>
@@ -477,7 +477,7 @@ export default function ServiceList() {
                       </CustomText>
                     </View>
                     <View style={styles.bookingDate}>
-                      <CustomText style={[globalStyles.f10Regular]}>
+                      <CustomText style={[globalStyles.f10Regular,{ color: color.primary },]}>
                         Service Amount:
                       </CustomText>
                       {/* <CustomText style={[globalStyles.f12Bold]}>
@@ -493,7 +493,7 @@ export default function ServiceList() {
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.bookingServices}>
-                  <CustomText style={[globalStyles.f10Regular, color.primary]}>
+                  <CustomText style={[globalStyles.f10Regular,globalStyles.mb2,{ color: color.primary }]}>
                     Services Booked:
                   </CustomText>
 

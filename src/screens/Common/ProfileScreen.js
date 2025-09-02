@@ -18,12 +18,7 @@ import globalStyles from "../../styles/globalStyles";
 import { useAuth } from "../../contexts/AuthContext";
 import { color } from "../../styles/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  API_URL,
-  API_IMAGE_URL,
-  GOOGLE_MAPS_APIKEY,
-  RAZORPAY_KEY,
-} from "@env";
+import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "@env";
 
 export default function ProfileScreen() {
   const [image, setImage] = useState(null);
@@ -152,7 +147,11 @@ export default function ProfileScreen() {
                 onPress={() => navigation.navigate("NotificationSettings")}
               >
                 <View style={styles.row}>
-                  <Ionicons name="notifications" size={22} color={color.primary} />
+                  <Ionicons
+                    name="notifications"
+                    size={22}
+                    color={color.primary}
+                  />
                   <CustomText
                     style={[styles.touchableText, globalStyles.f16Medium]}
                   >
@@ -228,14 +227,19 @@ export default function ProfileScreen() {
                   <CustomText
                     style={[styles.touchableText, globalStyles.f16Medium]}
                   >
-                    Invoice list
+                    Invoice list{" "}
+                    <CustomText
+                      style={[globalStyles.f10Medium, { color: "red" }]}
+                    >
+                      (Coming Soon)
+                    </CustomText>
                   </CustomText>
                 </View>
-                <Ionicons
+                {/* <Ionicons
                   name="chevron-forward-outline"
                   size={20}
                   color={color.primary}
-                />
+                /> */}
               </TouchableOpacity>
               {/* <View style={styles.divider} /> */}
             </View>
@@ -321,9 +325,9 @@ export default function ProfileScreen() {
                   color={color.primary}
                 />
               </TouchableOpacity>
-              <View style={styles.divider} />
+              {/* <View style={styles.divider} /> */}
             </View>
-            <View style={styles.profileDetails}>
+            {/* <View style={styles.profileDetails}>
               <TouchableOpacity style={styles.eachTouchable}>
                 <View style={styles.row}>
                   <Ionicons
@@ -343,7 +347,7 @@ export default function ProfileScreen() {
                   color={color.primary}
                 />
               </TouchableOpacity>
-            </View>
+            </View> */}
           </View>
         </View>
 
