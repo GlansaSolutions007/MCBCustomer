@@ -1,6 +1,5 @@
 import React from "react";
-import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import CustomText from "../../components/CustomText";
 import globalStyles from "../../styles/globalStyles";
@@ -11,22 +10,76 @@ export default function PrivacyPolicyScreen() {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          This is the Privacy Policy for MyCarBuddy. We are committed to
-          protecting your personal information and your right to privacy. This
-          policy explains how we collect, use, and safeguard your data when you
-          use our app.
+        <CustomText style={[globalStyles.f14Bold, styles.heading]}>
+          Privacy Policy
         </CustomText>
 
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          1. We collect personal details like name, phone number, and email for
-          service purposes only.
+          At My Car Buddy, operated by Glansa Solutions Private Limited, we
+          value your privacy and are committed to protecting your personal
+          information. This policy explains how we collect, use, and safeguard
+          your data when you use our app, website, and services.
         </CustomText>
+
+        <CustomText style={styles.subHeading}>Information We Collect</CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          2. We do not share your data with third parties without consent.
+          We collect only the necessary details such as your name, contact
+          information, vehicle details, location, and booking history to provide
+          smooth service.
         </CustomText>
+
+        <CustomText style={styles.subHeading}>Use of Information</CustomText>
         <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
-          3. You can request deletion of your data by contacting support.
+          Your information is used solely for booking confirmations, service
+          delivery, customer support, and enhancing your experience with My Car
+          Buddy.
+        </CustomText>
+
+        <CustomText style={styles.subHeading}>Data Security</CustomText>
+        <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
+          All personal data is securely stored. Glansa Solutions does not sell,
+          trade, or rent your personal information to third parties.
+        </CustomText>
+
+        <CustomText style={styles.subHeading}>Communication</CustomText>
+        <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
+          We may contact you regarding booking updates, service reminders,
+          special offers, or important notifications related to your account.
+        </CustomText>
+
+        <CustomText style={styles.subHeading}>Third-Party Services</CustomText>
+        <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
+          In certain cases (such as payments, maps, or notifications), we may
+          integrate trusted third-party services, but your data is shared only
+          as required to complete the service.
+        </CustomText>
+
+        <CustomText style={styles.subHeading}>Cookies</CustomText>
+        <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
+          Our website may use cookies to improve user experience, track
+          preferences, and provide personalized content.
+        </CustomText>
+
+        <CustomText style={styles.subHeading}>Your Choices</CustomText>
+        <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
+          You may opt out of promotional communications anytime by following
+          unsubscribe instructions or contacting our support team.
+        </CustomText>
+
+        <CustomText style={styles.subHeading}>Policy Updates</CustomText>
+        <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
+          This Privacy Policy may be updated periodically, and the latest
+          version will always be available on our website/app.
+        </CustomText>
+
+        <CustomText style={styles.subHeading}>Contact Us</CustomText>
+        <CustomText style={[globalStyles.f12Medium, styles.paragraph]}>
+          For any questions regarding this Privacy Policy, please contact Glansa
+          Solutions Private Limited at{" "}
+          <CustomText style={{ fontWeight: "600" }}>
+            info@glansa.com
+          </CustomText>
+          .
         </CustomText>
       </ScrollView>
     </View>
@@ -35,20 +88,18 @@ export default function PrivacyPolicyScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  headerTitle: {
+  contentContainer: { padding: 20 },
+  heading: {
     fontSize: 18,
-    fontWeight: "bold",
-    marginLeft: 12,
+    marginBottom: 15,
+    color: "#000",
   },
-  contentContainer: {
-    padding: 20,
+  subHeading: {
+    fontSize: 15,
+    fontWeight: "600",
+    marginTop: 10,
+    marginBottom: 5,
+    color: "#222",
   },
   paragraph: {
     marginBottom: 15,
