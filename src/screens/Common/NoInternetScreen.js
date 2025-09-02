@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Image } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
-import CustomText from "../components/CustomText"; // use your CustomText
 import { Button } from "react-native"; // replace with your custom button if you have
+import CustomText from "../../components/CustomText";
 
 export default function NoInternetScreen({ onRetry }) {
   const [isConnected, setIsConnected] = useState(true);
