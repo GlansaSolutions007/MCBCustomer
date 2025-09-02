@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
 
     const primaryCarId = primaryCar?.VehicleID || null;
 
-    console.log(response1, "Carrrrr Data");
+    // console.log(response1, "Carrrrr Data");
     await AsyncStorage.setItem("primaryVehicleId", primaryCarId ? String(primaryCarId) : "");
     setUser((prev) => ({ ...prev, primaryVehicleId: primaryCarId }));
   };

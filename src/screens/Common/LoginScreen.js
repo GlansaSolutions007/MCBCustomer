@@ -119,6 +119,8 @@ export default function LoginScreen() {
     try {
       const DeviceId = Device.osInternalBuildId || Device.osBuildId || "unknown-device-id";
       const tokens = await registerForPushNotificationsAsync();
+      console.log("Expo token:", tokens.expoPushToken);
+      console.log("FCM/APNs token:", tokens.fcmToken);
       const DeviceToken = tokens.fcmToken || tokens.expoPushToken || 'unknown-token';
       console.log("Tokens:", tokens);
       console.log("Device Token:", DeviceToken);
