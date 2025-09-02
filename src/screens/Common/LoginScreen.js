@@ -119,7 +119,7 @@ export default function LoginScreen() {
     try {
       const DeviceId = Device.osInternalBuildId || Device.osBuildId || "unknown-device-id";
       const tokens = await registerForPushNotificationsAsync();
-      const DeviceToken = tokens?.fcmToken || tokens?.expoPushToken || 'unknown-token';
+      const DeviceToken = tokens.fcmToken || tokens.expoPushToken || 'unknown-token';
       console.log("Tokens:", tokens);
       console.log("Device Token:", DeviceToken);
       console.log("Device Id:", DeviceId);
@@ -155,7 +155,7 @@ export default function LoginScreen() {
             try {
               await AsyncStorage.setItem("pushToken", DeviceToken);
               await AsyncStorage.setItem("pushTokenType", tokens.fcmToken ? "fcm" : (tokens.expoPushToken ? "expo" : "unknown"));
-            } catch (_) {}
+            } catch (_) { }
             try {
               await axios.post(`${API_URL}Push/register`, {
                 userType: "customer",
@@ -164,9 +164,9 @@ export default function LoginScreen() {
                 expoPushToken: tokens.expoPushToken || null,
                 platform: Platform.OS,
               });
-            } catch (_) {}
+            } catch (_) { }
           }
-        } catch (_) {}
+        } catch (_) { }
         navigation.replace("CustomerTabs");
       } else {
         throw new Error(result?.message || "Invalid OTP.");

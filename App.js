@@ -16,6 +16,9 @@ import { registerForPushNotificationsAsync } from "./src/config/Notifications";
 import { initializeNotificationSystem } from "./src/utils/notificationService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNotificationSystem } from "./src/hooks/useNotificationSystem";
+import { enableScreens } from "react-native-screens";
+
+enableScreens(false);
 
 if (Text.defaultProps == null) Text.defaultProps = {};
 Text.defaultProps.allowFontScaling = false;

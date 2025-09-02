@@ -1,9 +1,9 @@
 import "dotenv/config";
+
 export default {
   expo: {
     name: "My Car Buddy",
     slug: "my-car-buddy",
-    projectId:"6850b1f3-7aec-4d07-8b8b-1802366d658a",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
@@ -13,31 +13,35 @@ export default {
       resizeMode: "contain",
       backgroundColor: "#ffffff",
     },
+    ios: {
+      supportsTablet: true,
+      bundleIdentifier: "com.itglansa.mcbc", // ✅ keep consistent
+      buildNumber: "1.0.0",
+    },
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#136D6E",
       },
       edgeToEdgeEnabled: true,
-      package: "com.itglansa.mcbc",
+      package: "com.itglansa.mcbc", // ✅ match iOS
+      googleServicesFile: "./google-services.json",
       permissions: [
-        "ACCESS_FINE_LOCATION", 
+        "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
         "WAKE_LOCK",
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",
-        "SYSTEM_ALERT_WINDOW"
+        "SYSTEM_ALERT_WINDOW",
       ],
       config: {
         googleMaps: {
-          apiKey: "AIzaSyB1e_nM-v-G5EYZSrXjElyHo61I4qb5rNc",
+          apiKey: process.env.GOOGLE_MAPS_APIKEY,
         },
       },
-      usesCleartextTraffic: true, // optional, for HTTP URLs
-    },
-    ios: {
-      bundleIdentifier: "com.itglansa.mcbc",
-      buildNumber: "1.0.0",
+      usesCleartextTraffic: true,
     },
     web: {
       favicon: "./assets/favicon.png",
@@ -46,7 +50,7 @@ export default {
       API_BASE_URL: process.env.API_BASE_URL,
       API_IMAGE_URL: process.env.API_IMAGE_URL,
       RAZORPAY_KEY: process.env.RAZORPAY_KEY,
-      GOOGLE_MAPS_APIKEY: "AIzaSyB1e_nM-v-G5EYZSrXjElyHo61I4qb5rNc",
+      GOOGLE_MAPS_APIKEY: process.env.GOOGLE_MAPS_APIKEY,
       eas: {
         projectId: "6850b1f3-7aec-4d07-8b8b-1802366d658a",
       },
@@ -56,7 +60,7 @@ export default {
         "expo-notifications",
         {
           icon: "./assets/icons/active.png",
-          color: "#ffffff",
+          color: "#017F77",
           sounds: ["./assets/notificationtone.wav"],
         },
       ],
