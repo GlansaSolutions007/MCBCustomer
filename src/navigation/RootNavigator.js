@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { ActivityIndicator, View } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
 
 import LoginScreen from "../screens/Common/LoginScreen";
@@ -9,15 +8,17 @@ import RegisterScreen from "../screens/Common/RegisterScreen";
 import CustomerStackNavigator from "./CustomerStackNavigator";
 import WelcomeScreen from "../screens/Common/WelcomeScreen";
 import { useAuth } from "../contexts/AuthContext";
-import globalStyles from "../styles/globalStyles";
 import NoInternetScreen from "../screens/Common/NoInternetScreen";
+import PreLoader from "../components/PreLoader"; // 👈 import your animation
 
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
   const { user, loading } = useAuth();
   const [isConnected, setIsConnected] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
 
+  // Internet check
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
       setIsConnected(state.isConnected);
@@ -25,16 +26,28 @@ export default function RootNavigator() {
     return () => unsubscribe();
   }, []);
 
+  // Play preloader once at app launch
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 3000); // same duration as PreLoader
+    return () => clearTimeout(timer);
+  }, []);
+
   if (!isConnected) {
-    return <NoInternetScreen onRetry={() => NetInfo.fetch().then((s) => setIsConnected(s.isConnected))} />;
+    return (
+      <NoInternetScreen
+        onRetry={() => NetInfo.fetch().then((s) => setIsConnected(s.isConnected))}
+      />
+    );
   }
 
+  // Show splash animation at startup
+  if (showSplash) {
+    return <PreLoader onAnimationFinish={() => setShowSplash(false)} />;
+  }
+
+  // While checking auth state
   if (loading) {
-    return (
-      <View style={[globalStyles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" color="#136d6e" />
-      </View>
-    );
+    return <PreLoader />; // 👈 use the same loader instead of ActivityIndicator
   }
 
   return (
