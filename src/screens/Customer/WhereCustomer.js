@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   ActivityIndicator,
@@ -8,11 +8,10 @@ import {
   StyleSheet,
   Text,
 } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { useRoute } from "@react-navigation/native";
 import { ref, onValue } from "firebase/database";
 import { db } from "../../config/firebaseConfig";
-// import { GOOGLE_MAPS_APIKEY } from "@env";
 import { GOOGLE_MAPS_APIKEY } from "@env";
 import polyline from "@mapbox/polyline";
 import technMarker from "../../../assets/images/techMarker.png";
@@ -24,11 +23,16 @@ export default function LiveTracking() {
   const [customerLocation, setCustomerLocation] = useState(null);
   const [routeCoords, setRouteCoords] = useState([]);
   const [distance, setDistance] = useState(null);
+  const [isLoadingRoute, setIsLoadingRoute] = useState(false);
+  const [technicianOffline, setTechnicianOffline] = useState(false);
+  const [lastLocationUpdate, setLastLocationUpdate] = useState(null);
 
   const route = useRoute();
   const { techId, latitude, longitude } = route.params;
 
   const mapRef = useRef(null);
+  const routeIntervalRef = useRef(null);
+  const lastRouteFetchRef = useRef(0);
 
   // Subscribe to technician live location from Firebase
   useEffect(() => {
@@ -37,7 +41,13 @@ export default function LiveTracking() {
     const technicianRef = ref(db, `technicians/${techId}`);
     const unsubscribe = onValue(technicianRef, (snapshot) => {
       const data = snapshot.val();
-      if (!data) return;
+
+      if (!data) {
+        // Technician location not available
+        setTechnicianOffline(true);
+        setTechnicianLocation(null);
+        return;
+      }
 
       const latNum = typeof data.latitude === "number" ? data.latitude : parseFloat(data.latitude);
       const lngNum = typeof data.longitude === "number" ? data.longitude : parseFloat(data.longitude);
@@ -45,16 +55,21 @@ export default function LiveTracking() {
       if (Number.isFinite(latNum) && Number.isFinite(lngNum)) {
         const nextTechLoc = { latitude: latNum, longitude: lngNum };
         setTechnicianLocation(nextTechLoc);
+        setTechnicianOffline(false);
+        setLastLocationUpdate(new Date());
 
         // Smoothly move camera towards technician for live-tracking feel
         if (mapRef.current) {
           mapRef.current.animateCamera({ center: nextTechLoc, zoom: 16 }, { duration: 800 });
         }
 
-        // Refresh route on every tech update when customer location and API key are available
-        if (customerLocation && GOOGLE_MAPS_APIKEY) {
+        // Only fetch route if it's been more than 30 seconds since last fetch
+        const now = Date.now();
+        if (customerLocation && GOOGLE_MAPS_APIKEY && (now - lastRouteFetchRef.current) > 30000) {
           fetchRoute(nextTechLoc, customerLocation);
         }
+      } else {
+        setTechnicianOffline(true);
       }
     });
 
@@ -95,35 +110,57 @@ export default function LiveTracking() {
 
   // Route calculation will re-run every 10 seconds; technician location is live-updated
 
-  // Fetch route initially and every 10 seconds when both points exist and API key is present
+  // Optimized route calculation - only when needed
   useEffect(() => {
-    if (!technicianLocation || !customerLocation) return;
-    if (!GOOGLE_MAPS_APIKEY) return;
+    if (!technicianLocation || !customerLocation || !GOOGLE_MAPS_APIKEY) {
+      setRouteCoords([]);
+      setDistance(null);
+      return;
+    }
 
+    // Initial route fetch
     fetchRoute(technicianLocation, customerLocation);
 
-    const intervalId = setInterval(() => {
-      fetchRoute(technicianLocation, customerLocation);
-    }, 10000);
+    // Set up interval for periodic updates (every 60 seconds to avoid API limits)
+    routeIntervalRef.current = setInterval(() => {
+      if (technicianLocation && customerLocation) {
+        fetchRoute(technicianLocation, customerLocation);
+      }
+    }, 60000); // 60 seconds
 
-    return () => clearInterval(intervalId);
+    return () => {
+      if (routeIntervalRef.current) {
+        clearInterval(routeIntervalRef.current);
+      }
+    };
   }, [technicianLocation, customerLocation]);
 
-  const fetchRoute = async (techLoc, custLoc) => {
+  const fetchRoute = useCallback(async (techLoc, custLoc) => {
+    if (isLoadingRoute) return; // Prevent multiple simultaneous requests
+
+    setIsLoadingRoute(true);
+    lastRouteFetchRef.current = Date.now();
+
     try {
       if (!GOOGLE_MAPS_APIKEY) {
         console.warn("GOOGLE_MAPS_APIKEY is missing. Skipping route fetch.");
         return;
       }
+
       const origin = `${techLoc.latitude},${techLoc.longitude}`;
       const destination = `${custLoc.latitude},${custLoc.longitude}`;
 
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${GOOGLE_MAPS_APIKEY}`
+        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${GOOGLE_MAPS_APIKEY}&avoid=tolls&units=metric`
       );
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
       const json = await response.json();
 
-      if (json.routes?.length) {
+      if (json.status === 'OK' && json.routes?.length) {
         const points = polyline.decode(json.routes[0].overview_polyline.points);
         const coords = points.map(([lat, lng]) => ({
           latitude: lat,
@@ -135,14 +172,24 @@ export default function LiveTracking() {
         if (routeLeg?.distance?.text) {
           setDistance(routeLeg.distance.text);
         }
+      } else if (json.status === 'ZERO_RESULTS') {
+        console.warn("No routes found between technician and customer location");
+        setRouteCoords([]);
+        setDistance("Route not available");
       } else {
-        console.warn("No routes found:", json);
+        console.warn("Route API error:", json.status, json.error_message);
+        setRouteCoords([]);
+        setDistance("Unable to calculate route");
       }
     } catch (error) {
       console.error("Error fetching route:", error);
-      Alert.alert("Route Error", "Could not fetch route from Google Maps API.");
+      setRouteCoords([]);
+      setDistance("Route calculation failed");
+      // Don't show alert for every route error, just log it
+    } finally {
+      setIsLoadingRoute(false);
     }
-  };
+  }, [isLoadingRoute]);
 
   const recenterMap = () => {
     if (technicianLocation && customerLocation && mapRef.current) {
@@ -171,50 +218,78 @@ export default function LiveTracking() {
       {initialRegion ? (
         <MapView
           ref={mapRef}
+          provider={PROVIDER_GOOGLE}
           style={{ flex: 1 }}
           initialRegion={initialRegion}
+          showsUserLocation={false}
+          showsMyLocationButton={false}
+          zoomEnabled={true}
+          scrollEnabled={true}
         >
-        {/* Technician Marker */}
-        {technicianLocation && (
-          <Marker coordinate={technicianLocation} title="Technician">
-            <Image
-              source={technMarker}
-              style={{ width: 40, height: 40 }}
-              resizeMode="contain"
+          {/* Technician Marker */}
+          {technicianLocation && (
+            <Marker
+              coordinate={technicianLocation}
+              title="Technician Location"
+              description={lastLocationUpdate ? `Last updated: ${lastLocationUpdate.toLocaleTimeString()}` : "Live location"}
+            >
+              <Image
+                source={technMarker}
+                style={{ width: 40, height: 40 }}
+                resizeMode="contain"
+              />
+            </Marker>
+          )}
+
+          {/* Customer Marker */}
+          {customerLocation && (
+            <Marker
+              coordinate={customerLocation}
+              title="Your Location"
+              pinColor="red"
             />
-          </Marker>
-        )}
+          )}
 
-        {/* Customer Marker */}
-        {customerLocation && (
-          <Marker coordinate={customerLocation} title="Customer" pinColor="red" />
-        )}
-
-        {/* Route Polyline */}
-        {routeCoords.length > 0 && (
-          <Polyline
-            coordinates={routeCoords}
-            strokeWidth={6}
-            strokeColor={color.mapTracking}
-          />
-        )}
+          {/* Route Polyline */}
+          {routeCoords.length > 0 && (
+            <Polyline
+              coordinates={routeCoords}
+              strokeWidth={6}
+              strokeColor={color.mapTracking || "#017F77"}
+            />
+          )}
         </MapView>
       ) : (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={color.secondary} />
+          <Text style={styles.loadingText}>
+            {technicianOffline ? "Technician location unavailable" : "Loading map..."}
+          </Text>
         </View>
       )}
 
       {/* Recenter Button */}
-      <TouchableOpacity onPress={recenterMap} style={styles.recenterButton}>
-        <Image source={recenter} style={{ width: 30, height: 30 }} />
-      </TouchableOpacity>
+      {technicianLocation && customerLocation && (
+        <TouchableOpacity onPress={recenterMap} style={styles.recenterButton}>
+          <Image source={recenter} style={{ width: 30, height: 30 }} />
+        </TouchableOpacity>
+      )}
 
-      {/* Distance Info */}
+      {/* Status and Distance Info */}
       <View style={styles.bottomContainer}>
+        {technicianOffline && (
+          <Text style={[styles.statusText, { color: "#FF9500" }]}>
+            ⚠️ Technician location unavailable
+          </Text>
+        )}
         <Text style={styles.distanceText}>
-          {distance ? `Distance: ${distance}` : "Calculating distance..."}
+          {isLoadingRoute ? "Updating route..." : (distance || "Calculating distance...")}
         </Text>
+        {lastLocationUpdate && (
+          <Text style={styles.updateText}>
+            Last update: {lastLocationUpdate.toLocaleTimeString()}
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -258,5 +333,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: color.primary,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: color.primary,
+    textAlign: "center",
+  },
+  statusText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  updateText: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 5,
   },
 });
