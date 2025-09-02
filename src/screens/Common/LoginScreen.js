@@ -158,10 +158,10 @@ export default function LoginScreen() {
             } catch (_) { }
             try {
               await axios.post(`${API_URL}Push/register`, {
-                userType: "customer",
-                id: Number(result.custID),
+                userRole: "customer",
+                userId: Number(result.custID),
                 fcmToken: tokens.fcmToken || null,
-                expoPushToken: tokens.expoPushToken || null,
+                expoToken: tokens.expoPushToken || null,
                 platform: Platform.OS,
               });
             } catch (_) { }
