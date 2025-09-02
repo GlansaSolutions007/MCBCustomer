@@ -78,7 +78,7 @@ export default function ProfileScreen() {
         ></ImageBackground>
       </View>
       <View style={styles.heading}>
-        <CustomText style={[globalStyles.f20Bold, globalStyles.textBlack]}>
+        <CustomText style={[globalStyles.f20Bold, globalStyles.textWhite]}>
           {name}
         </CustomText>
       </View>
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-    backgroundColor: color.backgroundLight,
+    backgroundColor: color.primary,
   },
   scrollContainer: {
     padding: 20,
@@ -404,8 +404,17 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginBottom: 20,
     position: "relative",
-    // borderBottomLeftRadius:20,
-    // borderBottomRightRadius:20,
+    padding: 3,
+    borderRadius: 70,
+    backgroundColor: "white",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   profileImage: {
     width: 120,
