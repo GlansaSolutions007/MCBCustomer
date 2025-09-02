@@ -42,6 +42,8 @@ export async function registerForPushNotificationsAsync() {
 }
 
 export async function saveCustomerPushToken(customerId, tokens) {
+  console.log(customerId,'CID......');
+  
   if (!customerId || !tokens) return;
   const { expoPushToken, fcmToken } = tokens;
   const baseRef = ref(db, `customerPushTokens/${customerId}`);

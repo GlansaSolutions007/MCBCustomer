@@ -77,10 +77,9 @@ export default function TermsAndConditionsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   contentContainer: { padding: 20 },
-  heading: { fontSize: 18, marginBottom: 15, color: "#000" },
+  heading: { ...globalStyles.f16Bold, marginBottom: 15, color: "#000" },
   subHeading: {
-    fontSize: 15,
-    fontWeight: "600",
+    ...globalStyles.f12Bold,
     marginTop: 10,
     marginBottom: 5,
     color: "#222",

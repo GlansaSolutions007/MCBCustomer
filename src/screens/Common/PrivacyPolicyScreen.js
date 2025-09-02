@@ -57,9 +57,9 @@ export default function PrivacyPolicyScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
   contentContainer: { padding: 20 },
-  heading: { fontSize: 18, marginBottom: 15, color: "#000" },
+  heading: { ...globalStyles.f16Bold, marginBottom: 15, color: "#000" },
   subHeading: {
-    fontSize: 15,
+    ...globalStyles.f12Bold,
     fontWeight: "600",
     marginTop: 10,
     marginBottom: 5,
