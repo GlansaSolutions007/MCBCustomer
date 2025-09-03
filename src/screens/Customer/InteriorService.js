@@ -57,7 +57,7 @@ const InteriorService = () => {
   const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(null);
   const [packages, setPackages] = useState([]);
   const [packageCache, setPackageCache] = useState({});
-  const { cartItems, addToCart } = useCart();
+  const { cartItems, addToCart, removeFromCart, clearCart } = useCart();
   const route = useRoute();
   const { categoryId, categoryName, subCategories, subCategoryId } = route.params;
   const [selectedServiceId, setSelectedServiceId] = useState(subCategories?.[0]?.SubCategoryID || null);
@@ -140,6 +140,11 @@ const InteriorService = () => {
         const primaryCar = formattedCars.find((car) => car.isPrimary);
         if (primaryCar) {
           setSelectedCar(primaryCar);
+          try {
+            await AsyncStorage.setItem('primaryVehicleId', primaryCar.id);
+          } catch (e) {
+            console.warn('Failed to persist primaryVehicleId', e);
+          }
         }
         if (formattedCars.length === 1 && !formattedCars[0].isPrimary) {
           await makeCarPrimary(formattedCars[0].id);
@@ -180,6 +185,11 @@ const InteriorService = () => {
         isPrimary: car.id === vehicleId,
       }));
       setCars(updated);
+      try {
+        await AsyncStorage.setItem('primaryVehicleId', vehicleId);
+      } catch (e) {
+        console.warn('Failed to persist primaryVehicleId', e);
+      }
     } catch (error) {
       console.error('Error setting primary car:', error);
     }
@@ -671,6 +681,11 @@ const InteriorService = () => {
                 console.log('Selected single car:', cars[0].id);
                 setSelectedCar(cars[0]);
                 setShowCarModal(false);
+                try {
+                  AsyncStorage.setItem('primaryVehicleId', cars[0].id);
+                } catch (e) {
+                  console.warn('Failed to persist primaryVehicleId', e);
+                }
                 if (selectedSubCategoryId) {
                   debouncedFetchPackages(
                     selectedSubCategoryId,
@@ -700,8 +715,14 @@ const InteriorService = () => {
                       console.log('Selected car:', car.id, 'SubCategoryID:', selectedSubCategoryId);
                       setSelectedCar(car);
                       setShowCarModal(false);
+                      try {
+                        await AsyncStorage.setItem('primaryVehicleId', car.id);
+                      } catch (e) {
+                        console.warn('Failed to persist primaryVehicleId', e);
+                      }
                       if (!car.isPrimary) {
                         await makeCarPrimary(car.id);
+                        clearCart();
                       }
                       if (selectedSubCategoryId) {
                         debouncedFetchPackages(
@@ -814,7 +835,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     backgroundColor: "transparent",
     flexDirection: "column",
-    justifyContent: "space-between", 
+    justifyContent: "space-between",
     height: 140,
   },
   textContainer: {

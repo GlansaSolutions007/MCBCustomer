@@ -104,6 +104,22 @@ const CartPage = () => {
 
   useFocusEffect(
     useCallback(() => {
+      const refreshPrimaryVehicle = async () => {
+        try {
+          const id = await AsyncStorage.getItem("primaryVehicleId");
+          if (id !== vehicleId) {
+            setVehicleId(id);
+          }
+        } catch (e) {
+          console.warn("Failed to load primaryVehicleId on focus", e);
+        }
+      };
+      refreshPrimaryVehicle();
+    }, [vehicleId])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
       const loadSchedule = async () => {
         try {
           const date = await AsyncStorage.getItem("selectedDate");
