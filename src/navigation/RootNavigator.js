@@ -27,10 +27,10 @@ export default function RootNavigator() {
   }, []);
 
   // Play preloader once at app launch
-  useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 3000); // same duration as PreLoader
-    return () => clearTimeout(timer);
-  }, []);
+  // useEffect(() => {
+  //   const timer = setTimeout(() => setShowSplash(false), 3000); // same duration as PreLoader
+  //   return () => clearTimeout(timer);
+  // }, []);
 
   if (!isConnected) {
     return (
@@ -41,14 +41,14 @@ export default function RootNavigator() {
   }
 
   // Show splash animation at startup
-  if (showSplash) {
-    return <PreLoader onAnimationFinish={() => setShowSplash(false)} />;
-  }
+  // if (showSplash) {
+  //   return <PreLoader onAnimationFinish={() => setShowSplash(false)} />;
+  // }
 
-  // While checking auth state
-  if (loading) {
-    return <PreLoader />; // 👈 use the same loader instead of ActivityIndicator
-  }
+  // // While checking auth state
+  // if (loading) {
+  //   return <PreLoader />; // 👈 use the same loader instead of ActivityIndicator
+  // }
 
   return (
     <NavigationContainer>

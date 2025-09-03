@@ -70,6 +70,7 @@ const InteriorService = () => {
   const [brandId, setBrandId] = useState('');
   const [modelId, setModelId] = useState('');
   const [fuelId, setFuelId] = useState('');
+  const [showCartClearedAlert, setShowCartClearedAlert] = useState(false);
 
   // Initialize fadeAnims dynamically based on filteredPackages length
   const fadeAnims = useRef([]);
@@ -722,7 +723,10 @@ const InteriorService = () => {
                       }
                       if (!car.isPrimary) {
                         await makeCarPrimary(car.id);
-                        clearCart();
+                        if (cartItems.length > 0) { // Only show alert if cart had items
+                          clearCart();
+                          setShowCartClearedAlert(true); // Show cart cleared alert
+                        }
                       }
                       if (selectedSubCategoryId) {
                         debouncedFetchPackages(
@@ -752,6 +756,15 @@ const InteriorService = () => {
           )}
         </View>
       </CustomAlert>
+      <CustomAlert
+        visible={showCartClearedAlert}
+        status="info"
+        onClose={() => setShowCartClearedAlert(false)}
+        title="Cart Cleared"
+        message="Cart was cleared due to primary car change. Please add services for the new car."
+        buttonText="OK"
+        showButton={true}
+      />
     </SafeAreaView>
   );
 };
