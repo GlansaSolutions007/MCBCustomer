@@ -20,6 +20,7 @@ import { color } from "../../styles/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "@env";
 import NoInternetScreen from "./NoInternetScreen";
+import testNotificationUtils from "../../utils/notificationTestUtils";
 
 export default function ProfileScreen() {
   const [image, setImage] = useState(null);
@@ -64,6 +65,71 @@ export default function ProfileScreen() {
       index: 0,
       routes: [{ name: "Login" }],
     });
+  };
+
+  // FCM testing functions
+  const testFCMTokenGeneration = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("userData");
+      const parsedData = JSON.parse(userData);
+      const custID = parsedData?.custID;
+      const tokens = await testNotificationUtils.testFCMTokenGeneration();
+      if (tokens) {
+        alert(`FCM Test Results:\nExpo Token: ${tokens.expoPushToken ? '✅ Generated' : '❌ Null'}\nFCM Token: ${tokens.fcmToken ? '✅ Generated' : '❌ Null'}`);
+      } else {
+        alert('❌ FCM token generation failed');
+      }
+    } catch (e) {
+      console.log('FCM token test error:', e);
+      alert(`FCM test failed: ${e?.message || 'Unknown error'}`);
+    }
+  };
+
+  const testTokenSaving = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("userData");
+      const parsedData = JSON.parse(userData);
+      const custID = parsedData?.custID;
+      const result = await testNotificationUtils.testTokenSaving(custID);
+      if (result) {
+        alert('✅ Tokens saved to Firebase successfully!');
+      } else {
+        alert('❌ Token saving failed');
+      }
+    } catch (e) {
+      console.log('Token saving test error:', e);
+      alert(`Token saving test failed: ${e?.message || 'Unknown error'}`);
+    }
+  };
+
+  const testFirebaseNotification = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("userData");
+      const parsedData = JSON.parse(userData);
+      const custID = parsedData?.custID;
+      const result = await testNotificationUtils.testFirebaseNotification(custID);
+      if (result) {
+        alert('✅ Firebase notification test successful!');
+      } else {
+        alert('❌ Firebase notification test failed');
+      }
+    } catch (e) {
+      console.log('Firebase notification test error:', e);
+      alert(`Firebase notification test failed: ${e?.message || 'Unknown error'}`);
+    }
+  };
+
+  const runAllFCMTests = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("userData");
+      const parsedData = JSON.parse(userData);
+      const custID = parsedData?.custID;
+      const results = await testNotificationUtils.runAllTests(custID);
+      alert(`🧪 FCM Test Results:\nPermissions: ${results.permissions ? '✅' : '❌'}\nToken Generation: ${results.tokenGeneration ? '✅' : '❌'}\nToken Saving: ${results.tokenSaving ? '✅' : '❌'}\nFirebase Notification: ${results.firebaseNotification ? '✅' : '❌'}`);
+    } catch (e) {
+      console.log('All FCM tests error:', e);
+      alert(`All FCM tests failed: ${e?.message || 'Unknown error'}`);
+    }
   };
 
   return (
@@ -350,6 +416,98 @@ export default function ProfileScreen() {
                 />
               </TouchableOpacity>
             </View> */}
+          </View>
+        </View>
+
+        {/* FCM Testing Section */}
+        <View style={styles.signleCard}>
+          <CustomText style={[globalStyles.f12Bold, globalStyles.mb2]}>
+            FCM Testing
+          </CustomText>
+          <View style={styles.profileCard}>
+            <View style={styles.profileDetails}>
+              <TouchableOpacity
+                style={styles.eachTouchable}
+                onPress={testFCMTokenGeneration}
+              >
+                <View style={styles.row}>
+                  <Ionicons name="key" size={22} color={color.primary} />
+                  <CustomText
+                    style={[styles.touchableText, globalStyles.f16Medium]}
+                  >
+                    Test FCM Token Generation
+                  </CustomText>
+                </View>
+                <Ionicons
+                  name="chevron-forward-outline"
+                  size={20}
+                  color={color.primary}
+                />
+              </TouchableOpacity>
+              <View style={styles.divider} />
+            </View>
+            <View style={styles.profileDetails}>
+              <TouchableOpacity
+                style={styles.eachTouchable}
+                onPress={testTokenSaving}
+              >
+                <View style={styles.row}>
+                  <Ionicons name="cloud-upload" size={22} color={color.primary} />
+                  <CustomText
+                    style={[styles.touchableText, globalStyles.f16Medium]}
+                  >
+                    Test Token Saving
+                  </CustomText>
+                </View>
+                <Ionicons
+                  name="chevron-forward-outline"
+                  size={20}
+                  color={color.primary}
+                />
+              </TouchableOpacity>
+              <View style={styles.divider} />
+            </View>
+            <View style={styles.profileDetails}>
+              <TouchableOpacity
+                style={styles.eachTouchable}
+                onPress={testFirebaseNotification}
+              >
+                <View style={styles.row}>
+                  <Ionicons name="notifications" size={22} color={color.primary} />
+                  <CustomText
+                    style={[styles.touchableText, globalStyles.f16Medium]}
+                  >
+                    Test Firebase Notification
+                  </CustomText>
+                </View>
+                <Ionicons
+                  name="chevron-forward-outline"
+                  size={20}
+                  color={color.primary}
+                />
+              </TouchableOpacity>
+              <View style={styles.divider} />
+            </View>
+            <View style={styles.profileDetails}>
+              <TouchableOpacity
+                style={styles.eachTouchable}
+                onPress={runAllFCMTests}
+              >
+                <View style={styles.row}>
+                  <Ionicons name="flask" size={22} color={color.primary} />
+                  <CustomText
+                    style={[styles.touchableText, globalStyles.f16Medium]}
+                  >
+                    Run All FCM Tests
+                  </CustomText>
+                </View>
+                <Ionicons
+                  name="chevron-forward-outline"
+                  size={20}
+                  color={color.primary}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 

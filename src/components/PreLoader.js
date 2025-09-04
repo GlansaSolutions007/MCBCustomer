@@ -13,8 +13,8 @@ const PreLoader = ({ onAnimationFinish }) => {
   return (
     <View style={styles.container}>
       <LottieView
-        source={require("../../assets/animations/meter.json")}
-        // source={require("../../assets/animations/carr.json")}
+        // source={require("../../assets/animations/meter.json")}
+        source={require("../../assets/animations/carr.json")}
         autoPlay
         loop={false}
         onAnimationFinish={onAnimationFinish}

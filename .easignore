@@ -1,0 +1,13 @@
+# Ignore unnecessary files during EAS build
+node_modules/
+.expo/
+.git/
+.vscode/
+*.log
+*.md
+*.json.bak
+
+# But ensure these important files are included
+!google-services.json
+!GoogleService-Info.plist
+!android/app/google-services.json

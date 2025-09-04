@@ -19,13 +19,13 @@ export default {
       buildNumber: "1.0.0",
     },
     android: {
+      package: "com.itglansa.mcbc",
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#136D6E",
       },
-      googleServicesFile: "google-services.json",
       edgeToEdgeEnabled: true,
-      package: "com.itglansa.mcbc", // ✅ match iOS
+
       googleServicesFile: "./google-services.json",
       permissions: [
         "ACCESS_FINE_LOCATION",
@@ -62,15 +62,15 @@ export default {
         {
           icon: "./assets/icons/active.png",
           color: "#017F77",
-          sounds: ["./assets/notificationtone.wav"],
         },
       ],
       [
         "expo-background-fetch",
         {
-          minimumInterval: 15 * 60, // 15 minutes
+          minimumInterval: 900, // 15 minutes
         },
       ],
+
     ],
     owner: "itglansa",
   },
