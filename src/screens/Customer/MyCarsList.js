@@ -18,6 +18,7 @@ import { color } from "../../styles/theme";
 import CustomText from "../../components/CustomText";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { getToken } from "../../utils/token";
+import Entypo from '@expo/vector-icons/Entypo';
 // import { API_BASE_URL } from "@env";
 import {
   API_URL,
@@ -263,13 +264,16 @@ export const MyCarsList = () => {
         </Pressable>
 
         {item.isPrimary ? (
-          <CustomText style={styles.primaryBadge}>Primary Car</CustomText>
+          <View style={styles.primaryBadge}>
+            <Entypo name="star-outlined" size={18} color="white" />
+            <CustomText style={styles.primaryText}>Primary Car</CustomText>
+          </View>
         ) : (
           <TouchableOpacity
             onPress={() => makeCarPrimary(item.id)}
             style={styles.makePrimaryBtn}
           >
-            <CustomText style={{ color: "#fff" }}>Make Primary</CustomText>
+            <CustomText style={[{ color: "#fff", marginBottom: 2 }, globalStyles.f10Bold]}> Make Primary</CustomText>
           </TouchableOpacity>
         )}
       </View>
@@ -475,15 +479,19 @@ const styles = StyleSheet.create({
     marginBottom: 1,
   },
   primaryBadge: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: color.primary,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
-
+  primaryText: {
+    color: "white",
+    marginLeft: 5,
+    ...globalStyles.f10Bold,
+    marginBottom: 2
+  },
   makePrimaryBtn: {
     backgroundColor: color.yellow,
     paddingVertical: 6,

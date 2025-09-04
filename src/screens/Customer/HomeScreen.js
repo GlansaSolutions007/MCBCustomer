@@ -485,7 +485,7 @@ useEffect(() => {
                             onError={(e) => console.log('Image load error:', e.nativeEvent.error)}
                           />
                           <CustomText style={styles.title}>
-                            {booking.BrandName} {booking.ModelName} (
+                            {booking.ModelName} (
                             {booking.FuelTypeName === 'Petrol'
                               ? 'P'
                               : booking.FuelTypeName === 'Diesel'
