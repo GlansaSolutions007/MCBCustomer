@@ -104,7 +104,7 @@ export default function BookServiceScreen() {
         <SearchBox
           value={searchQuery}
           onChangeText={setSearchQuery}
-          onSubmitEditing={() => { }} 
+          onSubmitEditing={() => { }}
         />
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -142,7 +142,7 @@ export default function BookServiceScreen() {
                       {cat.CategoryName.split(' ')[0]}
                     </CustomText>
                     <CustomText style={[globalStyles.f20Regular, globalStyles.textWhite]}>
-                      {cat.CategoryName.split(' ')[1] || 'Service'} {cat.CategoryName.split(' ')[2] || ''}
+                      {cat.CategoryName.split(' ')[1] || 'Service'} {cat.CategoryName.split(' ')[2] || ''} {cat.CategoryName.split(' ')[3] || ''} {cat.CategoryName.split(' ')[4] || ''} {cat.CategoryName.split(' ')[5] || ''}
                     </CustomText>
                   </LinearGradient>
                 </TouchableOpacity>
@@ -159,12 +159,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingBottom:10,
+    paddingBottom: 10,
     backgroundColor: '#fff',
   },
   scrollContent: {
     paddingBottom: 20,
-    marginTop:10
+    marginTop: 10
   },
   services: {
     flexDirection: 'column',
