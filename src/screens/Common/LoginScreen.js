@@ -246,7 +246,7 @@ export default function LoginScreen() {
           editable={!otpSent}
         />
 
-        {/* {otpSent && ( */}
+        {otpSent && (
         <TextInput
           placeholder="Enter OTP"
           placeholderTextColor={color.textInputDark}
@@ -256,12 +256,11 @@ export default function LoginScreen() {
           keyboardType="number-pad"
           maxLength={6}
         />
-        {/* )} */}
+         )} 
 
         <TouchableOpacity
           style={styles.button}
-          // onPress={otpSent ? handleVerifyOtp : handleSendOtp}
-          onPress={handleVerifyOtp}
+          onPress={otpSent ? handleVerifyOtp : handleSendOtp}
           disabled={loading}
         >
           <CustomText style={styles.buttonText}>
