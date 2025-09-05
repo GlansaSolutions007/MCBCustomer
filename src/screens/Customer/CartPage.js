@@ -204,6 +204,22 @@ const CartPage = () => {
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        // This runs when the screen is blurred (navigated away from)
+        setScheduledDate(null);
+        setScheduledTimeLabel(null);
+        AsyncStorage.removeItem("selectedDate").catch((e) =>
+          console.error("Error removing selectedDate:", e)
+        );
+        AsyncStorage.removeItem("selectedTimeSlotLabel").catch((e) =>
+          console.error("Error removing selectedTimeSlotLabel:", e)
+        );
+      };
+    }, [])
+  );
+
   let discountAmount = 0;
 
   const totalServiceAmount = cartItems.reduce(
@@ -306,7 +322,7 @@ const CartPage = () => {
           return;
         }
 
-        
+
         if (!vehicleId) {
           showCustomAlert(
             "error",
