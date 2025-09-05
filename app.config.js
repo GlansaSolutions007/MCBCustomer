@@ -48,7 +48,7 @@ export default {
       favicon: "./assets/favicon.png",
     },
     extra: {
-      API_BASE_URL: process.env.API_BASE_URL,
+      API_URL: process.env.API_URL,
       API_IMAGE_URL: process.env.API_IMAGE_URL,
       RAZORPAY_KEY: process.env.RAZORPAY_KEY,
       GOOGLE_MAPS_APIKEY: process.env.GOOGLE_MAPS_APIKEY,

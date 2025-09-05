@@ -18,7 +18,7 @@ import globalStyles from "../../styles/globalStyles";
 import { useAuth } from "../../contexts/AuthContext";
 import { color } from "../../styles/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "@env";
+import { API_URL, API_IMAGE_URL } from "@env";
 import NoInternetScreen from "./NoInternetScreen";
 import testNotificationUtils from "../../utils/notificationTestUtils";
 

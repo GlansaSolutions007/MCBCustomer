@@ -20,12 +20,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { getToken } from "../../utils/token";
 import Entypo from '@expo/vector-icons/Entypo';
 // import { API_BASE_URL } from "@env";
-import {
-  API_URL,
-  API_IMAGE_URL,
-  GOOGLE_MAPS_APIKEY,
-  RAZORPAY_KEY,
-} from "@env";
+import { API_URL, API_IMAGE_URL } from "@env";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import carAddIcon from "../../../assets/icons/caddAddIcon.png";
@@ -81,7 +76,7 @@ export const MyCarsList = () => {
         fuel: car.FuelTypeName,
         manufacturer: car.BrandName,
         image: {
-          uri: `https://api.mycarsbuddy.com/Images${car.VehicleImage}`,
+          uri: `${API_IMAGE_URL}${car.VehicleImage}`,
         },
         vehicleNumber: car.VehicleNumber,
         isPrimary: car.IsPrimary,

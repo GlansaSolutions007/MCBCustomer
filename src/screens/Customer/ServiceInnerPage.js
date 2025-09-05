@@ -10,7 +10,7 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import { useCart } from '../../contexts/CartContext'
 import { color } from '../../styles/theme'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "@env";
+import { API_URL, API_IMAGE_URL } from "@env";
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 

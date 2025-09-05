@@ -67,6 +67,8 @@ export default function LoginScreen() {
     }, 1000);
   };
 
+  
+
   const handleSendOtp = async () => {
     if (!loginId || !/^[6-9]\d{9}$/.test(loginId)) {
       setTitle("Invalid Input");
@@ -175,6 +177,7 @@ export default function LoginScreen() {
         throw new Error(result?.message || "Invalid OTP.");
       }
     } catch (error) {
+      console.log("API_URL:", API_URL);
       console.log("OTP Verification Error:", error.message);
       setTitle("OTP Verification Failed");
       setMessage(error.message || "Unable to verify OTP.");

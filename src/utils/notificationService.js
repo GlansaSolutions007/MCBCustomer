@@ -3,8 +3,8 @@ import * as Device from "expo-device";
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { API_URL } from "@env";
 import { registerBackgroundFetch } from "./backgroundTaskService";
+import { API_URL, API_IMAGE_URL, RAZORPAY_KEY } from "@env";
 
 // Notification status tracking keys
 const NOTIFICATION_KEYS = {
@@ -127,6 +127,7 @@ export const saveCustomerPushToken = async (customerId, tokens) => {
   try {
     const { expoPushToken, fcmToken } = tokens;
     
+    // const API_URL = Constants.expoConfig?.extra?.API_BASE_URL;
     await axios.post(`${API_URL}Push/register`, {
       userType: 'customer',
       id: Number(customerId),
@@ -173,6 +174,7 @@ export const sendPushNotification = async (customerId, title, body, data = {}) =
     console.log('Sending push notification to customer:', customerId);
     console.log('Notification data:', { title, body, data });
     
+    // const API_URL = Constants.expoConfig?.extra?.API_BASE_URL;
     const response = await axios.post(`${API_URL}Push/sendToCustomer`, {
       id: Number(customerId),
       title,

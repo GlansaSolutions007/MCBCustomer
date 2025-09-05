@@ -1,6 +1,7 @@
 import { db } from "../config/firebaseConfig";
 import { ref, set, push } from "firebase/database";
-import { registerForPushNotificationsAsync } from "../config/Notifications";
+import { registerForPushNotificationsAsync } from "../utils/notificationService";
+
 import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 

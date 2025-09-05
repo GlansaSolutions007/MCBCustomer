@@ -199,7 +199,7 @@ const CartPage = () => {
     try {
       const userData = await AsyncStorage.getItem("userData");
       const user = JSON.parse(userData);
-      const token = getToken();
+      const token = await getToken();
       // console.log('user', user);
       // console.log('add', primaryAddress);
       // console.log('vehi', vehicleId);

@@ -23,12 +23,7 @@ import CustomAlert from "../../components/CustomAlert";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 // import { API_BASE_URL } from "@env";
-import {
-  API_URL,
-  API_IMAGE_URL,
-  GOOGLE_MAPS_APIKEY,
-  RAZORPAY_KEY,
-} from "@env";
+import { API_URL, API_IMAGE_URL } from "@env";
 
 export const ProfileRegister = () => {
   //

@@ -2,8 +2,9 @@ import * as TaskManager from 'expo-task-manager';
 import * as BackgroundFetch from 'expo-background-fetch';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { API_URL } from "@env";
 import { monitorBookingsForNotifications } from "./notificationService";
+import { API_URL, API_IMAGE_URL, RAZORPAY_KEY } from "@env";
+
 
 // Background task name
 const BACKGROUND_FETCH_TASK = 'background-booking-monitor';
@@ -27,6 +28,7 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     }
 
     // Fetch current bookings
+    // const API_URL = Constants.expoConfig?.extra?.API_BASE_URL;
     const response = await axios.get(`${API_URL}Bookings/${custID}`);
     const bookings = response.data || [];
 

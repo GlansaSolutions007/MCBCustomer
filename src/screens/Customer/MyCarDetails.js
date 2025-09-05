@@ -26,12 +26,7 @@ import CustomText from "../../components/CustomText";
 import Checkbox from "expo-checkbox";
 import CustomDropdown from "../../components/CustomDropdown";
 // import { API_BASE_URL } from '@env';
-import {
-  API_URL,
-  API_IMAGE_URL,
-  GOOGLE_MAPS_APIKEY,
-  RAZORPAY_KEY,
-} from "@env";
+import { API_URL } from "@env";
 
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";

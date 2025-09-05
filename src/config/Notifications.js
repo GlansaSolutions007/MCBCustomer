@@ -44,3 +44,5 @@ export async function registerForPushNotificationsAsync() {
 
   return { expoPushToken, fcmToken };
 }
+
+

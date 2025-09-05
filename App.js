@@ -12,9 +12,6 @@ import { Text, TextInput } from "react-native";
 import { LocationProvider } from "./src/contexts/LocationContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { CouponProvider } from "./src/contexts/CouponContext";
-import { registerForPushNotificationsAsync } from "./src/config/Notifications";
-import { initializeNotificationSystem } from "./src/utils/notificationService";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNotificationSystem } from "./src/hooks/useNotificationSystem";
 import { enableScreens } from "react-native-screens";
 

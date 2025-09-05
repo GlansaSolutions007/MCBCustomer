@@ -22,12 +22,7 @@ import {
 } from "react-native-safe-area-context";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
-import {
-  API_URL,
-  API_IMAGE_URL,
-  GOOGLE_MAPS_APIKEY,
-  RAZORPAY_KEY,
-} from "@env";
+import { API_URL, API_IMAGE_URL } from "@env";
 
 // import Constants from "expo-constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";

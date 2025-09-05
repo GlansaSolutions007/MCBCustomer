@@ -12,7 +12,7 @@ import globalStyles from "../../styles/globalStyles";
 import { color } from "../../styles/theme";
 import CustomText from "../../components/CustomText";
 // import { API_BASE_URL } from "@env";
-import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "@env";
+import { API_URL, API_IMAGE_URL } from "@env";
 import axios from "axios";
 import SearchBox from "../../components/SearchBox";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";

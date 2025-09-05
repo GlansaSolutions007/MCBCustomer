@@ -30,7 +30,7 @@ import axios from "axios";
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import * as Notifications from "expo-notifications";
 
-import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "@env";
+import { API_URL, API_IMAGE_URL, RAZORPAY_KEY } from "@env";
 import { getToken } from "../../utils/token";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -43,7 +43,6 @@ const formatDate = (dateString) => {
 };
 
 export default function HomeScreen() {
-  const token = getToken();
   // alert(API_URL);
   const navigation = useNavigation();
   const { setLocationText, setLocationStatus } = useContext(LocationContext);
@@ -54,6 +53,7 @@ export default function HomeScreen() {
   const fetchCategories = async () => {
     setLoading(true);
     try {
+      const token = await getToken();
       const response = await axios.get(`${API_URL}Category`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -78,6 +78,7 @@ export default function HomeScreen() {
       const parsedUserData = (JSON.parse(userData));
       const custID = parsedUserData.custID;
       const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      const token = await getToken();
       const response = await axios.get(`${API_URL}Bookings/${custID}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -129,7 +130,7 @@ useEffect(() => {
 
   const handleCategoryPress = async (category) => {
     try {
-      // const token = await getToken();
+      const token = await getToken();
       const response = await axios.get(
         `${API_URL}SubCategory1/subcategorybycategoryid?categoryid=${category.CategoryID}`,
         {

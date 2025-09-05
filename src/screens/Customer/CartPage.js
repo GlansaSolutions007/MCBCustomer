@@ -25,9 +25,8 @@ import CustomText from "../../components/CustomText";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCart } from "../../contexts/CartContext";
-import Config from "react-native-config";
 import RazorpayCheckout from "react-native-razorpay";
-// import { RAZORPAY_KEY } from "@env";
+import { API_URL, API_IMAGE_URL, RAZORPAY_KEY } from "@env";
 import bg from "../../../assets/images/info.png";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useCoupon } from "../../contexts/CouponContext";
@@ -35,12 +34,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { all } from "axios";
 import { getToken } from "../../utils/token";
 // import { API_BASE_URL } from "@env";
-import {
-  API_URL,
-  API_IMAGE_URL,
-  GOOGLE_MAPS_APIKEY,
-  RAZORPAY_KEY,
-} from "@env";
+ 
 import moment from "moment";
 import CustomAlert from "../../components/CustomAlert";
 
@@ -252,6 +246,7 @@ const CartPage = () => {
       const userData = await AsyncStorage.getItem("userData");
       const user = JSON.parse(userData);
       const token = getToken();
+      console.log("At the payment:", API_URL);
 
       if (
         !customerName ||
@@ -366,7 +361,7 @@ const CartPage = () => {
         CouponCode: couponCode,
         CouponAmount: discountAmount,
         GSTAmount: gst,
-        // BookingFrom: "app",
+        BookingFrom: "app",
         PaymentMethod: paymentMethod,
         Notes: instructions || "",
         BookingDate: scheduledDate,
@@ -439,7 +434,21 @@ const CartPage = () => {
         }, 300);
       }
     } catch (error) {
-      console.error("❌ Booking failed:", error?.response || error);
+      if (error.response) {
+        // Server responded with an error
+        console.log("🔴 Response data:", error.response.data);
+        console.log("🔴 Response status:", error.response.status);
+        console.log("🔴 Response headers:", error.response.headers);
+      } else if (error.request) {
+        // Request was made but no response received
+        console.log("🟠 No response received. Request details:", error.request);
+      } else {
+        // Something went wrong before sending
+        console.log("⚠️ Error setting up request:", error.message);
+      }
+    
+      console.log("🔵 Config:", error.config);
+    
       showCustomAlert(
         "error",
         "Booking Failed",

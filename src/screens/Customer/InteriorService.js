@@ -30,12 +30,7 @@ import { useCart } from "../../contexts/CartContext";
 import { getToken } from "../../utils/token";
 import axios from "axios";
 // import { API_BASE_URL } from "@env";
-import {
-  API_URL,
-  API_IMAGE_URL,
-  GOOGLE_MAPS_APIKEY,
-  RAZORPAY_KEY,
-} from "@env";
+import { API_URL, API_IMAGE_URL } from "@env";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CustomAlert from "../../components/CustomAlert";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -128,7 +123,7 @@ const InteriorService = () => {
           fuel: car.FuelTypeName,
           manufacturer: car.BrandName,
           image: {
-            uri: `https://api.mycarsbuddy.com/Images${car.VehicleImage}`,
+            uri: `${API_IMAGE_URL}${car.VehicleImage}`,
           },
           vehicleNumber: car.VehicleNumber,
           isPrimary: car.IsPrimary,
