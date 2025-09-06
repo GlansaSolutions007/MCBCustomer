@@ -118,7 +118,7 @@ export default function LoginScreen() {
       if (response.ok) {
         setOtpSent(true);
         setTitle("OTP Sent");
-        setMessage("Your key is on its way, check your phone!");
+        setMessage("Your OTP is on its way, check your phone!");
         setStatus("success");
         startResendTimer();
         
