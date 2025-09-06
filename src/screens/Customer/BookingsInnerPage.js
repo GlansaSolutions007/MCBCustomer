@@ -251,7 +251,7 @@ export default function BookingsInnerPage() {
             <CustomText style={[styles.value, globalStyles.f12Bold]}>
               {booking.Payments && booking.Payments.length > 0
                 ? `₹ ${booking.Payments[0].AmountPaid}`
-                : "Payment Pending"}
+                : "Payment Failed"}
             </CustomText>
           </View>
           {booking.BookingStatus.toLowerCase() === 'pending' && (

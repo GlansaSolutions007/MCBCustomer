@@ -24,6 +24,7 @@ import AddressListScreen from "../screens/Customer/AddressList";
 import Reviews from "../screens/Customer/Reviews";
 import MapTest from "../screens/Customer/MapTest";
 import NotificationSettingsScreen from "../screens/Customer/NotificationSettingsScreen";
+import InvoiceListScreen from "../screens/Customer/InvoiceListScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -140,6 +141,11 @@ export default function CustomerStackNavigator() {
           name="MapTest"
           component={MapTest}
           options={{ title: "Map Test" }}
+        />
+         <Stack.Screen
+          name="InvoiceList"
+          component={InvoiceListScreen}
+          options={{ title: "Your Invoices" }}
         />
       </Stack.Navigator>
       

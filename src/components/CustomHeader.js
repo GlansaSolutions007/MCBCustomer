@@ -139,16 +139,29 @@ export default function CustomHeader({ navigation }) {
   const fetchAddresses = async () => {
     try {
       const userData = await AsyncStorage.getItem("userData");
+      
+      // Check if userData exists
+      if (!userData) {
+        console.warn("No userData found in AsyncStorage");
+        return;
+      }
+
       const parsedData = JSON.parse(userData);
       console.log(parsedData, 'userrrrr');
 
+      // Check if parsedData is valid and has custID
+      if (!parsedData || !parsedData.custID) {
+        console.warn("Invalid userData or missing custID:", parsedData);
+        return;
+      }
+
       console.log(parsedData.custID, "user data in cart page");
-      const custID = parsedData?.custID;
+      const custID = parsedData.custID;
 
       console.log(custID, "customer id in cart page");
 
       const response = await axios.get(
-        `${API_URL}CustomerAddresses/custid?custid=${parsedData?.custID}`
+        `${API_URL}CustomerAddresses/custid?custid=${custID}`
       );
       const allAddresses = response.data;
 

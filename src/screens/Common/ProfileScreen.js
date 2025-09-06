@@ -147,7 +147,7 @@ export default function ProfileScreen() {
       </View>
       <View style={styles.heading}>
         <CustomText style={[globalStyles.f20Bold, globalStyles.textWhite]}>
-          {name}
+          {name || "Hey Buddy"}
         </CustomText>
       </View>
       <ScrollView
@@ -209,7 +209,7 @@ export default function ProfileScreen() {
               </TouchableOpacity>
               <View style={styles.divider} />
             </View>
-            <View style={styles.profileDetails}>
+            {/* <View style={styles.profileDetails}>
               <TouchableOpacity
                 style={styles.eachTouchable}
                 onPress={() => navigation.navigate("NotificationSettings")}
@@ -233,7 +233,7 @@ export default function ProfileScreen() {
                 />
               </TouchableOpacity>
               <View style={styles.divider} />
-            </View>
+            </View> */}
             <View style={styles.profileDetails}>
               <TouchableOpacity
                 style={styles.eachTouchable}
@@ -289,25 +289,23 @@ export default function ProfileScreen() {
               <View style={styles.divider} />
             </View>
             <View style={styles.profileDetails}>
-              <TouchableOpacity style={styles.eachTouchable}>
+              <TouchableOpacity 
+                style={styles.eachTouchable}
+                onPress={() => navigation.navigate("InvoiceList")}
+              >
                 <View style={styles.row}>
                   <Ionicons name="wallet" size={22} color={color.primary} />
                   <CustomText
                     style={[styles.touchableText, globalStyles.f16Medium]}
                   >
-                    Invoice list{" "}
-                    <CustomText
-                      style={[globalStyles.f10Medium, { color: "red" }]}
-                    >
-                      (Coming Soon)
-                    </CustomText>
+                    Invoice List
                   </CustomText>
                 </View>
-                {/* <Ionicons
+                <Ionicons
                   name="chevron-forward-outline"
                   size={20}
                   color={color.primary}
-                /> */}
+                />
               </TouchableOpacity>
               {/* <View style={styles.divider} /> */}
             </View>
@@ -420,7 +418,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* FCM Testing Section */}
-        <View style={styles.signleCard}>
+        {/* <View style={styles.signleCard}>
           <CustomText style={[globalStyles.f12Bold, globalStyles.mb2]}>
             FCM Testing
           </CustomText>
@@ -509,7 +507,7 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </View> */}
 
         {/* Bottom Buttons */}
         <View style={styles.cardContainer}>

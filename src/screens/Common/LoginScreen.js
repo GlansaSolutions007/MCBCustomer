@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from "react";
+import React, { use, useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   Alert,
+  Animated,
 } from "react-native";
 import fonts from "../../styles/fonts";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,6 +26,7 @@ import { useNavigation } from "@react-navigation/native";
 import * as Device from "expo-device";
 import { registerForPushNotificationsAsync, saveCustomerPushToken } from "../../utils/notifications";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Logo from '../../../assets/Logo/logo2.png'
 import BgImage from '../../../assets/images/loginbg5.png'
@@ -47,8 +49,20 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(0);
   const [resendDisabled, setResendDisabled] = useState(true);
+  const [showLogo, setShowLogo] = useState(false);
 
   const navigation = useNavigation();
+
+  // Animation refs
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const logoScale = useRef(new Animated.Value(0.8)).current;
+  const inputScale = useRef(new Animated.Value(1)).current;
+  const buttonScale = useRef(new Animated.Value(1)).current;
+  const otpInputSlide = useRef(new Animated.Value(50)).current;
+  const otpInputOpacity = useRef(new Animated.Value(0)).current;
+  const inputFocusScale = useRef(new Animated.Value(1)).current;
+  const contentTranslateY = useRef(new Animated.Value(0)).current;
+  const keyboardHeight = useRef(new Animated.Value(0)).current;
 
   // alert(API_BASE_URL);
   const startResendTimer = () => {
@@ -79,6 +93,21 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
+    
+    // Animate button press
+    Animated.sequence([
+      Animated.timing(buttonScale, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(buttonScale, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     try {
       const response = await fetch(`${API_URL}Auth/send-otp`, {
         method: "POST",
@@ -89,9 +118,23 @@ export default function LoginScreen() {
       if (response.ok) {
         setOtpSent(true);
         setTitle("OTP Sent");
-        setMessage("Please check your phone for the OTP.");
+        setMessage("Your key is on its way, check your phone!");
         setStatus("success");
         startResendTimer();
+        
+        // Animate OTP input appearance`
+        Animated.parallel([
+          Animated.timing(otpInputSlide, {
+            toValue: 0,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+          Animated.timing(otpInputOpacity, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+        ]).start();
       } else {
         const errorText = await response.text();
         throw new Error(errorText);
@@ -191,17 +234,73 @@ export default function LoginScreen() {
   useEffect(() => {
     const showSub = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
-      () => setKeyboardVisible(true)
+      (event) => {
+        setKeyboardVisible(true);
+        
+        // Animate content up when keyboard appears with subtle bounce
+        Animated.sequence([
+          Animated.timing(contentTranslateY, {
+            toValue: -90, // Move content up by 90px initially
+            duration: Platform.OS === "ios" ? 200 : 150,
+            useNativeDriver: true,
+          }),
+          Animated.timing(contentTranslateY, {
+            toValue: -80, // Settle at 80px with bounce effect
+            duration: Platform.OS === "ios" ? 100 : 80,
+            useNativeDriver: true,
+          }),
+        ]).start();
+        
+        Animated.timing(keyboardHeight, {
+          toValue: event.endCoordinates.height,
+          duration: Platform.OS === "ios" ? 250 : 200,
+          useNativeDriver: false,
+        }).start();
+      }
     );
+    
     const hideSub = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
-      () => setKeyboardVisible(false)
+      () => {
+        setKeyboardVisible(false);
+        
+        // Animate content back to original position with smooth transition
+        Animated.parallel([
+          Animated.timing(contentTranslateY, {
+            toValue: 0,
+            duration: Platform.OS === "ios" ? 300 : 250,
+            useNativeDriver: true,
+          }),
+          Animated.timing(keyboardHeight, {
+            toValue: 0,
+            duration: Platform.OS === "ios" ? 300 : 250,
+            useNativeDriver: false,
+          }),
+        ]).start();
+      }
     );
 
     return () => {
       showSub.remove();
       hideSub.remove();
     };
+  }, []);
+
+  // Show logo immediately on mount
+  useEffect(() => {
+    setShowLogo(true);
+    Animated.parallel([
+      Animated.timing(logoOpacity, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(logoScale, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
 
   return (
@@ -222,65 +321,135 @@ export default function LoginScreen() {
         </TouchableOpacity>
       )} */}
       <View />
-      <View style={[globalStyles.container]}>
-        {!keyboardVisible && (
-          <View>
-            <Image
-              source={Logo}
-              style={styles.logo}
+      <Animated.View 
+        style={[
+          globalStyles.container,
+          {
+            transform: [{ translateY: contentTranslateY }],
+          }
+        ]}
+      >
+        {/* Logo with animation - always show initially */}
+        <Animated.View
+          style={{
+            opacity: logoOpacity,
+            transform: [{ scale: logoScale }],
+          }}
+        >
+          <Image
+            source={Logo}
+            style={styles.logo}
+          />
+        </Animated.View>
+
+        {/* Phone Number Input with +91 prefix */}
+        <Animated.View style={{ transform: [{ scale: inputFocusScale }] }}>
+          <View style={styles.phoneInputContainer}>
+            <View style={styles.prefixContainer}>
+              <CustomText style={styles.prefixText}>+91</CustomText>
+            </View>
+            <TextInput
+              placeholder="Enter Your Phone Number"
+              placeholderTextColor={color.textInputDark}
+              value={loginId}
+              onChangeText={setLoginId}
+              style={[
+                styles.textInputWithPrefix,
+                otpSent && styles.disabledInput
+              ]}
+              keyboardType="phone-pad"
+              autoCapitalize="none"
+              editable={!otpSent}
+              maxLength={10}
+              onFocus={() => {
+                Animated.timing(inputFocusScale, {
+                  toValue: 1.02,
+                  duration: 200,
+                  useNativeDriver: true,
+                }).start();
+              }}
+              onBlur={() => {
+                Animated.timing(inputFocusScale, {
+                  toValue: 1,
+                  duration: 200,
+                  useNativeDriver: true,
+                }).start();
+              }}
             />
           </View>
-        )}
+        </Animated.View>
 
-        <TextInput
-          placeholder="Enter Your Phone Number"
-          placeholderTextColor={color.textInputDark}
-          value={loginId}
-          onChangeText={setLoginId}
-          style={[
-            styles.textInput,
-            otpSent && { backgroundColor: "#f2f2f2", color: "#888" }
-          ]}
-          keyboardType="phone-pad"
-          autoCapitalize="none"
-          editable={!otpSent}
-        />
-
+        {/* OTP Input with animation */}
         {otpSent && (
-        <TextInput
-          placeholder="Enter OTP"
-          placeholderTextColor={color.textInputDark}
-          value={otp}
-          onChangeText={setOtp}
-          style={styles.textInput}
-          keyboardType="number-pad"
-          maxLength={6}
-        />
-         )} 
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={otpSent ? handleVerifyOtp : handleSendOtp}
-          disabled={loading}
-        >
-          <CustomText style={styles.buttonText}>
-            {loading ? "Please wait..." : otpSent ? "Verify OTP" : "Send OTP"}
-          </CustomText>
-        </TouchableOpacity>
-        {otpSent && (
-          <TouchableOpacity
-            onPress={handleSendOtp}
-            disabled={resendDisabled}
-            style={[
-              styles.resendButton,
-              { backgroundColor: resendDisabled ? "#aaa" : color.white },
-            ]}
+          <Animated.View
+            style={{
+              transform: [{ translateY: otpInputSlide }],
+              opacity: otpInputOpacity,
+            }}
           >
-            <CustomText style={styles.resendButtonText}>
-              {resendDisabled ? `Resend OTP in ${timer}s` : "Resend OTP"}
+            <TextInput
+              placeholder="Enter OTP"
+              placeholderTextColor={color.textInputDark}
+              value={otp}
+              onChangeText={setOtp}
+              style={styles.textInput}
+              keyboardType="number-pad"
+              maxLength={6}
+              onFocus={() => {
+                Animated.timing(inputFocusScale, {
+                  toValue: 1.02,
+                  duration: 200,
+                  useNativeDriver: true,
+                }).start();
+              }}
+              onBlur={() => {
+                Animated.timing(inputFocusScale, {
+                  toValue: 1,
+                  duration: 200,
+                  useNativeDriver: true,
+                }).start();
+              }}
+            />
+          </Animated.View>
+        )} 
+
+        {/* Button with animation */}
+        <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={otpSent ? handleVerifyOtp : handleSendOtp}
+            disabled={loading}
+          >
+            <CustomText style={styles.buttonText}>
+              {loading ? "Please wait..." : otpSent ? "Verify OTP" : "Send OTP"}
             </CustomText>
           </TouchableOpacity>
+        </Animated.View>
+        
+        {/* Resend Button */}
+        {otpSent && (
+          <Animated.View
+            style={{
+              transform: [{ translateY: otpInputSlide }],
+              opacity: otpInputOpacity,
+            }}
+          >
+            <TouchableOpacity
+              onPress={handleSendOtp}
+              disabled={resendDisabled}
+              style={[
+                styles.resendButton,
+                { backgroundColor: resendDisabled ? "#aaa" : color.white },
+              ]}
+            >
+              <CustomText style={styles.resendButtonText}>
+                {resendDisabled ? `Resend OTP in ${timer}s` : "Resend OTP"}
+              </CustomText>
+            </TouchableOpacity>
+          </Animated.View>
         )}
+        
+        {/* Footer content - only show when keyboard is not visible */}
         {!keyboardVisible && (
           <>
             <View style={[globalStyles.flexrow, globalStyles.alineItemscenter, globalStyles.justifysb, globalStyles.mt1]}>
@@ -305,7 +474,7 @@ export default function LoginScreen() {
             </TouchableOpacity> */}
           </>
         )}
-      </View>
+      </Animated.View>
 
       {/* Components */}
       <CustomAlert
@@ -388,6 +557,36 @@ const styles = StyleSheet.create({
     // fontFamily: fonts.regular,
     fontSize: 16,
     marginBottom: 20,
+  },
+  phoneInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderColor: color.black,
+    marginBottom: 20,
+  },
+  prefixContainer: {
+    paddingVertical: 10,
+    paddingRight: 8,
+    borderRightWidth: 1,
+    borderRightColor: color.black,
+    marginRight: 8,
+  },
+  prefixText: {
+    color: color.black,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  textInputWithPrefix: {
+    flex: 1,
+    paddingVertical: 10,
+    color: color.black,
+    fontSize: 16,
+  },
+  disabledInput: {
+    backgroundColor: "rgba(242, 242, 242, 0.3)",
+    color: "#888",
+    opacity: 0.6,
   },
   button: {
     backgroundColor: color.primary,

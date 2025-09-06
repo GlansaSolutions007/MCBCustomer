@@ -75,7 +75,21 @@ export default function HomeScreen() {
   const fetchTodaysBookings = async () => {
     try {
       const userData = await AsyncStorage.getItem("userData");
-      const parsedUserData = (JSON.parse(userData));
+      
+      // Check if userData exists
+      if (!userData) {
+        console.warn("No userData found in AsyncStorage");
+        return;
+      }
+
+      const parsedUserData = JSON.parse(userData);
+      
+      // Check if parsedUserData is valid and has custID
+      if (!parsedUserData || !parsedUserData.custID) {
+        console.warn("Invalid userData or missing custID:", parsedUserData);
+        return;
+      }
+
       const custID = parsedUserData.custID;
       const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
       const token = await getToken();

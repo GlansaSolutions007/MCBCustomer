@@ -70,7 +70,7 @@ export default function ServiceList() {
       setBookings((prev) => {
         return [...bookingsData];
       });
-      
+
       // Monitor bookings for notification changes
       if (custID) {
         monitorBookingsForNotifications(bookingsData, custID);
@@ -338,7 +338,7 @@ export default function ServiceList() {
             <SkeletonLoader />
             {/* <SkeletonLoader /> */}
           </View>
-        ) : (bookings.length === 0) ? (
+        ) : bookings.length === 0 ? (
           <Pressable
             onPress={() =>
               navigation.navigate("CustomerTabNavigator", {
@@ -366,12 +366,18 @@ export default function ServiceList() {
               style={{ marginBottom: 8 }}
             />
             <CustomText
-              style={[globalStyles.f16Bold, { color: color.primary, textAlign: "center" }]}
+              style={[
+                globalStyles.f16Bold,
+                { color: color.primary, textAlign: "center" },
+              ]}
             >
               No bookings for today
             </CustomText>
             <CustomText
-              style={[globalStyles.f16Bold, { color: color.primary, textAlign: "center" }]}
+              style={[
+                globalStyles.f16Bold,
+                { color: color.primary, textAlign: "center" },
+              ]}
             >
               Explore our services!
             </CustomText>
@@ -386,7 +392,6 @@ export default function ServiceList() {
               </CustomText>
             </View>
           </Pressable>
-
         ) : filteredBookings.length === 0 ? (
           <View style={{ marginTop: 20, alignItems: "center" }}>
             <CustomText style={{ color: "#999", ...globalStyles.f12Regular }}>
@@ -398,15 +403,33 @@ export default function ServiceList() {
             <Pressable
               key={booking.BookingID}
               style={styles.bookingCard}
+              disabled={booking.BookingStatus?.toLowerCase() === "failed"}
               onPress={() =>
                 navigation.navigate("BookingsInnerPage", { booking })
               }
             >
               <View>
                 <View style={styles.bookingR1}>
-                  <CustomText style={styles.bookingID}>
-                    BID: {booking.BookingTrackID}
-                  </CustomText>
+                  {booking.BookingStatus?.toLowerCase() !== "failed" ? (
+                    <CustomText
+                      style={[
+                        styles.bookingID,
+                        { backgroundColor: color.secondary },
+                      ]}
+                    >
+                      BID: {booking.BookingTrackID}
+                    </CustomText>
+                  ) : (
+                    <CustomText
+                      style={[
+                        styles.bookingID,
+                        { backgroundColor: color.alertError },
+                      ]}
+                    >
+                      BID: {booking.BookingTrackID}
+                    </CustomText>
+                  )}
+
                   {booking.BookingStatus?.toLowerCase() !== "cancelled" && (
                     <CustomText
                       style={[
@@ -446,8 +469,8 @@ export default function ServiceList() {
                       {booking.FuelTypeName === "Petrol"
                         ? "P"
                         : booking.FuelTypeName === "Diesel"
-                          ? "D"
-                          : "E"}
+                        ? "D"
+                        : "E"}
                       )
                     </CustomText>
                     <CustomText style={styles.subText}>
@@ -469,7 +492,12 @@ export default function ServiceList() {
                       </CustomText>
                     </View>
                     <View style={styles.bookingDate}>
-                      <CustomText style={[globalStyles.f10Regular,{ color: color.primary },]}>
+                      <CustomText
+                        style={[
+                          globalStyles.f10Regular,
+                          { color: color.primary },
+                        ]}
+                      >
                         Booked Slot:
                       </CustomText>
                       <CustomText style={[globalStyles.f12Bold]}>
@@ -477,7 +505,12 @@ export default function ServiceList() {
                       </CustomText>
                     </View>
                     <View style={styles.bookingDate}>
-                      <CustomText style={[globalStyles.f10Regular,{ color: color.primary },]}>
+                      <CustomText
+                        style={[
+                          globalStyles.f10Regular,
+                          { color: color.primary },
+                        ]}
+                      >
                         Service Amount:
                       </CustomText>
                       {/* <CustomText style={[globalStyles.f12Bold]}>
@@ -486,14 +519,20 @@ export default function ServiceList() {
                       <CustomText style={[globalStyles.f12Bold]}>
                         {booking.Payments && booking.Payments.length > 0
                           ? `₹ ${booking.Payments[0].AmountPaid}`
-                          : "Payment Pending"}
+                          : "Payment Failed"}
                       </CustomText>
                     </View>
                   </View>
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.bookingServices}>
-                  <CustomText style={[globalStyles.f10Regular,globalStyles.mb2,{ color: color.primary }]}>
+                  <CustomText
+                    style={[
+                      globalStyles.f10Regular,
+                      globalStyles.mb2,
+                      { color: color.primary },
+                    ]}
+                  >
                     Services Booked:
                   </CustomText>
 
@@ -537,9 +576,22 @@ export default function ServiceList() {
                               { color: color.primary },
                             ]}
                           >
-                            {booking.BookingStatus.toLowerCase() === "startjourney"
-                              ? "Started Journey"
-                              : booking.BookingStatus}
+                            {booking.BookingStatus?.toLowerCase() ===
+                            "startjourney" ? (
+                              "Started Journey"
+                            ) : booking.BookingStatus?.toLowerCase() ===
+                              "failed" ? (
+                              <CustomText
+                                style={[
+                                  globalStyles.f10Bold,
+                                  { color: color.alertError },
+                                ]}
+                              >
+                                {booking.BookingStatus}
+                              </CustomText>
+                            ) : (
+                              booking.BookingStatus
+                            )}
                           </CustomText>
                         </CustomText>
                       )}
@@ -676,7 +728,7 @@ const styles = StyleSheet.create({
   },
   bookingID: {
     ...globalStyles.f10Bold,
-    backgroundColor: color.secondary,
+
     padding: 5,
     borderRadius: 10,
     color: color.white,

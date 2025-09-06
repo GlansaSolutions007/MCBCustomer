@@ -58,12 +58,16 @@ const CartPage = () => {
   // for selection of payment method
   const [paymentMethod, setPaymentMethod] = useState("Razorpay");
   const [disable, setDisable] = useState(false);
+  const [bookingTrackId, setBookingTrackId] = useState(null);
 
   const showCustomAlert = (status, title, message) => {
-    setAlertStatus(status);
-    setAlertTitle(title);
-    setAlertMessage(message);
-    setAlertVisible(true);
+    // Use setTimeout to ensure the alert shows immediately after state updates
+    setTimeout(() => {
+      setAlertStatus(status);
+      setAlertTitle(title);
+      setAlertMessage(message);
+      setAlertVisible(true);
+    }, 50);
   };
 
   const navigation = useNavigation();
@@ -134,38 +138,81 @@ const CartPage = () => {
     }, [])
   );
 
-  const fetchAddresses = async () => {
+  const fetchAddresses = async (retryCount = 0) => {
     try {
       const userData = await AsyncStorage.getItem("userData");
+      
+      // Check if userData exists
+      if (!userData) {
+        console.warn("No userData found in AsyncStorage");
+        
+        // Retry after a delay if this is the first attempt
+        if (retryCount < 2) {
+          console.log(`Retrying fetchAddresses in 1 second... (attempt ${retryCount + 1})`);
+          setTimeout(() => fetchAddresses(retryCount + 1), 1000);
+        }
+        return;
+      }
+
       const parsedData = JSON.parse(userData);
+      
+      // Check if parsedData is valid and has custID
+      if (!parsedData || !parsedData.custID) {
+        console.warn("Invalid userData or missing custID:", parsedData);
+        
+        // Retry after a delay if this is the first attempt
+        if (retryCount < 2) {
+          console.log(`Retrying fetchAddresses in 1 second... (attempt ${retryCount + 1})`);
+          setTimeout(() => fetchAddresses(retryCount + 1), 1000);
+        }
+        return;
+      }
+
       console.log(parsedData.custID, "user data in cart page");
-      // console.log(userData, "user data in cart page");
-      const custID = parsedData?.custID;
+      const custID = parsedData.custID;
       console.log(custID, "customer id in cart page");
 
       const response = await axios.get(
-        `${API_URL}CustomerAddresses/custid?custid=${parsedData?.custID}`
+        `${API_URL}CustomerAddresses/custid?custid=${custID}`
       );
       const allAddresses = response.data;
 
-      // console.log(allAddresses, "customer addresses");
+      console.log(allAddresses, "customer addresses");
 
       setAddressList(allAddresses);
 
       const primary = allAddresses.find((addr) => addr.IsPrimary);
       if (primary) setPrimaryAddress(primary);
     } catch (error) {
-      console.error(error.message || "Failed to fetch addresses");
+      console.error("Failed to fetch addresses:", error.message || error);
+      
+      // Retry after a delay if this is the first attempt
+      if (retryCount < 2) {
+        console.log(`Retrying fetchAddresses in 1 second... (attempt ${retryCount + 1})`);
+        setTimeout(() => fetchAddresses(retryCount + 1), 1000);
+      }
     }
   };
 
   useEffect(() => {
-    fetchAddresses(); // Initial fetch on mount
+    // Add a small delay to ensure userData is saved after login
+    const timer = setTimeout(() => {
+      fetchAddresses(); // Initial fetch on mount
+    }, 500);
+
     const unsubscribe = navigation.addListener("focus", () => {
-      fetchAddresses(); // Re-fetch when screen is focused
+      // Add a small delay to ensure userData is available
+      const focusTimer = setTimeout(() => {
+        fetchAddresses(); // Re-fetch when screen is focused
+      }, 100);
+      
+      return () => clearTimeout(focusTimer);
     });
 
-    return unsubscribe; // Cleanup listener on unmount
+    return () => {
+      clearTimeout(timer);
+      unsubscribe; // Cleanup listener on unmount
+    };
   }, [navigation]);
 
   const makePrimaryAddress = async (addressId) => {
@@ -433,9 +480,15 @@ const CartPage = () => {
       );
       if (paymentMethod === "Razorpay") {
         console.log("✅ Booking successful:", response.data);
+        setBookingTrackId(response.data.bookingTrackID);
         handlePayment(response.data.razorpay.orderID, response.data.bookingID);
       } else {
-        showCustomAlert("success", "Booking Successful");
+        // For cash payment, show success alert with BookingTrackID
+        showCustomAlert(
+          "success", 
+          "Payment Successful",
+          `Booking Track ID: ${response.data.bookingTrackID}\nYour booking is confirmed!`
+        );
 
         await AsyncStorage.removeItem("selectedDate");
         await AsyncStorage.removeItem("selectedTimeSlotLabel");
@@ -447,7 +500,7 @@ const CartPage = () => {
           navigation.navigate("CustomerTabNavigator", {
             screen: "My Bookings",
           });
-        }, 300);
+        }, 1500);
       }
     } catch (error) {
       if (error.response) {
@@ -473,6 +526,35 @@ const CartPage = () => {
     }
   };
 
+  const updateBookingStatus = async (bookingID, status) => {
+    try {
+      const token = await getToken();
+      const payload = {
+        bookingID: bookingID,
+        bookingStatus: status
+      };
+
+      console.log("Updating booking status:", payload);
+
+      const response = await axios.put(
+        `${API_URL}Bookings/booking-status`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Booking status update response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Failed to update booking status:", error?.response || error);
+      throw error;
+    }
+  };
+
   const handlePayment = (orderid, bookingID) => {
     const options = {
       description: "MyCarBuddy Service Payment",
@@ -481,7 +563,7 @@ const CartPage = () => {
       key: RAZORPAY_KEY,
       order_id: orderid,
       amount: finalAmount * 100,
-      name: "MyCarBuddy",
+      name: "MyCarBuddy | powered by Glansa Solutions",
       prefill: {
         email: customerEmail || "test@example.com",
         contact: customerPhone || "9999999999",
@@ -524,21 +606,22 @@ const CartPage = () => {
 
             console.log("Confirm payment API response:", confirmResponse.data);
 
+            // Show success alert immediately with BookingTrackID
             showCustomAlert(
               "success",
               "Payment Successful",
-              `Payment ID: ${data.razorpay_payment_id}\nYour booking is confirmed!`
+              `Booking Track ID: ${bookingTrackId}\nYour booking is confirmed!`
             );
 
-            await AsyncStorage.removeItem("selectedDate");
-            await AsyncStorage.removeItem("selectedTimeSlotLabel");
-
-            setTimeout(() => {
+            // Clean up storage and navigate after a shorter delay
+            setTimeout(async () => {
+              await AsyncStorage.removeItem("selectedDate");
+              await AsyncStorage.removeItem("selectedTimeSlotLabel");
               clearCart();
               navigation.navigate("CustomerTabNavigator", {
                 screen: "My Bookings",
               });
-            }, 2000);
+            }, 1500);
           } catch (error) {
             console.error(
               "Payment confirmation failed:",
@@ -556,12 +639,35 @@ const CartPage = () => {
             );
           }
         })
-        .catch((error) => {
-          console.log(`Error: ${error.data.message}`);
-          showCustomAlert("error", "Payment Failed", error.data.message);
+        .catch(async (error) => {
+          console.log(`Payment cancelled or failed: ${error.data?.message || error.message}`);
+          
+          // Update booking status to Failed when payment is cancelled
+          try {
+            await updateBookingStatus(bookingID, "Failed");
+            console.log("Booking status updated to Failed due to payment cancellation");
+          } catch (statusError) {
+            console.error("Failed to update booking status:", statusError);
+          }
+
+          // Show appropriate message based on error type
+          if (error.data?.code === 'BAD_REQUEST_ERROR' && error.data?.description?.includes('cancelled')) {
+            showCustomAlert(
+              "error", 
+              "Payment Cancelled", 
+              "Your payment was cancelled. You can try again or book for later."
+            );
+          } else {
+            showCustomAlert(
+              "error", 
+              "Payment Failed", 
+              error.data?.message || error.message || "Something went wrong with the payment"
+            );
+          }
         });
     } catch (error) {
-      console.log("Unexpected Razorpay call error:", err);
+      console.log("Unexpected Razorpay call error:", error);
+      showCustomAlert("error", "Payment Error", "Unable to process payment. Please try again.");
     }
   };
 
