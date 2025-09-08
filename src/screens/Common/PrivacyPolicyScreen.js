@@ -60,7 +60,6 @@ const styles = StyleSheet.create({
   heading: { ...globalStyles.f16Bold, marginBottom: 15, color: "#000" },
   subHeading: {
     ...globalStyles.f12Bold,
-    fontWeight: "600",
     marginTop: 10,
     marginBottom: 5,
     color: "#222",

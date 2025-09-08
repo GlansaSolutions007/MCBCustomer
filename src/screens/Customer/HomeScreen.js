@@ -48,6 +48,8 @@ export default function HomeScreen() {
   const { setLocationText, setLocationStatus } = useContext(LocationContext);
   const [categories, setCategories] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [upcomingBookings, setUpcomingBookings] = useState([]);
+
   const [loading, setLoading] = useState(true);
 
   const fetchCategories = async () => {
@@ -75,7 +77,7 @@ export default function HomeScreen() {
   const fetchTodaysBookings = async () => {
     try {
       const userData = await AsyncStorage.getItem("userData");
-      
+
       // Check if userData exists
       if (!userData) {
         console.warn("No userData found in AsyncStorage");
@@ -83,7 +85,7 @@ export default function HomeScreen() {
       }
 
       const parsedUserData = JSON.parse(userData);
-      
+
       // Check if parsedUserData is valid and has custID
       if (!parsedUserData || !parsedUserData.custID) {
         console.warn("Invalid userData or missing custID:", parsedUserData);
@@ -96,19 +98,18 @@ export default function HomeScreen() {
       const response = await axios.get(`${API_URL}Bookings/${custID}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // console.log(custID, response, 'bookkkkkiiiinnnnnnggggg');
 
       if (response.data) {
-        // Filter bookings for today
-        const todaysBookings = response.data.filter(
+        const upcoming = response.data.filter(
           (booking) =>
-            booking.BookingDate === today &&
-            booking.BookingStatus?.toLowerCase() !== "cancelled");
-        setBookings(todaysBookings);
+            booking.BookingDate >= today &&
+            booking.BookingStatus?.toLowerCase() !== "cancelled"
+        );
 
-        // Monitor bookings for notification changes
+        setUpcomingBookings(upcoming);
+
         if (custID) {
-          monitorBookingsForNotifications(todaysBookings, custID);
+          monitorBookingsForNotifications(upcoming, custID);
         }
       }
     } catch (error) {
@@ -119,7 +120,7 @@ export default function HomeScreen() {
   useEffect(() => {
     fetchCategories();
   }, []);
- 
+
   useFocusEffect(
     useCallback(() => {
       fetchTodaysBookings();
@@ -127,20 +128,20 @@ export default function HomeScreen() {
   );
 
   const checkStorage = async () => {
-  try {
-    const allKeys = await AsyncStorage.getAllKeys();
-    console.log("All Keys:", allKeys);
+    try {
+      const allKeys = await AsyncStorage.getAllKeys();
+      console.log("All Keys:", allKeys);
 
-    const allData = await AsyncStorage.multiGet(allKeys);
-    // console.log("All Data:", allData);
-  } catch (e) {
-    console.error("Error reading AsyncStorage:", e);
-  }
-};
+      const allData = await AsyncStorage.multiGet(allKeys);
+      // console.log("All Data:", allData);
+    } catch (e) {
+      console.error("Error reading AsyncStorage:", e);
+    }
+  };
 
-useEffect(() => {
-  checkStorage();
-}, []);
+  useEffect(() => {
+    checkStorage();
+  }, []);
 
   const handleCategoryPress = async (category) => {
     try {
@@ -403,8 +404,8 @@ useEffect(() => {
                 </View>
               </ImageBackground>
             </View>
-            <View style={styles.bookingsSection}>
-              <View style={styles.bookingsHeader}>
+            {/* <View style={styles.bookingsSection}> */}
+              {/* <View style={styles.bookingsHeader}>
                 <View style={styles.bookingsTitleContainer}>
                   <Ionicons name="calendar" size={20} color={color.primary} style={styles.bookingsIcon} />
                   <CustomText style={styles.bookingsTitle}>
@@ -414,35 +415,136 @@ useEffect(() => {
                 <CustomText style={styles.bookingsSubtitle}>
                   Your scheduled services for today
                 </CustomText>
-              </View>
-              {bookings.length === 0 ? (
-                <Pressable
-                  onPress={() => navigation.navigate("CustomerTabNavigator", { screen: 'Services' })}
-                  style={styles.emptyBookingsCard}
+              </View> */}
+              {/* <View style={styles.ctaButtonWrapper}>
+                <TouchableOpacity
+                  style={[styles.ctaButton, globalStyles.bgwhite]}
+                  onPress={goToCar}
                 >
-                  <View style={styles.emptyBookingsIconContainer}>
-                    <Ionicons
-                      name="calendar-outline"
-                      size={48}
-                      color={color.primary}
-                    />
-                  </View>
-                  <CustomText style={styles.emptyBookingsTitle}>
-                    No bookings for today
+                  <CustomText
+                    style={[globalStyles.f14Bold, globalStyles.textBlack]}
+                  >
+                    Add Car & Book
                   </CustomText>
-                  <CustomText style={styles.emptyBookingsSubtitle}>
-                    Book your service now and enjoy a hassle-free experience!
+                </TouchableOpacity>
+              </View> */}
+            {/* </View> */}
+            <View style={[globalStyles.mt4]}>
+              <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack, globalStyles.mb1]}>
+                Upcoming Bookings
+              </CustomText>
+              {upcomingBookings.length === 0 ? (
+                // <Pressable
+                //   onPress={() => navigation.navigate("CustomerTabNavigator", { screen: 'Services' })}
+                //   style={{
+                //     backgroundColor: "#fff",
+                //     padding: 16,
+                //     borderRadius: 12,
+                //     alignItems: "center",
+                //     justifyContent: "center",
+                //     marginTop: 16,
+                //     shadowColor: "#000",
+                //     shadowOpacity: 0.05,
+                //     shadowOffset: { width: 0, height: 2 },
+                //     shadowRadius: 4,
+                //     elevation: 2,
+                //   }}
+                // >
+                //   <Ionicons
+                //     name="calendar-outline"
+                //     size={40}
+                //     color={color.primary}
+                //     style={{ marginBottom: 8 }}
+                //   />
+                //   <CustomText
+                //     style={[globalStyles.f16Bold, { color: color.primary }]}
+                //   >
+                //     No upcoming bookings.
+                //   </CustomText>
+                //   <View style={{ alignItems: "center", marginTop: 8 }}>
+                //     <CustomText
+                //       style={[
+                //         globalStyles.f12Regular,
+                //         { color: "#666", textAlign: "center" },
+                //       ]}
+                //     >
+                //       Plan ahead! Book your next car service today for a hassle-free
+                //       experience.
+                //     </CustomText>
+                //   </View>
+                // </Pressable>
+
+                <View
+                  style={{
+                    backgroundColor: "#fff",
+                    padding: 16,
+                    borderRadius: 12,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginTop: 16,
+                    shadowColor: "#000",
+                    shadowOpacity: 0.05,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowRadius: 4,
+                    elevation: 2,
+                  }}
+                >
+                  <Ionicons
+                    name="calendar-outline"
+                    size={40}
+                    color={color.primary}
+                    style={{ marginBottom: 8 }}
+                  />
+                  <CustomText
+                    style={[globalStyles.f16Bold, { color: color.primary }]}
+                  >
+                    No upcoming bookings
                   </CustomText>
-                  <View style={styles.emptyBookingsButton}>
-                    <CustomText style={styles.emptyBookingsButtonText}>
-                      Book Service
+                  <View style={{ alignItems: "center", marginTop: 8 }}>
+                    <CustomText
+                      style={[
+                        globalStyles.f12Regular,
+                        { color: "#666", textAlign: "center" },
+                      ]}
+                    >
+                      Plan ahead! Book your next car service today for a hassle-free
+                      experience.
                     </CustomText>
                     <Ionicons name="arrow-forward" size={16} color={color.white} />
                   </View>
-                </Pressable>
+
+                  {/* CTA button */}
+                  <Pressable
+                    onPress={() =>
+                      navigation.navigate("CustomerTabNavigator", { screen: "Services" })
+                    }
+                    style={{
+                      marginTop: 16,
+                      backgroundColor: color.primary,
+                      paddingVertical: 10,
+                      paddingHorizontal: 20,
+                      borderRadius: 8,
+                    }}
+                  >
+                    <CustomText style={[{ color: "#fff", marginBottom: 1 }, globalStyles.f12Bold]}>
+                      Book a Service
+                    </CustomText>
+                  </Pressable>
+                  <CustomText
+                    style={{
+                      marginTop: 8,
+                      fontSize: 12,
+                      color: color.primary,
+                      fontWeight: "600",
+                    }}
+                  >
+                    👉 Tap the button to get started
+                  </CustomText>
+                </View>
+
 
               ) : (
-                bookings.map((booking) => (
+                upcomingBookings.map((booking) => (
                   <Pressable
                     key={booking.BookingID}
                     style={styles.bookingCard}
@@ -502,7 +604,9 @@ useEffect(() => {
                           <View style={styles.bookingDate}>
                             <CustomText style={[globalStyles.f10Regular]}>Service Amount:</CustomText>
                             <CustomText style={[globalStyles.f12Bold]}>
-                              ₹ {booking.TotalPrice.toFixed(2)}
+                              {booking.Payments && booking.Payments.length > 0
+                                ? `₹ ${booking.Payments[0].AmountPaid}`
+                                : "Payment Failed"}
                             </CustomText>
                           </View>
                         </View>

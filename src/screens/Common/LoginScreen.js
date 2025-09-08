@@ -121,8 +121,8 @@ export default function LoginScreen() {
         setMessage("Your OTP is on its way, check your phone!");
         setStatus("success");
         startResendTimer();
-        
-        // Animate OTP input appearance`
+
+        // Animate OTP input appearance
         Animated.parallel([
           Animated.timing(otpInputSlide, {
             toValue: 0,

@@ -410,25 +410,21 @@ export default function ServiceList() {
             >
               <View>
                 <View style={styles.bookingR1}>
-                  {booking.BookingStatus?.toLowerCase() !== "failed" ? (
-                    <CustomText
-                      style={[
-                        styles.bookingID,
-                        { backgroundColor: color.secondary },
-                      ]}
-                    >
-                      BID: {booking.BookingTrackID}
-                    </CustomText>
-                  ) : (
-                    <CustomText
-                      style={[
-                        styles.bookingID,
-                        { backgroundColor: color.alertError },
-                      ]}
-                    >
-                      BID: {booking.BookingTrackID}
-                    </CustomText>
-                  )}
+                  <CustomText
+                    style={[
+                      styles.bookingID,
+                      {
+                        backgroundColor:
+                          booking.BookingStatus?.toLowerCase() === "failed"
+                            ? color.alertError
+                            : booking.BookingStatus?.toLowerCase() === "pending" && !booking.Payments
+                              ? color.yellow
+                              : color.secondary,
+                      },
+                    ]}
+                  >
+                    BID: {booking.BookingTrackID}
+                  </CustomText>
 
                   {booking.BookingStatus?.toLowerCase() !== "cancelled" && (
                     <CustomText
@@ -469,8 +465,8 @@ export default function ServiceList() {
                       {booking.FuelTypeName === "Petrol"
                         ? "P"
                         : booking.FuelTypeName === "Diesel"
-                        ? "D"
-                        : "E"}
+                          ? "D"
+                          : "E"}
                       )
                     </CustomText>
                     <CustomText style={styles.subText}>
@@ -577,7 +573,7 @@ export default function ServiceList() {
                             ]}
                           >
                             {booking.BookingStatus?.toLowerCase() ===
-                            "startjourney" ? (
+                              "startjourney" ? (
                               "Started Journey"
                             ) : booking.BookingStatus?.toLowerCase() ===
                               "failed" ? (

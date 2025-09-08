@@ -27,6 +27,7 @@ import Checkbox from "expo-checkbox";
 import CustomDropdown from "../../components/CustomDropdown";
 // import { API_BASE_URL } from '@env';
 import { API_URL } from "@env";
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -51,6 +52,7 @@ export const MyCarDetails = () => {
   const [transmissionError, setTransmissionError] = useState(false);
   const [isViewOnly, setIsViewOnly] = useState(false);
   const [model, setModel] = useState(null);
+  const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
 
   const transmissionOptions = [
     { label: "Automatic", value: "Automatic" },
@@ -462,6 +464,9 @@ export const MyCarDetails = () => {
                         I accept the Privacy Policy
                       </CustomText>
                     </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setPrivacyModalVisible(true)} style={{ marginLeft: 6 }}>
+                      <AntDesign name="infocirlceo" size={18} color={color.yellow} />
+                    </TouchableOpacity>
                   </View>
                 )}
                 {!isViewOnly && (
@@ -483,7 +488,7 @@ export const MyCarDetails = () => {
               </View>
               <CustomAlert
                 visible={alertVisible}
-                onClose={goCarList}
+                onClose={() => setAlertVisible(false)}
                 title="Success"
                 message="Your Car Added Successfully"
                 status="info"
@@ -500,6 +505,43 @@ export const MyCarDetails = () => {
                   </CustomText>
                 </TouchableOpacity>
               </CustomAlert>
+              <Modal
+                visible={privacyModalVisible}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => setPrivacyModalVisible(false)}
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={styles.modalContent}>
+                    <View style={styles.modalHeader}>
+                      <CustomText style={styles.modalTitle}>Privacy Policy</CustomText>
+                      <TouchableOpacity onPress={() => setPrivacyModalVisible(false)}>
+                        <Text style={{ fontSize: 20 }}>✖</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <ScrollView style={{ marginTop: 10 }}>
+                      <CustomText style={styles.modalText}>
+                        {/* Replace this with your actual Privacy Policy */}
+                        At My Car Buddy, we respect your privacy and are committed to
+                        protecting your personal data.{"\n"}{"\n"}
+                        • Name, phone number, email, and vehicle details.{"\n"}
+                        • Location and booking history for providing accurate services.{"\n"}{"\n"}
+                        <CustomText style={styles.subHeading}>How We Use Your Data {"\n"}</CustomText>
+                        • To confirm bookings and deliver services.{"\n"}
+                        • To send updates, reminders, and offers.{"\n"}
+                        • To improve your app experience.{"\n"}{"\n"}
+                        <CustomText style={styles.subHeading}>Your Choices{"\n"}</CustomText>
+                        • Request deletion of your data anytime by contacting support.{"\n"}
+                        • Opt out of promotional messages whenever you like.{"\n"}{"\n"}
+                        <CustomText style={styles.subHeading}>Contact Us{"\n"}</CustomText>
+                        <CustomText>📧 info@mycarbuddy.in</CustomText>
+                      </CustomText>
+                    </ScrollView>
+                  </View>
+                </View>
+              </Modal>
+
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -624,9 +666,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   privacyContainer: {
-    alignItems: "flex-start",
-    marginBottom: 5,
-    marginTop: 5,
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 15,
   },
 
   privacyRow: {
@@ -653,5 +695,37 @@ const styles = StyleSheet.create({
   inputError: {
     borderWidth: 1,
     borderColor: "#f16b6bff",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "70%", // so it’s scrollable
+    padding: 20,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  modalTitle: {
+    ...globalStyles.f16Bold,
+    color: color.secondary,
+  },
+  modalText: {
+    ...globalStyles.f12Regular,
+    color: "#555",
+    lineHeight: 20,
+  },
+  subHeading: {
+    ...globalStyles.f12Bold,
+    marginTop: 10,
+    marginBottom: 5,
+    color: "#222",
   },
 });
