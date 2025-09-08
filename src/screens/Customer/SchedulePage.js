@@ -225,7 +225,7 @@ const SchedulePage = () => {
           </View>
         </View>
         <View style={{ padding: 16 }}>
-          <CustomText style={styles.sectionTitle}>Your Available Time Slots</CustomText>
+          <CustomText style={styles.sectionTitle}>Pik Your Time Slots</CustomText>
           <View
             style={{
               flexDirection: "row",
@@ -293,7 +293,7 @@ const SchedulePage = () => {
               <CustomText
                 style={[globalStyles.f16Bold, globalStyles.secondary]}
               >
-                Your Schedule
+                Scheduled On
               </CustomText>
 
               <View style={styles.scheduledRow}>
