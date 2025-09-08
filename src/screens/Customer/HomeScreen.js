@@ -385,7 +385,7 @@ export default function HomeScreen() {
                 <View style={styles.ctaContent}>
                   <View style={styles.ctaTextContainer}>
                     <CustomText style={[styles.ctaTitle, globalStyles.f20Regular]}>
-                    Give your car's intro {"\n"} to your care buddy
+                      Give your car's intro {"\n"} to your care buddy
                     </CustomText>
                     <CustomText style={styles.ctaSubtitle}>
                       We'll remember it, pamper it,{"\n"} and keep it shining.
@@ -405,7 +405,7 @@ export default function HomeScreen() {
               </ImageBackground>
             </View>
             {/* <View style={styles.bookingsSection}> */}
-              {/* <View style={styles.bookingsHeader}>
+            {/* <View style={styles.bookingsHeader}>
                 <View style={styles.bookingsTitleContainer}>
                   <Ionicons name="calendar" size={20} color={color.primary} style={styles.bookingsIcon} />
                   <CustomText style={styles.bookingsTitle}>
@@ -416,7 +416,7 @@ export default function HomeScreen() {
                   Your scheduled services for today
                 </CustomText>
               </View> */}
-              {/* <View style={styles.ctaButtonWrapper}>
+            {/* <View style={styles.ctaButtonWrapper}>
                 <TouchableOpacity
                   style={[styles.ctaButton, globalStyles.bgwhite]}
                   onPress={goToCar}
@@ -661,7 +661,6 @@ export default function HomeScreen() {
   );
 }
 const styles = StyleSheet.create({
-  // Banner Styles
   banner: {
     backgroundColor: color.primary,
     padding: 24,
@@ -679,7 +678,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   bannerTagline: {
-    fontSize: 14,
+    ...globalStyles.f12Regular,
     color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
     fontWeight: '500',
@@ -701,16 +700,14 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   bannerSubtitle: {
-    fontSize: 16,
+    ...globalStyles.f16Bold,
     color: color.white,
-    fontWeight: '600',
     marginBottom: 4,
     lineHeight: 22,
   },
   bannerDescription: {
-    fontSize: 12,
+    ...globalStyles.f12Regular,
     color: 'rgba(255, 255, 255, 0.8)',
-    fontWeight: '400',
   },
 
   // Section Header Styles
@@ -719,19 +716,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     // marginTop: 32,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   sectionTitleContainer: {
     flex: 1,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    ...globalStyles.f16Bold,
     color: color.black,
     marginBottom: 4,
   },
   sectionSubtitle: {
-    fontSize: 14,
+    ...globalStyles.f12Regular,
     color: '#666',
     fontWeight: '400',
   },
@@ -791,8 +787,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   categoryCardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    ...globalStyles.f12Bold,
     color: color.white,
     flex: 1,
   },
@@ -828,16 +823,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ctaTitle: {
-    // fontSize: 22,
-    fontWeight: '700',
+    ...globalStyles.f20Bold,
     color: color.white,
     marginBottom: 8,
     lineHeight: 28,
   },
   ctaSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '400',
+    ...globalStyles.f12Regular,
+    color: 'white',
     lineHeight: 20,
   },
   ctaButton: {
@@ -856,8 +849,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   ctaButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+    ...globalStyles.f12Bold,
     color: color.black,
     marginRight: 8,
   },

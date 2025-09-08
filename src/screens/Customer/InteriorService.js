@@ -541,7 +541,7 @@ const InteriorService = () => {
                           />
                         )}
                         {cars.length > 1 && (
-                          <CustomText style={styles.chooseCarText}>Change</CustomText>
+                          <CustomText style={styles.chooseCarText}>Switch</CustomText>
                         )}
                       </Pressable>)}
 
