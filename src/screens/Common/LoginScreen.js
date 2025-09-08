@@ -476,6 +476,13 @@ export default function LoginScreen() {
         )}
       </Animated.View>
 
+      {/* Powered By Footer - always visible at bottom */}
+      <View style={styles.poweredByContainer}>
+        <CustomText style={[styles.poweredByText,globalStyles.f10Bold]}>
+          Powered By Glansa Solutions PVT LTD
+        </CustomText>
+      </View>
+
       {/* Components */}
       <CustomAlert
         visible={showAlert}
@@ -498,7 +505,7 @@ const styles = StyleSheet.create({
 
   logo: {
     width: 250,
-    height: 110,
+    height: 100,
     marginBottom: 100,
     alignSelf: 'center'
   },
@@ -732,5 +739,18 @@ const styles = StyleSheet.create({
   resendButtonText: {
     fontSize: 14,
     color: color.black,
+  },
+  poweredByContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  poweredByText: {
+    fontSize: 12,
+    color: color.primary,
+    textAlign: 'center',
   },
 });

@@ -16,7 +16,7 @@ import CTAbannerhome from "../../../assets/images/CTAbannerhome.png";
 import exteriorservice from "../../../assets/images/exteriorservice.png";
 import interiorservice from "../../../assets/images/interiorservice.png";
 import bluecar from "../../../assets/images/bluecar.png";
-import logo from "../../../assets/Logo/logoWhite.png";
+import logo from "../../../assets/Logo/whiteLogo.png";
 import { color } from "../../styles/theme";
 import CustomText from "../../components/CustomText";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -238,7 +238,7 @@ useEffect(() => {
           style={[
             styles.ctaContainer,
             globalStyles.p5,
-            globalStyles.mt5,
+            // globalStyles.mt2,
             { backgroundColor: '#f1f1f1ff', borderRadius: 8 },
           ]}
         >
@@ -267,73 +267,75 @@ useEffect(() => {
       ) : (
         <>
           <View style={[styles.banner, globalStyles.mb35]}>
-            <Image source={logo} style={styles.logo} resizeMode="contain" />
-            <View style={styles.bannerAbsolute}>
+            <View style={styles.bannerHeader}>
+              <Image source={logo} style={styles.logo} resizeMode="contain" />
+              {/* <CustomText style={styles.bannerTagline}>
+                Professional Car Care Services
+              </CustomText> */}
+            </View>
+            <View style={styles.bannerContent}>
               <Image
                 source={bluecar}
                 style={styles.carImagePositioned}
                 resizeMode="contain"
               />
-              <CustomText
-                style={[styles.bannerSubtitlePositioned, globalStyles.f18Regular]}
-              >
-                A Professional Car Care Services in Hyderabad
-              </CustomText>
+              <View style={styles.bannerTextContainer}>
+                <CustomText style={styles.bannerSubtitle}>
+                  A Professional Car Care Services in Hyderabad
+                </CustomText>
+                <CustomText style={styles.bannerDescription}>
+                  Quality service at your doorstep
+                </CustomText>
+              </View>
             </View>
           </View>
           <View style={globalStyles.container}>
-            <View
-              style={[
-                globalStyles.mt4,
-                globalStyles.mb1,
-                { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }
-              ]}
-            >
-              <CustomText
-                style={[
-                  globalStyles.f16Bold,
-                  globalStyles.textBlack,
-                ]}
-              >
-                We Provide Services Like
-              </CustomText>
-
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleContainer}>
+                <CustomText style={styles.sectionTitle}>
+                  Our Services
+                </CustomText>
+                <CustomText style={styles.sectionSubtitle}>
+                  Choose from our range of professional car care services
+                </CustomText>
+              </View>
               {categories.length > 2 && (
-                <Ionicons
-                  name="arrow-forward-circle"
-                  size={20}
-                  color={color.primary}
-                />
+                <View style={styles.arrowContainer}>
+                  <Ionicons
+                    name="arrow-forward-circle"
+                    size={24}
+                    color={color.primary}
+                  />
+                </View>
               )}
             </View>
-            <View style={[globalStyles.flexrow, globalStyles.justifysb]}>
+            <View style={styles.categoriesContainer}>
               {categories.length === 2 ? (
-                <View style={[globalStyles.flexrow, globalStyles.justifysb]}>
+                <View style={styles.twoCategoriesLayout}>
                   {categories.map((cat) => (
                     <TouchableOpacity
                       key={cat.CategoryID}
-                      style={styles.card}
+                      style={styles.categoryCard}
                       onPress={() => handleCategoryPress(cat)}
                       activeOpacity={0.8}
                     >
-                      <Image
-                        source={{
-                          uri: `${API_IMAGE_URL}/${cat.ThumbnailImage}`,
-                        }}
-                        style={styles.cardImage}
-                      />
-                      <LinearGradient
-                        colors={[color.primary, 'transparent']}
-                        start={{ x: 0.5, y: 1 }}
-                        end={{ x: 0.5, y: 0 }}
-                        style={styles.gradientOverlay}
-                      >
-                        <CustomText
-                          style={[globalStyles.f14Bold, globalStyles.textWhite]}
-                        >
+                      <View style={styles.cardImageContainer}>
+                        <Image
+                          source={{
+                            uri: `${API_IMAGE_URL}/${cat.ThumbnailImage}`,
+                          }}
+                          style={styles.categoryCardImage}
+                        />
+                        <View style={styles.cardOverlay} />
+                      </View>
+                      <View style={styles.cardContent}>
+                        <CustomText style={styles.categoryCardTitle}>
                           {cat.CategoryName}
                         </CustomText>
-                      </LinearGradient>
+                        <View style={styles.cardArrow}>
+                          <Ionicons name="arrow-forward" size={16} color={color.white} />
+                        </View>
+                      </View>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -341,125 +343,101 @@ useEffect(() => {
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.scrollContent}
+                  contentContainerStyle={styles.horizontalScrollContent}
                 >
                   {categories.map((cat) => (
                     <TouchableOpacity
                       key={cat.CategoryID}
-                      style={styles.card}
+                      style={styles.categoryCard}
                       onPress={() => handleCategoryPress(cat)}
                       activeOpacity={0.8}
                     >
-                      <Image
-                        source={{
-                          uri: `${API_IMAGE_URL}/${cat.ThumbnailImage}`,
-                        }}
-                        style={styles.cardImage}
-                      />
-                      <LinearGradient
-                        colors={[color.primary, 'transparent']}
-                        start={{ x: 0.5, y: 1 }}
-                        end={{ x: 0.5, y: 0 }}
-                        style={styles.gradientOverlay}
-                      >
-                        <CustomText
-                          style={[globalStyles.f14Bold, globalStyles.textWhite]}
-                        >
+                      <View style={styles.cardImageContainer}>
+                        <Image
+                          source={{
+                            uri: `${API_IMAGE_URL}/${cat.ThumbnailImage}`,
+                          }}
+                          style={styles.categoryCardImage}
+                        />
+                        <View style={styles.cardOverlay} />
+                      </View>
+                      <View style={styles.cardContent}>
+                        <CustomText style={styles.categoryCardTitle}>
                           {cat.CategoryName}
                         </CustomText>
-                      </LinearGradient>
+                        <View style={styles.cardArrow}>
+                          <Ionicons name="arrow-forward" size={16} color={color.white} />
+                        </View>
+                      </View>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
               )}
             </View>
-            <ImageBackground
-              source={CTAbannerhome}
-              style={[
-                styles.ctaContainer,
-                globalStyles.p5,
-                globalStyles.mt5,
-              ]}
-              resizeMode="cover"
-            >
-              <View>
-                <View>
-                  <CustomText
-                    style={[
-                      styles.ctaTitle,
-                      globalStyles.f20Bold,
-                      globalStyles.w60,
-                      globalStyles.textWhite,
-                      globalStyles.f16Bold,
-                    ]}
+            <View style={styles.ctaSection}>
+              <ImageBackground
+                source={CTAbannerhome}
+                style={styles.ctaContainer}
+                resizeMode="cover"
+                imageStyle={styles.ctaBackgroundImage}
+              >
+                <View style={styles.ctaContent}>
+                  <View style={styles.ctaTextContainer}>
+                    <CustomText style={[styles.ctaTitle, globalStyles.f20Regular]}>
+                    Give your car's intro {"\n"} to your care buddy
+                    </CustomText>
+                    <CustomText style={styles.ctaSubtitle}>
+                      We'll remember it, pamper it,{"\n"} and keep it shining.
+                    </CustomText>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.ctaButton}
+                    onPress={goToCar}
+                    activeOpacity={0.8}
                   >
-                    Give your car’s intro to your care buddy
-                  </CustomText>
-                  <CustomText
-                    style={[
-                      globalStyles.w50,
-                      globalStyles.textWhite,
-                      globalStyles.f12Regular,
-                    ]}
-                  >
-                    We’ll remember it, pamper it, and keep it shining.
+                    <CustomText style={styles.ctaButtonText}>
+                      Add Car & Book Service
+                    </CustomText>
+                    <Ionicons name="arrow-forward" size={18} color={color.black} style={styles.ctaButtonIcon} />
+                  </TouchableOpacity>
+                </View>
+              </ImageBackground>
+            </View>
+            <View style={styles.bookingsSection}>
+              <View style={styles.bookingsHeader}>
+                <View style={styles.bookingsTitleContainer}>
+                  <Ionicons name="calendar" size={20} color={color.primary} style={styles.bookingsIcon} />
+                  <CustomText style={styles.bookingsTitle}>
+                    Today's Bookings
                   </CustomText>
                 </View>
+                <CustomText style={styles.bookingsSubtitle}>
+                  Your scheduled services for today
+                </CustomText>
               </View>
-              <View style={styles.ctaButtonWrapper}>
-                <TouchableOpacity
-                  style={[styles.ctaButton, globalStyles.bgwhite]}
-                  onPress={goToCar}
-                >
-                  <CustomText
-                    style={[globalStyles.f16Bold, globalStyles.textBlack]}
-                  >
-                    Add My Car
-                  </CustomText>
-                </TouchableOpacity>
-              </View>
-            </ImageBackground>
-            <View style={[globalStyles.mt4]}>
-              <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack, globalStyles.mb1]}>
-                Today's Bookings
-              </CustomText>
               {bookings.length === 0 ? (
                 <Pressable
                   onPress={() => navigation.navigate("CustomerTabNavigator", { screen: 'Services' })}
-                  style={{
-                    backgroundColor: "#fff",
-                    padding: 16,
-                    borderRadius: 12,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginTop: 16,
-                    shadowColor: "#000",
-                    shadowOpacity: 0.05,
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowRadius: 4,
-                    elevation: 2,
-                  }}
+                  style={styles.emptyBookingsCard}
                 >
-                  <Ionicons
-                    name="calendar-outline"
-                    size={40}
-                    color={color.primary}
-                    style={{ marginBottom: 8 }}
-                  />
-                  <CustomText
-                    style={[globalStyles.f16Bold, { color: color.primary }]}
-                  >
-                    No bookings for today.
+                  <View style={styles.emptyBookingsIconContainer}>
+                    <Ionicons
+                      name="calendar-outline"
+                      size={48}
+                      color={color.primary}
+                    />
+                  </View>
+                  <CustomText style={styles.emptyBookingsTitle}>
+                    No bookings for today
                   </CustomText>
-                  <View style={{ alignItems: "center", marginTop: 8 }}>
-                    <CustomText
-                      style={[
-                        globalStyles.f12Regular,
-                        { color: "#666", textAlign: "center" },
-                      ]}
-                    >
-                      Book your service now and enjoy a hassle-free experience!
+                  <CustomText style={styles.emptyBookingsSubtitle}>
+                    Book your service now and enjoy a hassle-free experience!
+                  </CustomText>
+                  <View style={styles.emptyBookingsButton}>
+                    <CustomText style={styles.emptyBookingsButtonText}>
+                      Book Service
                     </CustomText>
+                    <Ionicons name="arrow-forward" size={16} color={color.white} />
                   </View>
                 </Pressable>
 
@@ -579,123 +557,246 @@ useEffect(() => {
   );
 }
 const styles = StyleSheet.create({
-  logo: {
-    width: 200,
-    height: 100,
-  },
-  bannerAbsolute: {
-    position: "relative",
-    height: 100,
-  },
-
-  carImagePositioned: {
-    position: "absolute",
-    bottom: -50,
-    left: 0,
-    width: "55%",
-    height: 130,
-  },
-
-  bannerSubtitlePositioned: {
-    position: "absolute",
-    bottom: 10,
-    right: 10,
-    width: "45%",
-    textAlign: "right",
-    color: color.white,
-  },
-
-  title: {
-    fontSize: 22,
-    color: color.white,
-  },
-
-  buttonText: {
-    color: color.textDark,
-    fontSize: 16,
-  },
+  // Banner Styles
   banner: {
     backgroundColor: color.primary,
-    padding: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    padding: 24,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    minHeight: 200,
   },
-  carImage: {
-    width: "60%",
-    // height: 130,
+  bannerHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
-
+  logo: {
+    width: 200,
+    height: 80,
+    marginBottom: 8,
+  },
+  bannerTagline: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  bannerContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    height: 120,
+  },
+  carImagePositioned: {
+    width: '50%',
+    height: 120,
+    resizeMode: 'contain',
+  },
+  bannerTextContainer: {
+    flex: 1,
+    paddingLeft: 16,
+    justifyContent: 'flex-end',
+  },
   bannerSubtitle: {
-    width: "40%",
+    fontSize: 16,
     color: color.white,
+    fontWeight: '600',
+    marginBottom: 4,
+    lineHeight: 22,
+  },
+  bannerDescription: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '400',
   },
 
-  card: {
-    width: 170,
-    height: 150,
-    borderRadius: 12,
-    overflow: 'hidden',
-    position: 'relative',
-    marginRight: 12,
-    backgroundColor: '#f0f0f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  // Section Header Styles
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    // marginTop: 32,
+    marginBottom: 20,
   },
-  cardImage: {
+  sectionTitleContainer: {
+    flex: 1,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: color.black,
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '400',
+  },
+  arrowContainer: {
+    padding: 8,
+    backgroundColor: 'rgba(1, 127, 119, 0.1)',
+    borderRadius: 20,
+  },
+
+  // Categories Styles
+  categoriesContainer: {
+    marginBottom: 24,
+  },
+  twoCategoriesLayout: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  categoryCard: {
+    width: 160,
+    height: 160,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#f8f9fa',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    marginRight: 16,
+  },
+  cardImageContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  categoryCardImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },
-  gradientOverlay: {
+  cardOverlay: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: '50%',
-    justifyContent: 'flex-end',
-    padding: 10,
+    height: '60%',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
-  scrollContent: {
+  cardContent: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  categoryCardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: color.white,
+    flex: 1,
+  },
+  cardArrow: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 12,
+    padding: 4,
+  },
+  horizontalScrollContent: {
     paddingVertical: 8,
+    paddingRight: 16,
+  },
+  // CTA Section Styles
+  ctaSection: {
+    // marginTop: 32,
+    marginBottom: 24,
   },
   ctaContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    position: "relative",
-    minHeight: 160,
+    borderRadius: 20,
+    overflow: 'hidden',
+    minHeight: 200,
   },
-
+  ctaBackgroundImage: {
+    borderRadius: 20,
+  },
+  ctaContent: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'space-between',
+  },
+  ctaTextContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   ctaTitle: {
-    width: "60%",
-    marginBottom: 5,
-    lineHeight: 25,
+    // fontSize: 22,
+    fontWeight: '700',
+    color: color.white,
+    marginBottom: 8,
+    lineHeight: 28,
   },
-  ctaButtonWrapper: {
-    position: "absolute",
-    bottom: 8,
-    right: 10,
+  ctaSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '400',
+    lineHeight: 20,
   },
-
   ctaButton: {
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    paddingHorizontal: 30,
-    paddingVertical: 10,
-    alignItems: "center",
+    marginTop: 10,
+    backgroundColor: color.white,
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  ctaButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: color.black,
+    marginRight: 8,
+  },
+  ctaButtonIcon: {
+    marginLeft: 4,
+  },
+  // Bookings Section Styles
+  bookingsSection: {
+    marginTop: 12,
+  },
+  bookingsHeader: {
+    marginBottom: 20,
+  },
+  bookingsTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  bookingsIcon: {
+    marginRight: 8,
+  },
+  bookingsTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: color.black,
+  },
+  bookingsSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '400',
   },
   bookingCard: {
     backgroundColor: color.white,
-    borderRadius: 10,
-    padding: 16,
-    marginBottom: 10,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
   },
   bookingR1: {
     display: 'flex',
@@ -749,5 +850,59 @@ const styles = StyleSheet.create({
   },
   bookingServices: {
     marginTop: 8,
+  },
+  // Empty Bookings Styles
+  emptyBookingsCard: {
+    backgroundColor: color.white,
+    borderRadius: 20,
+    padding: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    // marginTop: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+  },
+  emptyBookingsIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(1, 127, 119, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyBookingsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: color.black,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyBookingsSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  emptyBookingsButton: {
+    backgroundColor: color.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyBookingsButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: color.white,
+    marginRight: 8,
   },
 });

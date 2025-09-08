@@ -77,8 +77,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logo: {
-    width: 250,
-    height: 150,
+    width: 220,
+    height: 130,
     alignSelf: "flex-start",
     marginBottom: 300,
   },
