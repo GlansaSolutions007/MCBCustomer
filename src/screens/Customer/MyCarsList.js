@@ -365,13 +365,21 @@ export const MyCarsList = () => {
             data={filteredCars}
             keyExtractor={(item) => item.id}
             renderItem={renderCar}
-            contentContainerStyle={{ paddingBottom: 40 }}
+            contentContainerStyle={{ paddingBottom: 60 }}
             showsVerticalScrollIndicator={false}
             refreshing={refreshing}
             onRefresh={onRefresh}
           />
         </>
       )}
+      <View style={styles.floatingButtonWrapper}>
+        <TouchableOpacity
+          style={styles.bookServiceBtn}
+          onPress={() =>  navigation.navigate("CustomerTabNavigator", { screen: 'Services' })}
+        >
+          <CustomText style={styles.bookServiceText}>Book a Service</CustomText>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -494,4 +502,29 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignSelf: "flex-end",
   },
+  floatingButtonWrapper: {
+    position: "absolute",
+    bottom: 10,
+    left: 20,
+    right: 20,
+    marginTop: 20,
+  },
+  bookServiceBtn: {
+    backgroundColor: color.primary,
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  bookServiceText: {
+    color: "#fff",
+    ...globalStyles.f14Bold,
+    marginBottom: 1,
+  },
+
 });

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -34,7 +34,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { all } from "axios";
 import { getToken } from "../../utils/token";
 // import { API_BASE_URL } from "@env";
- 
+
 import moment from "moment";
 import CustomAlert from "../../components/CustomAlert";
 
@@ -55,17 +55,25 @@ const CartPage = () => {
   const [alertStatus, setAlertStatus] = useState("info"); // 'success', 'error', 'info'
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
+  const [alertOnClose, setAlertOnClose] = useState(() => () => setAlertVisible(false));
   // for selection of payment method
   const [paymentMethod, setPaymentMethod] = useState("Razorpay");
   const [disable, setDisable] = useState(false);
   const [bookingTrackId, setBookingTrackId] = useState(null);
+  const scrollViewRef = useRef(null);
+  const [customerDetailsY, setCustomerDetailsY] = useState(0);
 
-  const showCustomAlert = (status, title, message) => {
+  const showCustomAlert = (status, title, message, onCloseCallback = () => { }) => {
     // Use setTimeout to ensure the alert shows immediately after state updates
     setTimeout(() => {
       setAlertStatus(status);
       setAlertTitle(title);
       setAlertMessage(message);
+      setAlertOnClose(() => () => {
+        console.log('Alert closed, executing callback');
+        setAlertVisible(false);
+        onCloseCallback();
+      });
       setAlertVisible(true);
     }, 50);
   };
@@ -141,12 +149,10 @@ const CartPage = () => {
   const fetchAddresses = async (retryCount = 0) => {
     try {
       const userData = await AsyncStorage.getItem("userData");
-      
-      // Check if userData exists
+
       if (!userData) {
         console.warn("No userData found in AsyncStorage");
-        
-        // Retry after a delay if this is the first attempt
+
         if (retryCount < 2) {
           console.log(`Retrying fetchAddresses in 1 second... (attempt ${retryCount + 1})`);
           setTimeout(() => fetchAddresses(retryCount + 1), 1000);
@@ -155,12 +161,10 @@ const CartPage = () => {
       }
 
       const parsedData = JSON.parse(userData);
-      
-      // Check if parsedData is valid and has custID
+
       if (!parsedData || !parsedData.custID) {
         console.warn("Invalid userData or missing custID:", parsedData);
-        
-        // Retry after a delay if this is the first attempt
+
         if (retryCount < 2) {
           console.log(`Retrying fetchAddresses in 1 second... (attempt ${retryCount + 1})`);
           setTimeout(() => fetchAddresses(retryCount + 1), 1000);
@@ -185,8 +189,7 @@ const CartPage = () => {
       if (primary) setPrimaryAddress(primary);
     } catch (error) {
       console.error("Failed to fetch addresses:", error.message || error);
-      
-      // Retry after a delay if this is the first attempt
+
       if (retryCount < 2) {
         console.log(`Retrying fetchAddresses in 1 second... (attempt ${retryCount + 1})`);
         setTimeout(() => fetchAddresses(retryCount + 1), 1000);
@@ -195,7 +198,6 @@ const CartPage = () => {
   };
 
   useEffect(() => {
-    // Add a small delay to ensure userData is saved after login
     const timer = setTimeout(() => {
       fetchAddresses(); // Initial fetch on mount
     }, 500);
@@ -205,7 +207,7 @@ const CartPage = () => {
       const focusTimer = setTimeout(() => {
         fetchAddresses(); // Re-fetch when screen is focused
       }, 100);
-      
+
       return () => clearTimeout(focusTimer);
     });
 
@@ -244,22 +246,6 @@ const CartPage = () => {
       }
     }
   };
-
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     return () => {
-  //       // This runs when the screen is blurred (navigated away from)
-  //       setScheduledDate(null);
-  //       setScheduledTimeLabel(null);
-  //       AsyncStorage.removeItem("selectedDate").catch((e) =>
-  //         console.error("Error removing selectedDate:", e)
-  //       );
-  //       AsyncStorage.removeItem("selectedTimeSlotLabel").catch((e) =>
-  //         console.error("Error removing selectedTimeSlotLabel:", e)
-  //       );
-  //     };
-  //   }, [])
-  // );
 
   let discountAmount = 0;
 
@@ -325,7 +311,10 @@ const CartPage = () => {
           showCustomAlert(
             "error",
             "Missing Date",
-            "Please choose a date to schedule your service."
+            "Please choose a date to schedule your service.",
+            () => {
+              navigation.navigate("Schedule", { selectedServices: cartItems });
+            }
           );
           return;
         }
@@ -334,7 +323,10 @@ const CartPage = () => {
           showCustomAlert(
             "error",
             "Missing Time Slot",
-            "Please select a scheduled time slot."
+            "Please select a scheduled time slot.",
+            () => {
+              navigation.navigate("Schedule", { selectedServices: cartItems });
+            }
           );
           return;
         }
@@ -342,7 +334,14 @@ const CartPage = () => {
           showCustomAlert(
             "error",
             "Missing Address",
-            "Please select or add your primary address."
+            "Please select or add your primary address.",
+            () => {
+              setAddressModalVisible(true);
+              if (addressList.length === 0) {
+                setAddressModalVisible(false);
+                navigation.navigate("ConfirmAddressPage");
+              }
+            }
           );
           return;
         }
@@ -351,7 +350,11 @@ const CartPage = () => {
           showCustomAlert(
             "error",
             "Missing Information",
-            "Please fill Customer Name"
+            "Please fill Customer Name",
+            () => {
+              setCustomerDetailsExpanded(true);
+              scrollViewRef.current?.scrollTo({ y: customerDetailsY, animated: true });
+            }
           );
           return;
         }
@@ -359,7 +362,11 @@ const CartPage = () => {
           showCustomAlert(
             "error",
             "Missing Information",
-            "Please fill Customer Email"
+            "Please fill Customer Email",
+            () => {
+              setCustomerDetailsExpanded(true);
+              scrollViewRef.current?.scrollTo({ y: customerDetailsY, animated: true });
+            }
           );
           return;
         }
@@ -485,7 +492,7 @@ const CartPage = () => {
       } else {
         // For cash payment, show success alert with BookingTrackID
         showCustomAlert(
-          "success", 
+          "success",
           "Payment Successful",
           `Booking Track ID: ${response.data.bookingTrackID}\nYour booking is confirmed!`
         );
@@ -515,9 +522,9 @@ const CartPage = () => {
         // Something went wrong before sending
         console.log("⚠️ Error setting up request:", error.message);
       }
-    
+
       console.log("🔵 Config:", error.config);
-    
+
       showCustomAlert(
         "error",
         "Booking Failed",
@@ -641,7 +648,7 @@ const CartPage = () => {
         })
         .catch(async (error) => {
           console.log(`Payment cancelled or failed: ${error.data?.message || error.message}`);
-          
+
           // Update booking status to Failed when payment is cancelled
           try {
             await updateBookingStatus(bookingID, "Failed");
@@ -653,14 +660,14 @@ const CartPage = () => {
           // Show appropriate message based on error type
           if (error.data?.code === 'BAD_REQUEST_ERROR' && error.data?.description?.includes('cancelled')) {
             showCustomAlert(
-              "error", 
-              "Payment Cancelled", 
+              "error",
+              "Payment Cancelled",
               "Your payment was cancelled. You can try again or book for later."
             );
           } else {
             showCustomAlert(
-              "error", 
-              "Payment Failed", 
+              "error",
+              "Payment Failed",
               error.data?.message || error.message || "Something went wrong with the payment"
             );
           }
@@ -789,13 +796,13 @@ const CartPage = () => {
             }
           >
             <CustomText style={[{ color: "#fff" }, globalStyles.f12Bold]}>
-              + Add Your Services
+              + Book Your Service
             </CustomText>
           </TouchableOpacity>
         </View>
       ) : (
         <>
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView showsVerticalScrollIndicator={false} ref={scrollViewRef}>
             <View style={styles.card}>
               {cartItems.map((item, index) => (
                 <View key={item.id}>
@@ -1424,7 +1431,7 @@ const CartPage = () => {
         status={alertStatus}
         title={alertTitle}
         message={alertMessage}
-        onClose={() => setAlertVisible(false)}
+        onClose={alertOnClose}
       />
     </View>
   );
