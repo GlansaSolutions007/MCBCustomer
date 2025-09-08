@@ -71,7 +71,7 @@ const ConfirmAddressPage = ({ navigation }) => {
   const [isLoadingPredictions, setIsLoadingPredictions] = useState(false);
   const [isLoadingCurrentLocation, setIsLoadingCurrentLocation] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
-  
+
   // Animation refs
   const predictionOpacity = useRef(new Animated.Value(0)).current;
   const mapScale = useRef(new Animated.Value(0.8)).current;
@@ -134,7 +134,7 @@ const ConfirmAddressPage = ({ navigation }) => {
     if (searchText.length < 3) return;
 
     setIsLoadingPredictions(true);
-    
+
     // Start loading pulse animation
     Animated.loop(
       Animated.sequence([
@@ -424,8 +424,8 @@ const ConfirmAddressPage = ({ navigation }) => {
     >
       <View style={{ flex: 1, backgroundColor: "#fff" }}>
         <StatusBar barStyle="light-content" backgroundColor={color.primary} />
-        <Animated.View 
-          style={{ 
+        <Animated.View
+          style={{
             paddingHorizontal: 16,
             transform: [{ scale: searchBoxScale }]
           }}
@@ -440,7 +440,7 @@ const ConfirmAddressPage = ({ navigation }) => {
         {(predictions.length > 0 || isLoadingPredictions) && (
           <Animated.View style={{ opacity: predictionOpacity }}>
             {isLoadingPredictions ? (
-              <Animated.View 
+              <Animated.View
                 style={[
                   styles.loadingContainer,
                   {
@@ -479,17 +479,17 @@ const ConfirmAddressPage = ({ navigation }) => {
                       activeOpacity={0.7}
                     >
                       <View style={styles.predictionIconContainer}>
-                        <MaterialIcons 
-                          name="location-on" 
-                          size={22} 
-                          color={color.primary} 
+                        <MaterialIcons
+                          name="location-on"
+                          size={22}
+                          color={color.primary}
                         />
                       </View>
                       <View style={{ flex: 1, marginLeft: 4 }}>
                         <CustomText style={[globalStyles.f12Bold, { color: "#1a1a1a", lineHeight: 20 }]}>
                           {item.structured_formatting?.main_text || item.description.split(',')[0]}
                         </CustomText>
-                        <CustomText 
+                        <CustomText
                           style={[globalStyles.f10Medium, { color: "#666", marginTop: 4, lineHeight: 16 }]}
                           numberOfLines={2}
                         >
@@ -522,9 +522,9 @@ const ConfirmAddressPage = ({ navigation }) => {
             ]}
             onPress={async () => {
               if (isLoadingCurrentLocation) return;
-              
+
               setIsLoadingCurrentLocation(true);
-              
+
               // Animate button press
               Animated.sequence([
                 Animated.timing(currentLocationScale, {
@@ -551,7 +551,7 @@ const ConfirmAddressPage = ({ navigation }) => {
                   setAlertVisible(true);
                   return;
                 }
-                
+
                 let location = await Location.getCurrentPositionAsync({
                   accuracy: Location.Accuracy.High,
                 });
@@ -576,7 +576,7 @@ const ConfirmAddressPage = ({ navigation }) => {
                     latitudeDelta: 0.01,
                     longitudeDelta: 0.01,
                   });
-                  
+
                   // Animate back to normal
                   Animated.parallel([
                     Animated.timing(mapScale, {
@@ -642,7 +642,7 @@ const ConfirmAddressPage = ({ navigation }) => {
         </Animated.View>
 
         {address ? (
-          <Animated.View 
+          <Animated.View
             style={{
               transform: [{ translateY: addressCardSlide }]
             }}
@@ -706,7 +706,7 @@ const ConfirmAddressPage = ({ navigation }) => {
                       useNativeDriver: true,
                     }),
                   ]).start();
-                  
+
                   await reverseGeocode();
                 }}
               >
@@ -719,7 +719,7 @@ const ConfirmAddressPage = ({ navigation }) => {
         ) : null}
 
         {/* Map Container */}
-        <Animated.View 
+        <Animated.View
           style={[
             styles.mapContainer,
             {
@@ -743,7 +743,7 @@ const ConfirmAddressPage = ({ navigation }) => {
               onMapReady={() => setIsMapReady(true)}
               mapType="standard"
             >
-              <Marker 
+              <Marker
                 coordinate={region}
                 title="Selected Location"
                 description={address || "Tap to select location"}
@@ -829,10 +829,14 @@ const ConfirmAddressPage = ({ navigation }) => {
                       </CustomText>
                     </View>
                   </View>
-
-                  <CustomText style={styles.label}>
-                    House / Flat / Block No *
-                  </CustomText>
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-start" }}>
+                    <CustomText style={styles.label}>
+                      House / Flat / Block No
+                    </CustomText>
+                    <CustomText style={{ color: 'red', ...globalStyles.f12Bold, marginTop: 8 }}>
+                      *
+                    </CustomText>
+                  </View>
                   <TextInput
                     style={[
                       styles.input,
