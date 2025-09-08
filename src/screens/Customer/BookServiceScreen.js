@@ -8,7 +8,8 @@ import {
   StyleSheet,
   RefreshControl,
   Alert,
-  SafeAreaView
+  SafeAreaView,
+  Pressable
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import globalStyles from "../../styles/globalStyles";
@@ -113,24 +114,33 @@ export default function BookServiceScreen() {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
+          <CustomText style={[globalStyles.f14Bold, { color: '#222', marginBottom: 10 }]}>All Services</CustomText>
           {loading ? (
             <View style={styles.services}>
               <SkeletonLoader />
               <SkeletonLoader />
             </View>
           ) : filteredCategories.length === 0 ? (
-            <CustomText style={styles.noResultsText}>No categories found</CustomText>
+            <View style={{ alignItems: 'center', paddingVertical: 24 }}>
+              <Ionicons name="search" size={28} color="#bbb" />
+              <CustomText style={styles.noResultsText}>No categories found</CustomText>
+              <CustomText style={[globalStyles.f12Regular, { color: '#777', marginTop: 6 }]}>Try a different keyword</CustomText>
+            </View>
           ) : (
             <View style={styles.services}>
               {filteredCategories.map((cat) => (
-                <TouchableOpacity
+                <Pressable
                   key={cat.CategoryID}
-                  style={styles.card}
+                  style={({ pressed }) => [
+                    styles.card,
+                    pressed && { transform: [{ scale: 0.98 }] }
+                  ]}
                   onPress={() => handleCategoryPress(cat)}
                 >
                   <Image
                     source={{ uri: `${API_IMAGE_URL}/${cat.ThumbnailImage}` }}
                     style={styles.cardImage}
+                    onError={(e) => { /* silently ignore */ }}
                   />
                   <LinearGradient
                     colors={['#136D6E', 'transparent']}
@@ -138,14 +148,15 @@ export default function BookServiceScreen() {
                     end={{ x: 0.5, y: 0 }}
                     style={styles.gradientOverlay}
                   >
-                    <CustomText style={[globalStyles.f28Bold, globalStyles.textWhite]}>
-                      {cat.CategoryName.split(' ')[0]}
+                    <CustomText style={[globalStyles.f24Bold, globalStyles.textWhite]}>
+                      {cat.CategoryName}
                     </CustomText>
-                    <CustomText style={[globalStyles.f20Regular, globalStyles.textWhite]}>
-                      {cat.CategoryName.split(' ')[1] || 'Service'} {cat.CategoryName.split(' ')[2] || ''} {cat.CategoryName.split(' ')[3] || ''} {cat.CategoryName.split(' ')[4] || ''} {cat.CategoryName.split(' ')[5] || ''}
-                    </CustomText>
+                    <View style={styles.cardMetaRow}>
+                      <Ionicons name="chevron-forward" size={16} color="#fff" />
+                      <CustomText style={[globalStyles.f12Regular, globalStyles.textWhite]}>Tap to explore</CustomText>
+                    </View>
                   </LinearGradient>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </View>
           )}
@@ -177,6 +188,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     backgroundColor: '#ccc',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 3,
   },
   cardImage: {
     width: '100%',
@@ -190,7 +206,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: '70%',
     justifyContent: 'flex-end',
-    padding: 10,
+    padding: 12,
   },
   skeletonCard: {
     width: '100%',
@@ -199,6 +215,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     backgroundColor: '#efeeeeff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   skeletonTextContainer: {
     position: 'absolute',
@@ -219,5 +240,11 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 16,
     color: '#777',
+  },
+  cardMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    gap: 4,
   },
 });

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   ScrollView,
@@ -8,6 +8,10 @@ import {
   RefreshControl,
   ActivityIndicator,
   Pressable,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+  Animated,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -34,6 +38,13 @@ export default function ServiceList() {
   const navigation = useNavigation();
   const tabs = ["New", "Completed", "Cancelled"];
   const { refreshing, onRefresh } = useGlobalRefresh();
+
+  // Enable LayoutAnimation on Android for smooth transitions
+  useEffect(() => {
+    if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+  }, []);
 
   const fetchBookings = useCallback(async () => {
     setLoading(true);
@@ -98,6 +109,7 @@ export default function ServiceList() {
   // Handle manual refresh
   const handleRefresh = useCallback(() => {
     console.log("Manual refresh triggered");
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     onRefresh();
     fetchBookings();
   }, [onRefresh, fetchBookings]);
@@ -114,6 +126,25 @@ export default function ServiceList() {
     }
     return false;
   });
+
+  const counts = {
+    New: (bookings || []).filter((b) => {
+      const s = (b.BookingStatus || '').toLowerCase();
+      return s !== 'completed' && s !== 'cancelled';
+    }).length,
+    Completed: (bookings || []).filter((b) => (b.BookingStatus || '').toLowerCase() === 'completed').length,
+    Cancelled: (bookings || []).filter((b) => (b.BookingStatus || '').toLowerCase() === 'cancelled').length,
+  };
+
+  const getStatusColor = (status) => {
+    const s = (status || '').toLowerCase();
+    if (s === 'failed') return color.alertError;
+    if (s === 'cancelled') return '#999';
+    if (s === 'completed') return '#34C759';
+    if (s === 'startjourney') return color.primary;
+    if (s === 'pending') return color.yellow;
+    return color.secondary;
+  };
 
   const SkeletonLoader = () => (
     <View style={styles.bookingCard}>
@@ -302,6 +333,7 @@ export default function ServiceList() {
               key={tab}
               onPress={() => {
                 console.log("Tab switched to:", tab);
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                 setSelectedTab(tab);
               }}
               style={[
@@ -313,14 +345,21 @@ export default function ServiceList() {
                 },
               ]}
             >
-              <CustomText
-                style={[
-                  styles.tabButtonText,
-                  isActive && styles.tabButtonTextActive,
-                ]}
-              >
-                {tab}
-              </CustomText>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <CustomText
+                  style={[
+                    styles.tabButtonText,
+                    isActive && styles.tabButtonTextActive,
+                  ]}
+                >
+                  {tab}
+                </CustomText>
+                <View style={[styles.countBadge, isActive ? styles.countBadgeActive : styles.countBadgeInactive]}>
+                  <CustomText style={[globalStyles.f10Bold, { color: isActive ? '#000' : '#666' }]}>
+                    {counts[tab] || 0}
+                  </CustomText>
+                </View>
+              </View>
             </TouchableOpacity>
           );
         })}
@@ -399,10 +438,13 @@ export default function ServiceList() {
             </CustomText>
           </View>
         ) : (
-          filteredBookings.map((booking) => (
+          filteredBookings.map((booking, index) => (
             <Pressable
               key={booking.BookingID}
-              style={styles.bookingCard}
+              style={[
+                styles.bookingCard,
+                (booking.BookingStatus || '').toLowerCase() === 'startjourney' && booking.TechID !== null ? styles.journeyCard : null,
+              ]}
               disabled={booking.BookingStatus?.toLowerCase() === "failed"}
               onPress={() =>
                 navigation.navigate("BookingsInnerPage", { booking })
@@ -410,39 +452,48 @@ export default function ServiceList() {
             >
               <View>
                 <View style={styles.bookingR1}>
-                  <CustomText
-                    style={[
-                      styles.bookingID,
-                      {
-                        backgroundColor:
-                          booking.BookingStatus?.toLowerCase() === "failed"
-                            ? color.alertError
-                            : booking.BookingStatus?.toLowerCase() === "pending" && !booking.Payments
-                              ? color.yellow
-                              : color.secondary,
-                      },
-                    ]}
-                  >
-                    BID: {booking.BookingTrackID}
-                  </CustomText>
-
-                  {booking.BookingStatus?.toLowerCase() !== "cancelled" && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <CustomText
                       style={[
-                        styles.techStatus,
-                        {
-                          color:
-                            booking.TechID === null
-                              ? color.text
-                              : color.primary,
-                        },
+                        styles.bookingID,
+                        { backgroundColor: getStatusColor(booking.BookingStatus) },
                       ]}
                     >
-                      Tech{" "}
-                      {booking.TechID === null ? "Not Assigned" : "Assigned"}
+                      BID: {booking.BookingTrackID}
                     </CustomText>
+                    <View style={[styles.statusChip, { backgroundColor: getStatusColor(booking.BookingStatus) + '26' }]}> 
+                      <View style={[styles.statusDot, { backgroundColor: getStatusColor(booking.BookingStatus) }]} />
+                      <CustomText style={[globalStyles.f10Bold, { color: getStatusColor(booking.BookingStatus) }]}>
+                        {(booking.BookingStatus || '').toLowerCase() === 'startjourney' ? 'Started Journey' : booking.BookingStatus}
+                      </CustomText>
+                    </View>
+                  </View>
+
+                  {booking.BookingStatus?.toLowerCase() !== "cancelled" && (
+                    <View style={styles.techBadge}>
+                      {booking.TechID === null ? (
+                         <CustomText
+                         style={[
+                           styles.techStatus,
+                           { color: color.primary },
+                         ]}
+                       >
+                         {booking.TechID === null ? " " : "Tech Assigned"}
+                       </CustomText>
+                        
+                      ) : (
+                        <Ionicons name="person" size={20} color={color.primary} style={{ marginRight: 6 }} />
+                      )}
+                     
+                    </View>
                   )}
                 </View>
+                { (booking.BookingStatus || '').toLowerCase() === 'startjourney' && booking.TechID !== null && (
+                  <View style={styles.onTheWayRow}>
+                    <Ionicons name="navigate" color={color.primary} size={16} style={{ marginRight: 6 }} />
+                    <CustomText style={[globalStyles.f12Medium, { color: color.primary }]}>Technician is on the way</CustomText>
+                  </View>
+                )}
                 <View style={styles.divider} />
                 <View style={styles.bookingR1}>
                   <View style={styles.bookingCarImage}>
@@ -450,12 +501,7 @@ export default function ServiceList() {
                       source={{
                         uri: `https://api.mycarsbuddy.com/Images${booking.VehicleImage}`,
                       }}
-                      style={{
-                        width: "60%",
-                        height: 60,
-                        borderRadius: 8,
-                        backgroundColor: "#eee",
-                      }}
+                      style={styles.bookingImage}
                       onError={(e) =>
                         console.log("Image load error:", e.nativeEvent.error)
                       }
@@ -555,45 +601,37 @@ export default function ServiceList() {
                           color={color.primary}
                           style={{ marginRight: 6 }}
                         />
-                        <CustomText
-                          style={[globalStyles.f12Bold, { color: "#333" }]}
-                        >
+                        <CustomText style={[globalStyles.f12Bold, { color: "#333", maxWidth: 180 }]} numberOfLines={1} ellipsizeMode="marquee">
                           {pkg.PackageName}
                         </CustomText>
                       </View>
 
                       {/* Right: status only for last package */}
-                      {index === booking.Packages.length - 1 && (
-                        <CustomText style={[globalStyles.f10Medium]}>
-                          Status:{" "}
-                          <CustomText
-                            style={[
-                              globalStyles.f10Bold,
-                              { color: color.primary },
-                            ]}
-                          >
-                            {booking.BookingStatus?.toLowerCase() ===
-                              "startjourney" ? (
-                              "Started Journey"
-                            ) : booking.BookingStatus?.toLowerCase() ===
-                              "failed" ? (
-                              <CustomText
-                                style={[
-                                  globalStyles.f10Bold,
-                                  { color: color.alertError },
-                                ]}
-                              >
-                                {booking.BookingStatus}
-                              </CustomText>
-                            ) : (
-                              booking.BookingStatus
-                            )}
-                          </CustomText>
-                        </CustomText>
-                      )}
+                      
                     </View>
                   ))}
                 </View>
+                {booking.BookingStatus?.toLowerCase() === 'pending' && (!booking.Payments || booking.Payments.length === 0) && (
+                  <View style={styles.resumeCard}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                      <View style={styles.resumeIconWrap}>
+                        <Ionicons name="warning" size={16} color={color.yellow} />
+                      </View>
+                      <View style={{ flex: 1, marginLeft: 8 }}>
+                        <CustomText style={[globalStyles.f12Bold, { color: '#222' }]}>Payment Pending</CustomText>
+                        <CustomText style={[globalStyles.f10Light, { color: '#666', marginTop: 2 }]}>Tap below to resume and complete your booking.</CustomText>
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate('Cart', { resumeBookingId: booking.BookingID })}
+                      style={styles.resumeBtn}
+                      activeOpacity={0.9}
+                    >
+                      <Ionicons name="refresh-outline" size={16} color={color.black} style={{ marginRight: 6 }} />
+                      <CustomText style={[globalStyles.f12Bold, { color: color.black }]}>Resume Booking</CustomText>
+                    </TouchableOpacity>
+                  </View>
+                )}
                 {booking.BookingStatus?.toLowerCase() === "completed" && (
                   <>
                     <View style={styles.divider} />
@@ -653,6 +691,18 @@ const styles = StyleSheet.create({
     color: "#fff",
     ...globalStyles.f12Bold,
   },
+  countBadge: {
+    marginLeft: 6,
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  countBadgeActive: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
+  },
+  countBadgeInactive: {
+    backgroundColor: '#eee',
+  },
   card: {
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -707,20 +757,40 @@ const styles = StyleSheet.create({
   bookingCard: {
     backgroundColor: color.white,
     borderRadius: 10,
-    padding: 16,
-    marginBottom: 10,
+    padding: 12,
+    marginBottom: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2, // Android shadow
   },
+  journeyCard: {
+    borderWidth: 1,
+    borderColor: color.primary,
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
   bookingR1: {
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 5,
+    marginBottom: 6,
+  },
+  statusChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
   },
   bookingID: {
     ...globalStyles.f10Bold,
@@ -735,31 +805,83 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    // gap: 2,
+  },
+  bookingImage: {
+    width: 120,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: "#eee",
+    resizeMode: "contain",
   },
   techStatus: {
     ...globalStyles.f10Bold,
     // color: "#666",
   },
+  techBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   divider: {
     borderBottomColor: "#ededed",
     borderBottomWidth: 1,
-    marginVertical: 3,
+    marginVertical: 8,
+  },
+  onTheWayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    paddingVertical: 4,
+  },
+  resumeCard: {
+    marginTop: 8,
+    backgroundColor: '#F7FDFB',
+    borderWidth: 1,
+    borderColor: 'rgba(1,127,119,0.15)',
+    borderRadius: 10,
+    padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  resumeIconWrap: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: 'rgba(255,193,7,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  resumeBtn: {
+    backgroundColor: color.white,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'column',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   bookingDetails: {
     display: "flex",
     flexDirection: "column",
-    // justifyContent: "space-between",
     alignContent: "flex-start",
     flex: 1,
-    gap: 6,
-    padding: 5,
+    gap: 4,
+    padding: 0,
   },
   bookingDate: {
-    // ...globalStyles.f10Bold,
-    // color: "#666",
     display: "flex",
     flexDirection: "column",
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  metaIcon: {
+    marginRight: 6,
   },
   reviewSection: {
     alignItems: "center",
