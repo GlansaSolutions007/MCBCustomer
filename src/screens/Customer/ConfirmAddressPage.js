@@ -374,7 +374,7 @@ const ConfirmAddressPage = ({ navigation }) => {
       const payload = {
         custID,
         addressLine1,
-        addressLine2,
+        addressLine2: address,
         stateID: matchedState.StateID,
         cityID: matchedCity.CityID,
         pincode,
@@ -860,13 +860,13 @@ const ConfirmAddressPage = ({ navigation }) => {
                       House / Flat number is required.
                     </CustomText>
                   )}
-                  <CustomText style={styles.label}>Area / Apartment</CustomText>
+                  <CustomText style={styles.label}>Full Address</CustomText>
                   <TextInput
                     style={styles.input}
                     placeholder="e.g. My Residency"
                     placeholderTextColor="grey"
-                    value={addressLine2}
-                    onChangeText={setAddressLine2}
+                    value={address}
+                    onChangeText={setAddress}
                   />
                   <View
                     style={{

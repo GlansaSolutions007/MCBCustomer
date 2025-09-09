@@ -132,84 +132,162 @@ export default function ProfileScreen() {
     }
   };
 
+  const SkeletonLoader = () => (
+    <View >
+      {/* Profile Image Placeholder */}
+      <View style={styles.profileImageContainer}>
+        <View style={[styles.profileImage, { backgroundColor: '#e0e0e0', borderRadius: 60 }]} />
+      </View>
+      {/* Name Placeholder */}
+      <View style={styles.heading}>
+        <View style={{ backgroundColor: '#e0e0e0', height: 24, width: '50%', borderRadius: 4 }} />
+      </View>
+      {/* Profile Info Section Placeholder */}
+      <View style={styles.signleCard}>
+        <View style={{ backgroundColor: '#e0e0e0', height: 16, width: '30%', borderRadius: 4, marginBottom: 8 }} />
+        <View style={styles.profileCard}>
+          {[1, 2, 3].map((_, index) => (
+            <View key={`profile-${index}`} style={styles.profileDetails}>
+              <View style={styles.eachTouchable}>
+                <View style={styles.row}>
+                  <View style={{ backgroundColor: '#e0e0e0', width: 22, height: 22, borderRadius: 4 }} />
+                  <View style={{ backgroundColor: '#e0e0e0', height: 18, width: '60%', borderRadius: 4, marginLeft: 10 }} />
+                </View>
+                <View style={{ backgroundColor: '#e0e0e0', width: 20, height: 20, borderRadius: 4 }} />
+              </View>
+              {index < 2 && <View style={styles.divider} />}
+            </View>
+          ))}
+        </View>
+      </View>
+      {/* General Section Placeholder */}
+      <View style={styles.signleCard}>
+        <View style={{ backgroundColor: '#e0e0e0', height: 16, width: '30%', borderRadius: 4, marginBottom: 8 }} />
+        <View style={styles.profileCard}>
+          {[1, 2].map((_, index) => (
+            <View key={`general-${index}`} style={styles.profileDetails}>
+              <View style={styles.eachTouchable}>
+                <View style={styles.row}>
+                  <View style={{ backgroundColor: '#e0e0e0', width: 22, height: 22, borderRadius: 4 }} />
+                  <View style={{ backgroundColor: '#e0e0e0', height: 18, width: '60%', borderRadius: 4, marginLeft: 10 }} />
+                </View>
+                <View style={{ backgroundColor: '#e0e0e0', width: 20, height: 20, borderRadius: 4 }} />
+              </View>
+              {index < 1 && <View style={styles.divider} />}
+            </View>
+          ))}
+        </View>
+      </View>
+      {/* App Info Section Placeholder */}
+      <View style={styles.signleCard}>
+        <View style={{ backgroundColor: '#e0e0e0', height: 16, width: '30%', borderRadius: 4, marginBottom: 8 }} />
+        <View style={styles.profileCard}>
+          {[1, 2, 3].map((_, index) => (
+            <View key={`app-info-${index}`} style={styles.profileDetails}>
+              <View style={styles.eachTouchable}>
+                <View style={styles.row}>
+                  <View style={{ backgroundColor: '#e0e0e0', width: 22, height: 22, borderRadius: 4 }} />
+                  <View style={{ backgroundColor: '#e0e0e0', height: 18, width: '60%', borderRadius: 4, marginLeft: 10 }} />
+                </View>
+                <View style={{ backgroundColor: '#e0e0e0', width: 20, height: 20, borderRadius: 4 }} />
+              </View>
+              {index < 2 && <View style={styles.divider} />}
+            </View>
+          ))}
+        </View>
+      </View>
+      {/* Logout Button Placeholder */}
+      <View style={styles.cardContainer}>
+        <View style={[styles.card, { backgroundColor: '#e0e0e0' }]} />
+      </View>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <StatusBar backgroundColor={color.primary} barStyle="light-content" />
+      {loading ? (
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <SkeletonLoader />
+        </ScrollView>
+      ) : (
+        <>
+          <View style={styles.profileImageContainer}>
+            <ImageBackground
+              source={image ? { uri: image } : DefaultProfileImage}
+              style={styles.profileImage}
+              imageStyle={{ borderRadius: 60 }}
+            ></ImageBackground>
+          </View>
+          <View style={styles.heading}>
+            <CustomText style={[globalStyles.f20Bold, globalStyles.textWhite]}>
+              {name || "Hey Buddy"}
+            </CustomText>
+          </View>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Name */}
 
-      {/* Profile Image */}
-     
-      <View style={styles.profileImageContainer}>
-        <ImageBackground
-          source={image ? { uri: image } : DefaultProfileImage}
-          style={styles.profileImage}
-          imageStyle={{ borderRadius: 60 }}
-        ></ImageBackground>
-      </View>
-      <View style={styles.heading}>
-        <CustomText style={[globalStyles.f20Bold, globalStyles.textWhite]}>
-          {name || "Hey Buddy"}
-        </CustomText>
-      </View>
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Name */}
-
-        {/* Profile Information */}
-        <View style={styles.signleCard}>
-          <CustomText style={[globalStyles.f12Bold, globalStyles.mb2]}>
-            Profile Info
-          </CustomText>
-          <View style={styles.profileCard}>
-            <View style={styles.profileDetails}>
-              <TouchableOpacity
-                style={styles.eachTouchable}
-                onPress={() => navigation.navigate("ProfileRegister")}
-              >
-                <View style={styles.row}>
-                  <Ionicons name="settings" size={22} color={color.primary} />
-                  <CustomText
-                    style={[styles.touchableText, globalStyles.f16Medium]}
+            {/* Profile Information */}
+            <View style={styles.signleCard}>
+              <CustomText style={[globalStyles.f12Bold, globalStyles.mb2]}>
+                Profile Info
+              </CustomText>
+              <View style={styles.profileCard}>
+                <View style={styles.profileDetails}>
+                  <TouchableOpacity
+                    style={styles.eachTouchable}
+                    onPress={() => navigation.navigate("ProfileRegister")}
                   >
-                    Profile Details
-                  </CustomText>
+                    <View style={styles.row}>
+                      <Ionicons name="settings" size={22} color={color.primary} />
+                      <CustomText
+                        style={[styles.touchableText, globalStyles.f16Medium]}
+                      >
+                        Profile Details
+                      </CustomText>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward-outline"
+                      size={20}
+                      color={color.primary}
+                    />
+                  </TouchableOpacity>
+                  <View style={styles.divider} />
                 </View>
-                <Ionicons
-                  name="chevron-forward-outline"
-                  size={20}
-                  color={color.primary}
-                />
-              </TouchableOpacity>
-              <View style={styles.divider} />
-            </View>
-            <View style={styles.profileDetails}>
-              <TouchableOpacity
-                style={styles.eachTouchable}
-                onPress={() =>
-                  navigation.navigate("CustomerTabNavigator", {
-                    screen: "My Cars",
-                  })
-                }
-              >
-                <View style={styles.row}>
-                  <Ionicons name="car" size={22} color={color.primary} />
-                  <CustomText
-                    style={[styles.touchableText, globalStyles.f16Medium]}
+                <View style={styles.profileDetails}>
+                  <TouchableOpacity
+                    style={styles.eachTouchable}
+                    onPress={() =>
+                      navigation.navigate("CustomerTabNavigator", {
+                        screen: "My Cars",
+                      })
+                    }
                   >
-                    My Cars
-                  </CustomText>
+                    <View style={styles.row}>
+                      <Ionicons name="car" size={22} color={color.primary} />
+                      <CustomText
+                        style={[styles.touchableText, globalStyles.f16Medium]}
+                      >
+                        My Cars
+                      </CustomText>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward-outline"
+                      size={20}
+                      color={color.primary}
+                    />
+                  </TouchableOpacity>
+                  <View style={styles.divider} />
                 </View>
-                <Ionicons
-                  name="chevron-forward-outline"
-                  size={20}
-                  color={color.primary}
-                />
-              </TouchableOpacity>
-              <View style={styles.divider} />
-            </View>
-            {/* <View style={styles.profileDetails}>
+                {/* <View style={styles.profileDetails}>
               <TouchableOpacity
                 style={styles.eachTouchable}
                 onPress={() => navigation.navigate("NotificationSettings")}
@@ -234,166 +312,166 @@ export default function ProfileScreen() {
               </TouchableOpacity>
               <View style={styles.divider} />
             </View> */}
-            <View style={styles.profileDetails}>
-              <TouchableOpacity
-                style={styles.eachTouchable}
-                onPress={() => navigation.navigate("AddressList")}
-              >
-                <View style={styles.row}>
-                  <Ionicons name="location" size={22} color={color.primary} />
-                  <CustomText
-                    style={[styles.touchableText, globalStyles.f16Medium]}
+                <View style={styles.profileDetails}>
+                  <TouchableOpacity
+                    style={styles.eachTouchable}
+                    onPress={() => navigation.navigate("AddressList")}
                   >
-                    Addresses
-                  </CustomText>
+                    <View style={styles.row}>
+                      <Ionicons name="location" size={22} color={color.primary} />
+                      <CustomText
+                        style={[styles.touchableText, globalStyles.f16Medium]}
+                      >
+                        Addresses
+                      </CustomText>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward-outline"
+                      size={20}
+                      color={color.primary}
+                    />
+                  </TouchableOpacity>
                 </View>
-                <Ionicons
-                  name="chevron-forward-outline"
-                  size={20}
-                  color={color.primary}
-                />
-              </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </View>
 
-        {/* General Information */}
-        <View style={styles.signleCard}>
-          <CustomText style={[globalStyles.f12Bold, globalStyles.mb2]}>
-            General
-          </CustomText>
-          <View style={styles.profileCard}>
-            <View style={styles.profileDetails}>
-              <TouchableOpacity
-                style={styles.eachTouchable}
-                onPress={() =>
-                  navigation.navigate("CustomerTabNavigator", {
-                    screen: "My Bookings",
-                  })
-                }
-              >
-                <View style={styles.row}>
-                  <Ionicons name="calendar" size={22} color={color.primary} />
-                  <CustomText
-                    style={[styles.touchableText, globalStyles.f16Medium]}
+            {/* General Information */}
+            <View style={styles.signleCard}>
+              <CustomText style={[globalStyles.f12Bold, globalStyles.mb2]}>
+                General
+              </CustomText>
+              <View style={styles.profileCard}>
+                <View style={styles.profileDetails}>
+                  <TouchableOpacity
+                    style={styles.eachTouchable}
+                    onPress={() =>
+                      navigation.navigate("CustomerTabNavigator", {
+                        screen: "My Bookings",
+                      })
+                    }
                   >
-                    Bookings List
-                  </CustomText>
+                    <View style={styles.row}>
+                      <Ionicons name="calendar" size={22} color={color.primary} />
+                      <CustomText
+                        style={[styles.touchableText, globalStyles.f16Medium]}
+                      >
+                        Bookings List
+                      </CustomText>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward-outline"
+                      size={20}
+                      color={color.primary}
+                    />
+                  </TouchableOpacity>
+                  <View style={styles.divider} />
                 </View>
-                <Ionicons
-                  name="chevron-forward-outline"
-                  size={20}
-                  color={color.primary}
-                />
-              </TouchableOpacity>
-              <View style={styles.divider} />
-            </View>
-            <View style={styles.profileDetails}>
-              <TouchableOpacity 
-                style={styles.eachTouchable}
-                onPress={() => navigation.navigate("InvoiceList")}
-              >
-                <View style={styles.row}>
-                  <Ionicons name="wallet" size={22} color={color.primary} />
-                  <CustomText
-                    style={[styles.touchableText, globalStyles.f16Medium]}
+                <View style={styles.profileDetails}>
+                  <TouchableOpacity
+                    style={styles.eachTouchable}
+                    onPress={() => navigation.navigate("InvoiceList")}
                   >
-                    Invoice List
-                  </CustomText>
+                    <View style={styles.row}>
+                      <Ionicons name="wallet" size={22} color={color.primary} />
+                      <CustomText
+                        style={[styles.touchableText, globalStyles.f16Medium]}
+                      >
+                        Invoice List
+                      </CustomText>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward-outline"
+                      size={20}
+                      color={color.primary}
+                    />
+                  </TouchableOpacity>
+                  {/* <View style={styles.divider} /> */}
                 </View>
-                <Ionicons
-                  name="chevron-forward-outline"
-                  size={20}
-                  color={color.primary}
-                />
-              </TouchableOpacity>
-              {/* <View style={styles.divider} /> */}
+              </View>
             </View>
-          </View>
-        </View>
 
-        {/* App Info */}
-        <View style={styles.signleCard}>
-          <CustomText style={[globalStyles.f12Bold, globalStyles.mb2]}>
-            App Info
-          </CustomText>
-          <View style={styles.profileCard}>
-            <View style={styles.profileDetails}>
-              <TouchableOpacity
-                style={styles.eachTouchable}
-                onPress={() => navigation.navigate("PrivacyPolicy")}
-              >
-                <View style={styles.row}>
-                  <Ionicons
-                    name="alert-circle"
-                    size={22}
-                    color={color.primary}
-                  />
-                  <CustomText
-                    style={[styles.touchableText, globalStyles.f16Medium]}
+            {/* App Info */}
+            <View style={styles.signleCard}>
+              <CustomText style={[globalStyles.f12Bold, globalStyles.mb2]}>
+                App Info
+              </CustomText>
+              <View style={styles.profileCard}>
+                <View style={styles.profileDetails}>
+                  <TouchableOpacity
+                    style={styles.eachTouchable}
+                    onPress={() => navigation.navigate("PrivacyPolicy")}
                   >
-                    Privacy Policy
-                  </CustomText>
+                    <View style={styles.row}>
+                      <Ionicons
+                        name="alert-circle"
+                        size={22}
+                        color={color.primary}
+                      />
+                      <CustomText
+                        style={[styles.touchableText, globalStyles.f16Medium]}
+                      >
+                        Privacy Policy
+                      </CustomText>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward-outline"
+                      size={20}
+                      color={color.primary}
+                    />
+                  </TouchableOpacity>
+                  <View style={styles.divider} />
                 </View>
-                <Ionicons
-                  name="chevron-forward-outline"
-                  size={20}
-                  color={color.primary}
-                />
-              </TouchableOpacity>
-              <View style={styles.divider} />
-            </View>
-            <View style={styles.profileDetails}>
-              <TouchableOpacity
-                style={styles.eachTouchable}
-                onPress={() => navigation.navigate("TermsConditions")}
-              >
-                <View style={styles.row}>
-                  <Ionicons
-                    name="alert-circle"
-                    size={22}
-                    color={color.primary}
-                  />
-                  <CustomText
-                    style={[styles.touchableText, globalStyles.f16Medium]}
+                <View style={styles.profileDetails}>
+                  <TouchableOpacity
+                    style={styles.eachTouchable}
+                    onPress={() => navigation.navigate("TermsConditions")}
                   >
-                    Terms & Conditions
-                  </CustomText>
+                    <View style={styles.row}>
+                      <Ionicons
+                        name="alert-circle"
+                        size={22}
+                        color={color.primary}
+                      />
+                      <CustomText
+                        style={[styles.touchableText, globalStyles.f16Medium]}
+                      >
+                        Terms & Conditions
+                      </CustomText>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward-outline"
+                      size={20}
+                      color={color.primary}
+                    />
+                  </TouchableOpacity>
+                  <View style={styles.divider} />
                 </View>
-                <Ionicons
-                  name="chevron-forward-outline"
-                  size={20}
-                  color={color.primary}
-                />
-              </TouchableOpacity>
-              <View style={styles.divider} />
-            </View>
-            <View style={styles.profileDetails}>
-              <TouchableOpacity
-                style={styles.eachTouchable}
-                onPress={() => navigation.navigate("RefundPolicy")}
-              >
-                <View style={styles.row}>
-                  <Ionicons
-                    name="alert-circle"
-                    size={22}
-                    color={color.primary}
-                  />
-                  <CustomText
-                    style={[styles.touchableText, globalStyles.f16Medium]}
+                <View style={styles.profileDetails}>
+                  <TouchableOpacity
+                    style={styles.eachTouchable}
+                    onPress={() => navigation.navigate("RefundPolicy")}
                   >
-                    Refund Policy
-                  </CustomText>
+                    <View style={styles.row}>
+                      <Ionicons
+                        name="alert-circle"
+                        size={22}
+                        color={color.primary}
+                      />
+                      <CustomText
+                        style={[styles.touchableText, globalStyles.f16Medium]}
+                      >
+                        Refund Policy
+                      </CustomText>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward-outline"
+                      size={20}
+                      color={color.primary}
+                    />
+                  </TouchableOpacity>
+                  {/* <View style={styles.divider} /> */}
                 </View>
-                <Ionicons
-                  name="chevron-forward-outline"
-                  size={20}
-                  color={color.primary}
-                />
-              </TouchableOpacity>
-              {/* <View style={styles.divider} /> */}
-            </View>
-            {/* <View style={styles.profileDetails}>
+                {/* <View style={styles.profileDetails}>
               <TouchableOpacity style={styles.eachTouchable}>
                 <View style={styles.row}>
                   <Ionicons
@@ -414,11 +492,11 @@ export default function ProfileScreen() {
                 />
               </TouchableOpacity>
             </View> */}
-          </View>
-        </View>
+              </View>
+            </View>
 
-        {/* FCM Testing Section */}
-        {/* <View style={styles.signleCard}>
+            {/* FCM Testing Section */}
+            {/* <View style={styles.signleCard}>
           <CustomText style={[globalStyles.f12Bold, globalStyles.mb2]}>
             FCM Testing
           </CustomText>
@@ -509,20 +587,23 @@ export default function ProfileScreen() {
           </View>
         </View> */}
 
-        {/* Bottom Buttons */}
-        <View style={styles.cardContainer}>
-          <TouchableOpacity
-            style={[styles.card, { backgroundColor: color.alertError }]}
-            onPress={handleLogout}
-          >
-            <Ionicons name="log-out-outline" size={24} color="white" />
-            <CustomText style={[styles.cardText, { color: "white" }]}>
-              Logout
-            </CustomText>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+            {/* Bottom Buttons */}
+            <View style={styles.cardContainer}>
+              <TouchableOpacity
+                style={[styles.card, { backgroundColor: color.alertError }]}
+                onPress={handleLogout}
+              >
+                <Ionicons name="log-out-outline" size={24} color="white" />
+                <CustomText style={[styles.cardText, { color: "white" }]}>
+                  Logout
+                </CustomText>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </>
+      )
+      }
+    </SafeAreaView >
   );
 }
 
