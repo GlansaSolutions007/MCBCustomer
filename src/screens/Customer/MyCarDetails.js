@@ -43,6 +43,9 @@ export const MyCarDetails = () => {
   const [showYearPicker, setShowYearPicker] = useState(false);
 
   const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertStatus, setAlertStatus] = useState("info");
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [engineType, setEngineType] = useState("");
   const [kilometersDriven, setKilometersDriven] = useState("");
@@ -155,14 +158,24 @@ export const MyCarDetails = () => {
       );
 
       console.log("Car added:", res.data);
+      if (res.data.status) {
+        // success
+        setAlertTitle("Success");
+        setAlertMessage("Your Car Added Successfully");
+        setAlertStatus("success");
+      } else {
+        // validation / duplicate error
+        setAlertTitle("Validation Error");
+        setAlertMessage(res.data.message || "Something went wrong.");
+        setAlertStatus("error");
+      }
       setAlertVisible(true);
     } catch (error) {
-      if(error.status === false){
-        setAlertVisible(true);
-        console.log("hsdkakhakjad",error.response.message);
-        // setAlertMessage(error.response.data.Message);
-      }
-      // console.error("Error submitting car:", error.response.data);
+      console.error("Error submitting car:", error);
+      setAlertTitle("Error");
+      setAlertMessage("Failed to add car. Please try again.");
+      setAlertStatus("error");
+      setAlertVisible(true);
     }
   };
 
@@ -494,21 +507,18 @@ export const MyCarDetails = () => {
               <CustomAlert
                 visible={alertVisible}
                 onClose={() => setAlertVisible(false)}
-                title="Success"
-                message="Your Car Added Successfully"
-                status="info"
+                title={alertTitle}
+                message={alertMessage}
+                status={alertStatus}
                 showButton={false} // hide default button
               >
-                <TouchableOpacity
-                  onPress={goCarList}
-                  style={styles.submitButton}
-                >
-                  <CustomText
-                    style={{ ...globalStyles.f12Bold, color: color.white }}
-                  >
-                    Go To Cars List
-                  </CustomText>
-                </TouchableOpacity>
+                {alertStatus === "success" ? (
+                  <TouchableOpacity onPress={goCarList} style={styles.submitButton}>
+                    <CustomText style={{ ...globalStyles.f12Bold, color: color.white }}>
+                      Go To Cars List
+                    </CustomText>
+                  </TouchableOpacity>
+                ) : null}
               </CustomAlert>
               <Modal
                 visible={privacyModalVisible}
