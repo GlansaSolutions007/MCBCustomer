@@ -20,6 +20,12 @@ export default function RootNavigator() {
 
   // Internet check
   useEffect(() => {
+    // Check initial connection state
+    NetInfo.fetch().then(state => {
+      setIsConnected(state.isConnected);
+    });
+
+    // Listen for connection changes
     const unsubscribe = NetInfo.addEventListener((state) => {
       setIsConnected(state.isConnected);
     });

@@ -1,9 +1,10 @@
-import { db } from "../config/firebaseConfig";
-import { ref, set, push } from "firebase/database";
-import { registerForPushNotificationsAsync } from "../utils/notificationService";
+/* NOTIFICATION TEST UTILS DISABLED
+// import { db } from "../config/firebaseConfig";
+// import { ref, set, push } from "firebase/database";
+// import { registerForPushNotificationsAsync } from "../utils/notificationService";
 
-import { Platform } from "react-native";
-import * as Notifications from "expo-notifications";
+// import { Platform } from "react-native";
+// import * as Notifications from "expo-notifications";
 
 export const testNotificationUtils = {
   // Test FCM token generation
@@ -151,5 +152,8 @@ export const testNotificationUtils = {
     return results;
   }
 };
+*/
 
+// Export empty object to prevent errors
+export const testNotificationUtils = {};
 export default testNotificationUtils;

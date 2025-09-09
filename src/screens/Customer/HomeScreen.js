@@ -8,7 +8,7 @@ import {
   StyleSheet,
   RefreshControl,
   Alert,
-  Pressable
+  Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import globalStyles from "../../styles/globalStyles";
@@ -27,19 +27,29 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { LocationContext } from "../../contexts/LocationContext";
 import axios from "axios";
 // import { API_BASE_URL } from "@env";
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import * as Notifications from "expo-notifications";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+// import * as Notifications from "expo-notifications";
 
 import { API_URL, API_IMAGE_URL, RAZORPAY_KEY } from "@env";
 import { getToken } from "../../utils/token";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { monitorBookingsForNotifications } from "../../utils/notificationService";
+// import { monitorBookingsForNotifications } from "../../utils/notificationService";
 
 const formatDate = (dateString) => {
-  if (!dateString) return '';
-  const [year, month, day] = dateString.split('-');
+  if (!dateString) return "";
+  const [year, month, day] = dateString.split("-");
   return `${day}-${month}-${year}`;
+};
+
+const getStatusColor = (status) => {
+  const s = (status || "").toLowerCase();
+  if (s === "failed") return color.alertError;
+  if (s === "cancelled") return "#999";
+  if (s === "completed") return "#34C759";
+  if (s === "startjourney") return color.primary;
+  if (s === "pending") return color.yellow;
+  return color.secondary;
 };
 
 export default function HomeScreen() {
@@ -93,7 +103,7 @@ export default function HomeScreen() {
       }
 
       const custID = parsedUserData.custID;
-      const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      const today = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
       const token = await getToken();
       const response = await axios.get(`${API_URL}Bookings/${custID}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -103,17 +113,19 @@ export default function HomeScreen() {
         const upcoming = response.data.filter(
           (booking) =>
             booking.BookingDate >= today &&
-            booking.BookingStatus?.toLowerCase() !== "cancelled"
+            booking.BookingStatus?.toLowerCase() !== "cancelled" &&
+            booking.BookingStatus?.toLowerCase() !== "failed"
         );
+        console.log("Upcoming Bookings:", upcoming);
 
         setUpcomingBookings(upcoming);
 
-        if (custID) {
-          monitorBookingsForNotifications(upcoming, custID);
-        }
+        // if (custID) {
+        //   monitorBookingsForNotifications(upcoming, custID);
+        // }
       }
     } catch (error) {
-      console.error('Failed to fetch bookings:', error);
+      console.error("Failed to fetch bookings:", error);
     }
   };
 
@@ -215,40 +227,335 @@ export default function HomeScreen() {
 
   const SkeletonLoader = () => (
     <View>
-      <View style={globalStyles.container}>
-        <View style={{ backgroundColor: '#f1f1f1ff', height: 20, width: '50%', borderRadius: 4, marginBottom: 10, marginTop: 40 }} />
-        {/* Category Cards Placeholder */}
-        <View style={[globalStyles.flexrow, globalStyles.justifysb]}>
-          {[1, 2, 3].map((_, index) => (
-            <View key={index} style={styles.card}>
-              <View style={[styles.cardImage, { backgroundColor: '#f1f1f1ff' }]} />
-              <LinearGradient
-                colors={['#f1f1f1ff', 'transparent']}
-                start={{ x: 0.5, y: 1 }}
-                end={{ x: 0.5, y: 0 }}
-                style={styles.gradientOverlay}
-              >
-                <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '60%', borderRadius: 4 }} />
-                <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '40%', borderRadius: 4, marginTop: 5 }} />
-              </LinearGradient>
-            </View>
-          ))}
+      {/* Banner Skeleton */}
+      <View style={[styles.banner, globalStyles.mb35]}>
+        <View style={styles.bannerHeader}>
+          <View style={[styles.logo, { backgroundColor: "#f1f1f1ff" }]} />
         </View>
-        {/* CTA Banner Placeholder */}
-        <View
-          style={[
-            styles.ctaContainer,
-            globalStyles.p5,
-            // globalStyles.mt2,
-            { backgroundColor: '#f1f1f1ff', borderRadius: 8 },
-          ]}
-        >
-          <View>
-            <View style={{ backgroundColor: '#f1f1f1ff', height: 25, width: '70%', borderRadius: 4 }} />
-            <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '50%', borderRadius: 4, marginTop: 5 }} />
+        <View style={styles.bannerContent}>
+          <View
+            style={[
+              styles.carImagePositioned,
+              { backgroundColor: "#f1f1f1ff" },
+            ]}
+          />
+          <View style={styles.bannerTextContainer}>
+            <View
+              style={{
+                backgroundColor: "#f1f1f1ff",
+                height: 20,
+                width: "90%",
+                borderRadius: 4,
+                marginBottom: 8,
+              }}
+            />
+            <View
+              style={{
+                backgroundColor: "#f1f1f1ff",
+                height: 16,
+                width: "70%",
+                borderRadius: 4,
+              }}
+            />
           </View>
-          <View style={styles.ctaButtonWrapper}>
-            <View style={[styles.ctaButton, { backgroundColor: '#f1f1f1ff' }]} />
+        </View>
+      </View>
+
+      <View style={globalStyles.container}>
+        {/* Section Header Skeleton */}
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleContainer}>
+            <View
+              style={{
+                backgroundColor: "#f1f1f1ff",
+                height: 20,
+                width: 120,
+                borderRadius: 4,
+                marginBottom: 4,
+              }}
+            />
+            <View
+              style={{
+                backgroundColor: "#f1f1f1ff",
+                height: 14,
+                width: 200,
+                borderRadius: 4,
+              }}
+            />
+          </View>
+          <View
+            style={[styles.arrowContainer, { backgroundColor: "#f1f1f1ff" }]}
+          />
+        </View>
+
+        {/* Category Cards Skeleton */}
+        <View style={styles.categoriesContainer}>
+          <View style={styles.twoCategoriesLayout}>
+            {[1, 2].map((_, index) => (
+              <View
+                key={index}
+                style={[styles.categoryCard, { backgroundColor: "#f1f1f1ff" }]}
+              >
+                <View
+                  style={[
+                    styles.cardImageContainer,
+                    { backgroundColor: "#e8e8e8ff" },
+                  ]}
+                />
+                <View style={styles.cardContent}>
+                  <View
+                    style={{
+                      backgroundColor: "#f1f1f1ff",
+                      height: 16,
+                      width: "80%",
+                      borderRadius: 4,
+                    }}
+                  />
+                  <View
+                    style={[styles.cardArrow, { backgroundColor: "#f1f1f1ff" }]}
+                  />
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* CTA Banner Skeleton */}
+        <View style={styles.ctaSection}>
+          <View style={[styles.ctaContainer, { backgroundColor: "#f1f1f1ff" }]}>
+            <View style={styles.ctaContent}>
+              <View style={styles.ctaTextContainer}>
+                <View
+                  style={{
+                    backgroundColor: "#f1f1f1ff",
+                    height: 24,
+                    width: "90%",
+                    borderRadius: 4,
+                    marginBottom: 8,
+                  }}
+                />
+                <View
+                  style={{
+                    backgroundColor: "#f1f1f1ff",
+                    height: 20,
+                    width: "70%",
+                    borderRadius: 4,
+                    marginBottom: 8,
+                  }}
+                />
+                <View
+                  style={{
+                    backgroundColor: "#f1f1f1ff",
+                    height: 16,
+                    width: "60%",
+                    borderRadius: 4,
+                  }}
+                />
+              </View>
+              <View
+                style={[styles.ctaButton, { backgroundColor: "#f1f1f1ff" }]}
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Upcoming Bookings Section Skeleton */}
+        <View style={[globalStyles.mt4]}>
+          <View
+            style={{
+              backgroundColor: "#f1f1f1ff",
+              height: 20,
+              width: 150,
+              borderRadius: 4,
+              marginBottom: 16,
+            }}
+          />
+
+          {/* Booking Card Skeleton */}
+          <View style={[styles.bookingCard, { backgroundColor: "#f1f1f1ff" }]}>
+            <View style={styles.bookingR1}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <View
+                  style={{
+                    backgroundColor: "#f1f1f1ff",
+                    height: 20,
+                    width: 80,
+                    borderRadius: 10,
+                  }}
+                />
+                <View
+                  style={{
+                    backgroundColor: "#f1f1f1ff",
+                    height: 24,
+                    width: 100,
+                    borderRadius: 12,
+                    marginLeft: 8,
+                  }}
+                />
+              </View>
+              <View
+                style={{
+                  backgroundColor: "#f1f1f1ff",
+                  height: 20,
+                  width: 60,
+                  borderRadius: 4,
+                }}
+              />
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.bookingR1}>
+              <View style={styles.bookingCarImage}>
+                <View
+                  style={[
+                    styles.bookingImage,
+                    { backgroundColor: "#f1f1f1ff" },
+                  ]}
+                />
+                <View
+                  style={{
+                    backgroundColor: "#f1f1f1ff",
+                    height: 16,
+                    width: "80%",
+                    borderRadius: 4,
+                    marginTop: 8,
+                  }}
+                />
+                <View
+                  style={{
+                    backgroundColor: "#f1f1f1ff",
+                    height: 14,
+                    width: "60%",
+                    borderRadius: 4,
+                    marginTop: 4,
+                  }}
+                />
+              </View>
+              <View style={styles.bookingDetails}>
+                <View style={styles.bookingDate}>
+                  <View
+                    style={{
+                      backgroundColor: "#f1f1f1ff",
+                      height: 14,
+                      width: "70%",
+                      borderRadius: 4,
+                    }}
+                  />
+                  <View
+                    style={{
+                      backgroundColor: "#f1f1f1ff",
+                      height: 16,
+                      width: "50%",
+                      borderRadius: 4,
+                      marginTop: 4,
+                    }}
+                  />
+                </View>
+                <View style={styles.bookingDate}>
+                  <View
+                    style={{
+                      backgroundColor: "#f1f1f1ff",
+                      height: 14,
+                      width: "70%",
+                      borderRadius: 4,
+                    }}
+                  />
+                  <View
+                    style={{
+                      backgroundColor: "#f1f1f1ff",
+                      height: 16,
+                      width: "50%",
+                      borderRadius: 4,
+                      marginTop: 4,
+                    }}
+                  />
+                </View>
+                <View style={styles.bookingDate}>
+                  <View
+                    style={{
+                      backgroundColor: "#f1f1f1ff",
+                      height: 14,
+                      width: "70%",
+                      borderRadius: 4,
+                    }}
+                  />
+                  <View
+                    style={{
+                      backgroundColor: "#f1f1f1ff",
+                      height: 16,
+                      width: "50%",
+                      borderRadius: 4,
+                      marginTop: 4,
+                    }}
+                  />
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.bookingServices}>
+              <View
+                style={{
+                  backgroundColor: "#f1f1f1ff",
+                  height: 14,
+                  width: "60%",
+                  borderRadius: 4,
+                  marginBottom: 8,
+                }}
+              />
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginVertical: 4,
+                }}
+              >
+                <View
+                  style={{
+                    backgroundColor: "#f1f1f1ff",
+                    height: 16,
+                    width: 16,
+                    borderRadius: 4,
+                    marginRight: 8,
+                  }}
+                />
+                <View
+                  style={{
+                    backgroundColor: "#f1f1f1ff",
+                    height: 16,
+                    width: "80%",
+                    borderRadius: 4,
+                  }}
+                />
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginVertical: 4,
+                }}
+              >
+                <View
+                  style={{
+                    backgroundColor: "#f1f1f1ff",
+                    height: 16,
+                    width: 16,
+                    borderRadius: 4,
+                    marginRight: 8,
+                  }}
+                />
+                <View
+                  style={{
+                    backgroundColor: "#f1f1f1ff",
+                    height: 16,
+                    width: "80%",
+                    borderRadius: 4,
+                  }}
+                />
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -291,60 +598,61 @@ export default function HomeScreen() {
             </View>
           </View>
           <View style={globalStyles.container}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionTitleContainer}>
-                <CustomText style={styles.sectionTitle}>
+            <View
+              style={[
+                globalStyles.flexrow,
+                globalStyles.alineItemscenter,
+                globalStyles.mb3,
+              ]}
+            >
+              <View style={{ flex: 1 }}>
+                <CustomText
+                  style={[
+                    globalStyles.f16Bold,
+                    globalStyles.textBlack,
+                    globalStyles.mb1,
+                  ]}
+                >
                   Our Services
                 </CustomText>
-                <CustomText style={styles.sectionSubtitle}>
+                <CustomText
+                  style={[globalStyles.f12Regular, { color: "#666" }]}
+                >
                   Choose from our range of professional car care services
                 </CustomText>
               </View>
               {categories.length > 2 && (
-                <View style={styles.arrowContainer}>
+                <View
+                  style={[
+                    globalStyles.p2,
+                    {
+                      backgroundColor: "rgba(1, 127, 119, 0.1)",
+                      borderRadius: 20,
+                      marginLeft: 12,
+                    },
+                  ]}
+                >
                   <Ionicons
                     name="arrow-forward-circle"
                     size={24}
                     color={color.primary}
+                    onPress={() =>
+                      navigation.navigate("CustomerTabNavigator", {
+                        screen: "Services",
+                      })
+                    }
                   />
                 </View>
               )}
             </View>
-            <View style={styles.categoriesContainer}>
+            <View style={globalStyles.mb5}>
               {categories.length === 2 ? (
-                <View style={styles.twoCategoriesLayout}>
-                  {categories.map((cat) => (
-                    <TouchableOpacity
-                      key={cat.CategoryID}
-                      style={styles.categoryCard}
-                      onPress={() => handleCategoryPress(cat)}
-                      activeOpacity={0.8}
-                    >
-                      <View style={styles.cardImageContainer}>
-                        <Image
-                          source={{
-                            uri: `${API_IMAGE_URL}/${cat.ThumbnailImage}`,
-                          }}
-                          style={styles.categoryCardImage}
-                        />
-                        <View style={styles.cardOverlay} />
-                      </View>
-                      <View style={styles.cardContent}>
-                        <CustomText style={styles.categoryCardTitle}>
-                          {cat.CategoryName}
-                        </CustomText>
-                        <View style={styles.cardArrow}>
-                          <Ionicons name="arrow-forward" size={16} color={color.white} />
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              ) : (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.horizontalScrollContent}
+                <View
+                  style={[
+                    globalStyles.flexrow,
+                    globalStyles.justifysb,
+                    { gap: 16 },
+                  ]}
                 >
                   {categories.map((cat) => (
                     <TouchableOpacity
@@ -367,7 +675,52 @@ export default function HomeScreen() {
                           {cat.CategoryName}
                         </CustomText>
                         <View style={styles.cardArrow}>
-                          <Ionicons name="arrow-forward" size={16} color={color.white} />
+                          <Ionicons
+                            name="arrow-forward"
+                            size={16}
+                            color={color.white}
+                            
+                          />
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    paddingVertical: 8,
+                    paddingRight: 16,
+                  }}
+                >
+                  {categories.map((cat) => (
+                    <TouchableOpacity
+                      key={cat.CategoryID}
+                      style={styles.categoryCard}
+                      onPress={() => handleCategoryPress(cat)}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.cardImageContainer}>
+                        <Image
+                          source={{
+                            uri: `${API_IMAGE_URL}/${cat.ThumbnailImage}`,
+                          }}
+                          style={styles.categoryCardImage}
+                        />
+                        <View style={styles.cardOverlay} />
+                      </View>
+                      <View style={styles.cardContent}>
+                        <CustomText style={styles.categoryCardTitle}>
+                          {cat.CategoryName}
+                        </CustomText>
+                        <View style={styles.cardArrow}>
+                          <Ionicons
+                            name="arrow-forward"
+                            size={16}
+                            color={color.white}
+                          />
                         </View>
                       </View>
                     </TouchableOpacity>
@@ -375,7 +728,7 @@ export default function HomeScreen() {
                 </ScrollView>
               )}
             </View>
-            <View style={styles.ctaSection}>
+            <View style={globalStyles.mb5}>
               <ImageBackground
                 source={CTAbannerhome}
                 style={styles.ctaContainer}
@@ -384,22 +737,44 @@ export default function HomeScreen() {
               >
                 <View style={styles.ctaContent}>
                   <View style={styles.ctaTextContainer}>
-                    <CustomText style={[styles.ctaTitle, globalStyles.f20Regular]}>
+                    <CustomText
+                      style={[
+                        globalStyles.f20Bold,
+                        globalStyles.textWhite,
+                        globalStyles.mb2,
+                      ]}
+                    >
                       Give your car's intro {"\n"} to your care buddy
                     </CustomText>
-                    <CustomText style={styles.ctaSubtitle}>
+                    <CustomText
+                      style={[globalStyles.f12Regular, globalStyles.textWhite]}
+                    >
                       We'll remember it, pamper it,{"\n"} and keep it shining.
                     </CustomText>
                   </View>
                   <TouchableOpacity
-                    style={styles.ctaButton}
+                    style={[
+                      globalStyles.bgwhite,
+                      globalStyles.mt3,
+                      styles.ctaButton,
+                    ]}
                     onPress={goToCar}
                     activeOpacity={0.8}
                   >
-                    <CustomText style={styles.ctaButtonText}>
+                    <CustomText
+                      style={[
+                        globalStyles.f12Bold,
+                        globalStyles.textBlack,
+                        globalStyles.mr2,
+                      ]}
+                    >
                       Add Car & Book Service
                     </CustomText>
-                    <Ionicons name="arrow-forward" size={18} color={color.black} style={styles.ctaButtonIcon} />
+                    <Ionicons
+                      name="arrow-forward"
+                      size={18}
+                      color={color.black}
+                    />
                   </TouchableOpacity>
                 </View>
               </ImageBackground>
@@ -430,225 +805,422 @@ export default function HomeScreen() {
               </View> */}
             {/* </View> */}
             <View style={[globalStyles.mt4]}>
-              <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack, globalStyles.mb1]}>
+              <CustomText
+                style={[
+                  globalStyles.f16Bold,
+                  globalStyles.textBlack,
+                  globalStyles.mb1,
+                ]}
+              >
                 Upcoming Bookings
               </CustomText>
               {upcomingBookings.length === 0 ? (
-                // <Pressable
-                //   onPress={() => navigation.navigate("CustomerTabNavigator", { screen: 'Services' })}
-                //   style={{
-                //     backgroundColor: "#fff",
-                //     padding: 16,
-                //     borderRadius: 12,
-                //     alignItems: "center",
-                //     justifyContent: "center",
-                //     marginTop: 16,
-                //     shadowColor: "#000",
-                //     shadowOpacity: 0.05,
-                //     shadowOffset: { width: 0, height: 2 },
-                //     shadowRadius: 4,
-                //     elevation: 2,
-                //   }}
-                // >
-                //   <Ionicons
-                //     name="calendar-outline"
-                //     size={40}
-                //     color={color.primary}
-                //     style={{ marginBottom: 8 }}
-                //   />
-                //   <CustomText
-                //     style={[globalStyles.f16Bold, { color: color.primary }]}
-                //   >
-                //     No upcoming bookings.
-                //   </CustomText>
-                //   <View style={{ alignItems: "center", marginTop: 8 }}>
-                //     <CustomText
-                //       style={[
-                //         globalStyles.f12Regular,
-                //         { color: "#666", textAlign: "center" },
-                //       ]}
-                //     >
-                //       Plan ahead! Book your next car service today for a hassle-free
-                //       experience.
-                //     </CustomText>
-                //   </View>
-                // </Pressable>
-
-                <View
-                  style={{
-                    backgroundColor: "#fff",
-                    padding: 16,
-                    borderRadius: 12,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginTop: 16,
-                    shadowColor: "#000",
-                    shadowOpacity: 0.05,
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowRadius: 4,
-                    elevation: 2,
-                  }}
+                <Pressable
+                  onPress={() =>
+                    navigation.navigate("CustomerTabNavigator", {
+                      screen: "Services",
+                    })
+                  }
+                  style={[
+                    globalStyles.bgwhite,
+                    globalStyles.p4,
+                    globalStyles.mt4,
+                    globalStyles.alineItemscenter,
+                    { borderRadius: 12 },
+                  ]}
                 >
                   <Ionicons
                     name="calendar-outline"
                     size={40}
                     color={color.primary}
-                    style={{ marginBottom: 8 }}
+                    style={globalStyles.mb2}
                   />
                   <CustomText
-                    style={[globalStyles.f16Bold, { color: color.primary }]}
+                    style={[globalStyles.f16Bold, globalStyles.primary]}
                   >
                     No upcoming bookings
                   </CustomText>
-                  <View style={{ alignItems: "center", marginTop: 8 }}>
+                  <View
+                    style={[globalStyles.alineItemscenter, globalStyles.mt2]}
+                  >
                     <CustomText
                       style={[
                         globalStyles.f12Regular,
-                        { color: "#666", textAlign: "center" },
+                        { color: "#666" },
+                        globalStyles.textac,
                       ]}
                     >
-                      Plan ahead! Book your next car service today for a hassle-free
-                      experience.
+                      Plan ahead! Book your next car service today for a
+                      hassle-free experience.
                     </CustomText>
-                    <Ionicons name="arrow-forward" size={16} color={color.white} />
                   </View>
 
                   {/* CTA button */}
                   <Pressable
                     onPress={() =>
-                      navigation.navigate("CustomerTabNavigator", { screen: "Services" })
+                      navigation.navigate("CustomerTabNavigator", {
+                        screen: "Services",
+                      })
                     }
-                    style={{
-                      marginTop: 16,
-                      backgroundColor: color.primary,
-                      paddingVertical: 10,
-                      paddingHorizontal: 20,
-                      borderRadius: 8,
-                    }}
+                    style={[
+                      globalStyles.bgprimary,
+                      globalStyles.mt4,
+                      {
+                        paddingVertical: 10,
+                        paddingHorizontal: 20,
+                        borderRadius: 8,
+                      },
+                    ]}
                   >
-                    <CustomText style={[{ color: "#fff", marginBottom: 1 }, globalStyles.f12Bold]}>
+                    <CustomText
+                      style={[globalStyles.textWhite, globalStyles.f12Bold]}
+                    >
                       Book a Service
                     </CustomText>
                   </Pressable>
                   <CustomText
-                    style={{
-                      marginTop: 8,
-                      fontSize: 12,
-                      color: color.primary,
-                      fontWeight: "600",
-                    }}
+                    style={[
+                      globalStyles.mt2,
+                      globalStyles.f12Bold,
+                      globalStyles.primary,
+                    ]}
                   >
                     👉 Tap the button to get started
                   </CustomText>
-                </View>
-
-
+                </Pressable>
               ) : (
                 upcomingBookings.map((booking) => (
                   <Pressable
                     key={booking.BookingID}
-                    style={styles.bookingCard}
-                    onPress={() => navigation.navigate('BookingsInnerPage', { booking })}
+                    style={[
+                      styles.bookingCard,
+                      (booking.BookingStatus || "").toLowerCase() ===
+                        "startjourney" && booking.TechID !== null
+                        ? styles.journeyCard
+                        : null,
+                    ]}
+                    disabled={booking.BookingStatus?.toLowerCase() === "failed"}
+                    onPress={() =>
+                      navigation.navigate("BookingsInnerPage", { booking })
+                    }
                   >
                     <View>
                       <View style={styles.bookingR1}>
-                        <CustomText style={styles.bookingID}>
-                          BID: {booking.BookingTrackID}
-                        </CustomText>
-                        <CustomText
+                        <View
                           style={[
-                            styles.techStatus,
-                            {
-                              color: booking.TechID === null ? color.text : color.primary,
-                            },
+                            globalStyles.flexrow,
+                            globalStyles.alineItemscenter,
                           ]}
                         >
-                          Tech {booking.TechID === null ? 'Not Assigned' : 'Assigned'}
-                        </CustomText>
+                          <CustomText
+                            style={[
+                              styles.bookingID,
+                              {
+                                backgroundColor: getStatusColor(
+                                  booking.BookingStatus
+                                ),
+                              },
+                            ]}
+                          >
+                            BID: {booking.BookingTrackID}
+                          </CustomText>
+                          <View
+                            style={[
+                              globalStyles.flexrow,
+                              globalStyles.alineItemscenter,
+                              globalStyles.ph2,
+                              globalStyles.pv1,
+                              globalStyles.ml2,
+                              styles.statusChip,
+                              {
+                                backgroundColor:
+                                  getStatusColor(booking.BookingStatus) + "26",
+                              },
+                            ]}
+                          >
+                            <View
+                              style={[
+                                styles.statusDot,
+                                {
+                                  backgroundColor: getStatusColor(
+                                    booking.BookingStatus
+                                  ),
+                                },
+                              ]}
+                            />
+                            <CustomText
+                              style={[
+                                globalStyles.f10Bold,
+                                {
+                                  color: getStatusColor(booking.BookingStatus),
+                                },
+                              ]}
+                            >
+                              {(booking.BookingStatus || "").toLowerCase() ===
+                              "startjourney"
+                                ? "Started Journey"
+                                : booking.BookingStatus}
+                            </CustomText>
+                          </View>
+                        </View>
+
+                        {booking.BookingStatus?.toLowerCase() !==
+                          "cancelled" && (
+                          <View
+                            style={[
+                              globalStyles.flexrow,
+                              globalStyles.alineItemscenter,
+                            ]}
+                          >
+                            {booking.TechID === null ? (
+                              <CustomText
+                                style={[
+                                  styles.techStatus,
+                                  { color: color.primary },
+                                ]}
+                              >
+                                {booking.TechID === null
+                                  ? " "
+                                  : "Tech Assigned"}
+                              </CustomText>
+                            ) : (
+                              <Ionicons
+                                name="person"
+                                size={20}
+                                color={color.primary}
+                                style={{ marginRight: 6 }}
+                              />
+                            )}
+                          </View>
+                        )}
                       </View>
+                      {(booking.BookingStatus || "").toLowerCase() ===
+                        "startjourney" &&
+                        booking.TechID !== null && (
+                          <View
+                            style={[
+                              globalStyles.flexrow,
+                              globalStyles.alineItemscenter,
+                              globalStyles.mt1,
+                              { paddingVertical: 4 },
+                            ]}
+                          >
+                            <Ionicons
+                              name="navigate"
+                              color={color.primary}
+                              size={16}
+                              style={globalStyles.mr2}
+                            />
+                            <CustomText
+                              style={[
+                                globalStyles.f12Medium,
+                                globalStyles.primary,
+                              ]}
+                            >
+                              Technician is on the way
+                            </CustomText>
+                          </View>
+                        )}
                       <View style={styles.divider} />
                       <View style={styles.bookingR1}>
                         <View style={styles.bookingCarImage}>
                           <Image
-                            source={{ uri: `${API_IMAGE_URL}${booking.VehicleImage}` }}
-                            style={{
-                              width: '60%',
-                              height: 60,
-                              borderRadius: 8,
-                              backgroundColor: '#eee',
+                            source={{
+                              uri: `${API_IMAGE_URL}${booking.VehicleImage}`,
                             }}
-                            onError={(e) => console.log('Image load error:', e.nativeEvent.error)}
+                            style={styles.bookingImage}
+                            onError={(e) =>
+                              console.log(
+                                "Image load error:",
+                                e.nativeEvent.error
+                              )
+                            }
                           />
                           <CustomText style={styles.title}>
                             {booking.ModelName} (
-                            {booking.FuelTypeName === 'Petrol'
-                              ? 'P'
-                              : booking.FuelTypeName === 'Diesel'
-                                ? 'D'
-                                : 'E'}
+                            {booking.FuelTypeName === "Petrol"
+                              ? "P"
+                              : booking.FuelTypeName === "Diesel"
+                              ? "D"
+                              : "E"}
                             )
                           </CustomText>
-                          <CustomText style={styles.subText}>{booking.VehicleNumber}</CustomText>
+                          <CustomText style={styles.subText}>
+                            {booking.VehicleNumber}
+                          </CustomText>
                         </View>
                         <View style={styles.bookingDetails}>
                           <View style={styles.bookingDate}>
-                            <CustomText style={[globalStyles.f10Regular, { color: color.primary }]}>
+                            <CustomText
+                              style={[
+                                globalStyles.f10Regular,
+                                { color: color.primary },
+                              ]}
+                            >
                               Booking Date:
                             </CustomText>
-                            <CustomText style={[globalStyles.f12Bold]}>{formatDate(booking.BookingDate)}</CustomText>
+                            <CustomText style={[globalStyles.f12Bold]}>
+                              {formatDate(booking.BookingDate)}
+                            </CustomText>
                           </View>
                           <View style={styles.bookingDate}>
-                            <CustomText style={[globalStyles.f10Regular]}>Booked Slot:</CustomText>
-                            <CustomText style={[globalStyles.f12Bold]}>{booking.TimeSlot}</CustomText>
+                            <CustomText
+                              style={[
+                                globalStyles.f10Regular,
+                                { color: color.primary },
+                              ]}
+                            >
+                              Booked Slot:
+                            </CustomText>
+                            <CustomText style={[globalStyles.f12Bold]}>
+                              {booking.TimeSlot}
+                            </CustomText>
                           </View>
                           <View style={styles.bookingDate}>
-                            <CustomText style={[globalStyles.f10Regular]}>Service Amount:</CustomText>
+                            <CustomText
+                              style={[
+                                globalStyles.f10Regular,
+                                { color: color.primary },
+                              ]}
+                            >
+                              Service Amount:
+                            </CustomText>
                             <CustomText style={[globalStyles.f12Bold]}>
                               {booking.Payments && booking.Payments.length > 0
                                 ? `₹ ${booking.Payments[0].AmountPaid}`
                                 : "Payment Failed"}
                             </CustomText>
                           </View>
+                          <View style={styles.bookingDate}>
+                            <CustomText
+                              style={[
+                                globalStyles.f10Regular,
+                                { color: color.primary },
+                              ]}
+                            >
+                              Payment Type:
+                            </CustomText>
+                            <CustomText style={[globalStyles.f12Bold]}>
+                              {booking.PaymentMethod === "COS"
+                                ? `Pay On Completion`
+                                : "Paid"}
+                            </CustomText>
+                          </View>
                         </View>
                       </View>
                       <View style={styles.divider} />
                       <View style={styles.bookingServices}>
-                        <CustomText style={[globalStyles.f10Regular, { color: color.primary }]}>
+                        <CustomText
+                          style={[
+                            globalStyles.f10Regular,
+                            globalStyles.mb2,
+                            { color: color.primary },
+                          ]}
+                        >
                           Services Booked:
                         </CustomText>
                         {(booking.Packages || []).map((pkg, index) => (
                           <View
                             key={pkg.PackageID}
                             style={{
-                              flexDirection: 'row',
-                              alignItems: 'center',
+                              flexDirection: "row",
+                              alignItems: "center",
                               justifyContent:
-                                index === booking.Packages.length - 1 ? 'space-between' : 'flex-start',
+                                index === booking.Packages.length - 1
+                                  ? "space-between"
+                                  : "flex-start",
                               marginVertical: 4,
                             }}
                           >
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                              }}
+                            >
                               <FontAwesome5
                                 name="tools"
                                 size={16}
                                 color={color.primary}
                                 style={{ marginRight: 6 }}
                               />
-                              <CustomText style={[globalStyles.f12Bold, { color: '#333' }]}>
+                              <CustomText
+                                style={[
+                                  globalStyles.f12Bold,
+                                  { color: "#333", maxWidth: 180 },
+                                ]}
+                                numberOfLines={1}
+                                ellipsizeMode="marquee"
+                              >
                                 {pkg.PackageName}
                               </CustomText>
                             </View>
-                            {index === booking.Packages.length - 1 && (
-                              <CustomText style={[globalStyles.f10Medium]}>
-                                Status:{' '}
-                                <CustomText style={[globalStyles.f10Bold, { color: color.primary }]}>
-                                  {booking.BookingStatus}
-                                </CustomText>
-                              </CustomText>
-                            )}
                           </View>
                         ))}
                       </View>
+                      {booking.BookingStatus?.toLowerCase() === "pending" &&
+                        (!booking.Payments ||
+                          booking.Payments.length === 0) && (
+                          <View style={styles.resumeCard}>
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                flex: 1,
+                              }}
+                            >
+                              <View style={styles.resumeIconWrap}>
+                                <Ionicons
+                                  name="warning"
+                                  size={16}
+                                  color={color.yellow}
+                                />
+                              </View>
+                              <View style={{ flex: 1, marginLeft: 8 }}>
+                                <CustomText
+                                  style={[
+                                    globalStyles.f12Bold,
+                                    { color: "#222" },
+                                  ]}
+                                >
+                                  Payment Pending
+                                </CustomText>
+                                <CustomText
+                                  style={[
+                                    globalStyles.f10Light,
+                                    { color: "#666", marginTop: 2 },
+                                  ]}
+                                >
+                                  Tap below to resume and complete your booking.
+                                </CustomText>
+                              </View>
+                            </View>
+                            <TouchableOpacity
+                              onPress={() =>
+                                navigation.navigate("Cart", {
+                                  resumeBookingId: booking.BookingID,
+                                })
+                              }
+                              style={styles.resumeBtn}
+                              activeOpacity={0.9}
+                            >
+                              <Ionicons
+                                name="refresh-outline"
+                                size={16}
+                                color={color.black}
+                                style={{ marginRight: 6 }}
+                              />
+                              <CustomText
+                                style={[
+                                  globalStyles.f12Bold,
+                                  { color: color.black },
+                                ]}
+                              >
+                                Resume Booking
+                              </CustomText>
+                            </TouchableOpacity>
+                          </View>
+                        )}
                     </View>
                   </Pressable>
                 ))
@@ -669,7 +1241,7 @@ const styles = StyleSheet.create({
     minHeight: 200,
   },
   bannerHeader: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 20,
   },
   logo: {
@@ -679,25 +1251,25 @@ const styles = StyleSheet.create({
   },
   bannerTagline: {
     ...globalStyles.f12Regular,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
-    fontWeight: '500',
+    color: "rgba(255, 255, 255, 0.9)",
+    textAlign: "center",
+    fontWeight: "500",
   },
   bannerContent: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
     height: 120,
   },
   carImagePositioned: {
-    width: '50%',
+    width: "50%",
     height: 120,
-    resizeMode: 'contain',
+    resizeMode: "contain",
   },
   bannerTextContainer: {
     flex: 1,
     paddingLeft: 16,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   bannerSubtitle: {
     ...globalStyles.f16Bold,
@@ -707,14 +1279,14 @@ const styles = StyleSheet.create({
   },
   bannerDescription: {
     ...globalStyles.f12Regular,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: "rgba(255, 255, 255, 0.8)",
   },
 
   // Section Header Styles
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     // marginTop: 32,
     marginBottom: 10,
   },
@@ -728,12 +1300,12 @@ const styles = StyleSheet.create({
   },
   sectionSubtitle: {
     ...globalStyles.f12Regular,
-    color: '#666',
-    fontWeight: '400',
+    color: "#666",
+    fontWeight: "400",
   },
   arrowContainer: {
     padding: 8,
-    backgroundColor: 'rgba(1, 127, 119, 0.1)',
+    backgroundColor: "rgba(1, 127, 119, 0.1)",
     borderRadius: 20,
   },
 
@@ -742,17 +1314,17 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   twoCategoriesLayout: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     gap: 16,
   },
   categoryCard: {
     width: 160,
     height: 160,
     borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#f8f9fa',
-    shadowColor: '#000',
+    overflow: "hidden",
+    backgroundColor: "#f8f9fa",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -761,30 +1333,30 @@ const styles = StyleSheet.create({
   },
   cardImageContainer: {
     flex: 1,
-    position: 'relative',
+    position: "relative",
   },
   categoryCardImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   cardOverlay: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: '60%',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    height: "60%",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
   cardContent: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   categoryCardTitle: {
     ...globalStyles.f12Bold,
@@ -792,7 +1364,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardArrow: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     borderRadius: 12,
     padding: 4,
   },
@@ -807,7 +1379,7 @@ const styles = StyleSheet.create({
   },
   ctaContainer: {
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
     minHeight: 200,
   },
   ctaBackgroundImage: {
@@ -816,11 +1388,11 @@ const styles = StyleSheet.create({
   ctaContent: {
     flex: 1,
     padding: 24,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   ctaTextContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   ctaTitle: {
     ...globalStyles.f20Bold,
@@ -830,7 +1402,7 @@ const styles = StyleSheet.create({
   },
   ctaSubtitle: {
     ...globalStyles.f12Regular,
-    color: 'white',
+    color: "white",
     lineHeight: 20,
   },
   ctaButton: {
@@ -839,10 +1411,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -864,8 +1436,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   bookingsTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 4,
   },
   bookingsIcon: {
@@ -873,75 +1445,109 @@ const styles = StyleSheet.create({
   },
   bookingsTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: "700",
     color: color.black,
   },
   bookingsSubtitle: {
     fontSize: 14,
-    color: '#666',
-    fontWeight: '400',
+    color: "#666",
+    fontWeight: "400",
   },
   bookingCard: {
     backgroundColor: color.white,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  journeyCard: {
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: color.primary,
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
   bookingR1: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 5,
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
   },
   bookingID: {
     ...globalStyles.f10Bold,
-    backgroundColor: color.secondary,
     padding: 5,
     borderRadius: 10,
     color: color.white,
   },
   bookingCarImage: {
-    width: '50%',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: "50%",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  bookingImage: {
+    width: 120,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: "#eee",
+    resizeMode: "contain",
   },
   techStatus: {
     ...globalStyles.f10Bold,
   },
+  techBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  statusChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  onTheWayRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+    paddingVertical: 4,
+  },
   divider: {
-    borderBottomColor: '#ededed',
+    borderBottomColor: "#ededed",
     borderBottomWidth: 1,
-    marginVertical: 3,
+    marginVertical: 8,
   },
   bookingDetails: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignContent: 'flex-start',
+    display: "flex",
+    flexDirection: "column",
+    alignContent: "flex-start",
     flex: 1,
-    gap: 6,
-    padding: 5,
+    gap: 4,
+    padding: 0,
   },
   bookingDate: {
-    display: 'flex',
-    flexDirection: 'column',
+    display: "flex",
+    flexDirection: "column",
   },
   title: {
     ...globalStyles.f12Bold,
-    color: '#222',
+    color: "#222",
   },
   subText: {
     ...globalStyles.f10Bold,
-    color: '#666',
+    color: "#666",
     marginTop: 2,
   },
   bookingServices: {
@@ -961,28 +1567,28 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: "#f0f0f0",
   },
   emptyBookingsIconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(1, 127, 119, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(1, 127, 119, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 16,
   },
   emptyBookingsTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     color: color.black,
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   emptyBookingsSubtitle: {
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
     lineHeight: 20,
     marginBottom: 24,
   },
@@ -991,14 +1597,46 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyBookingsButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: color.white,
     marginRight: 8,
+  },
+  resumeCard: {
+    marginTop: 8,
+    backgroundColor: "#F7FDFB",
+    borderWidth: 1,
+    borderColor: "rgba(1,127,119,0.15)",
+    borderRadius: 10,
+    padding: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  resumeIconWrap: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "rgba(255,193,7,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  resumeBtn: {
+    backgroundColor: color.white,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: "column",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
 });

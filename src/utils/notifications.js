@@ -1,8 +1,9 @@
-import * as Notifications from "expo-notifications";
-import * as Device from "expo-device";
-import { Platform } from "react-native";
-import { db } from "../config/firebaseConfig";
-import { ref, set } from "firebase/database";
+/* NOTIFICATIONS DISABLED
+// import * as Notifications from "expo-notifications";
+// import * as Device from "expo-device";
+// import { Platform } from "react-native";
+// import { db } from "../config/firebaseConfig";
+// import { ref, set } from "firebase/database";
 
 // export async function registerForPushNotificationsAsync() {
 //   if (!Device.isDevice) {
@@ -112,3 +113,8 @@ export async function saveCustomerPushToken(customerId, tokens) {
     }
   } catch (_) {}
 }
+*/
+
+// Export empty functions to prevent errors
+export const registerForPushNotificationsAsync = () => Promise.resolve({});
+export const saveCustomerPushToken = () => Promise.resolve();

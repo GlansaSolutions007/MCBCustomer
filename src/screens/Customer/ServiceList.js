@@ -20,10 +20,12 @@ import axios from "axios";
 import CustomText from "../../components/CustomText";
 import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
-import { API_URL } from "@env";
+import { API_URL, RAZORPAY_KEY } from "@env";
+import RazorpayCheckout from "react-native-razorpay";
+import { getToken } from "../../utils/token";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { monitorBookingsForNotifications } from "../../utils/notificationService";
+// import { monitorBookingsForNotifications } from "../../utils/notificationService";
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
@@ -83,9 +85,9 @@ export default function ServiceList() {
       });
 
       // Monitor bookings for notification changes
-      if (custID) {
-        monitorBookingsForNotifications(bookingsData, custID);
-      }
+      // if (custID) {
+      //   monitorBookingsForNotifications(bookingsData, custID);
+      // }
     } catch (error) {
       console.error("Failed to fetch bookings:", error.message);
       setBookings([]);
@@ -126,6 +128,72 @@ export default function ServiceList() {
     }
     return false;
   });
+
+  const getPayableAmount = (booking) => {
+    const total = Number(booking?.TotalPrice || 0);
+    const gst = Number(booking?.GSTAmount || 0);
+    const discount = Number(booking?.CouponAmount || 0);
+    const computed = Math.max(total - discount + gst, 0);
+    return computed || total || 0;
+  };
+
+  const openRazorpayForBooking = async (booking) => {
+    try {
+      const amount = getPayableAmount(booking);
+      const token = await getToken();
+
+      let orderId = null;
+      try {
+        // Try to create/get an order for existing booking (backend support expected)
+        const res = await axios.post(
+          `${API_URL}Bookings/create-order`,
+          { bookingID: booking.BookingID, amount },
+          { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
+        );
+        orderId = res?.data?.orderID || res?.data?.razorpay?.orderID || null;
+      } catch (e) {
+        console.log("create-order not available, proceeding without order_id", e?.response?.data || e?.message);
+      }
+
+      const options = {
+        description: "MyCarBuddy Service Payment",
+        image: "https://mycarsbuddy.com/logo2.png",
+        currency: "INR",
+        key: RAZORPAY_KEY,
+        amount: amount * 100,
+        name: "MyCarBuddy | powered by Glansa Solutions",
+        order_id: orderId || undefined,
+        prefill: {},
+        theme: { color: color.primary },
+      };
+
+      RazorpayCheckout.open(options)
+        .then(async (data) => {
+          try {
+            const confirmPayload = {
+              bookingID: booking.BookingID,
+              amountPaid: amount,
+              razorpayPaymentId: data?.razorpay_payment_id,
+              razorpayOrderId: data?.razorpay_order_id,
+              razorpaySignature: data?.razorpay_signature,
+              paymentMode: "Razorpay",
+            };
+            await axios.post(`${API_URL}Bookings/confirm-Payment`, confirmPayload, {
+              headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            });
+            // Refresh list
+            fetchBookings();
+          } catch (err) {
+            console.error("Payment confirmation failed:", err?.response || err);
+          }
+        })
+        .catch((err) => {
+          console.log("Payment cancelled/failed:", err?.data || err?.message || err);
+        });
+    } catch (error) {
+      console.error("Failed to initiate Razorpay:", error?.response || error);
+    }
+  };
 
   const counts = {
     New: (bookings || []).filter((b) => {
@@ -464,7 +532,15 @@ export default function ServiceList() {
                     <View style={[styles.statusChip, { backgroundColor: getStatusColor(booking.BookingStatus) + '26' }]}> 
                       <View style={[styles.statusDot, { backgroundColor: getStatusColor(booking.BookingStatus) }]} />
                       <CustomText style={[globalStyles.f10Bold, { color: getStatusColor(booking.BookingStatus) }]}>
-                        {(booking.BookingStatus || '').toLowerCase() === 'startjourney' ? 'Started Journey' : booking.BookingStatus}
+                        {
+                          (() => {
+                            const s = (booking.BookingStatus || '').toLowerCase();
+                            if (s === 'startjourney') return 'Started Journey';
+                            const isPaid = Array.isArray(booking.Payments) && booking.Payments.length > 0;
+                            if (s === 'pending' && isPaid) return 'Technician not assigned';
+                            return booking.BookingStatus;
+                          })()
+                        }
                       </CustomText>
                     </View>
                   </View>
@@ -472,19 +548,28 @@ export default function ServiceList() {
                   {booking.BookingStatus?.toLowerCase() !== "cancelled" && (
                     <View style={styles.techBadge}>
                       {booking.TechID === null ? (
-                         <CustomText
-                         style={[
-                           styles.techStatus,
-                           { color: color.primary },
-                         ]}
-                       >
-                         {booking.TechID === null ? " " : "Tech Assigned"}
-                       </CustomText>
-                        
+                        (() => {
+                          const isPending = (booking.BookingStatus || "").toLowerCase() === "pending";
+                          const isPaid = Array.isArray(booking.Payments) && booking.Payments.length > 0;
+                          if (isPending && isPaid) {
+                            return (
+                              <CustomText
+                                style={[styles.techStatus, { color: color.primary }]}
+                              >
+                                
+                              </CustomText>
+                            );
+                          }
+                          return null;
+                        })()
                       ) : (
-                        <Ionicons name="person" size={20} color={color.primary} style={{ marginRight: 6 }} />
+                        <Ionicons
+                          name="person"
+                          size={20}
+                          color={color.primary}
+                          style={{ marginRight: 6 }}
+                        />
                       )}
-                     
                     </View>
                   )}
                 </View>
@@ -564,6 +649,19 @@ export default function ServiceList() {
                           : "Payment Failed"}
                       </CustomText>
                     </View>
+                    <View style={styles.bookingDate}>
+                      <CustomText
+                        style={[
+                          globalStyles.f10Regular,
+                          { color: color.primary },
+                        ]}
+                      >
+                        Payment Type:
+                      </CustomText>
+                      <CustomText style={[globalStyles.f12Bold]}>
+                        {booking.PaymentMethod === "COS" ? "Pay On Completion" : "Online Payment"}
+                      </CustomText>
+                    </View>
                   </View>
                 </View>
                 <View style={styles.divider} />
@@ -619,16 +717,16 @@ export default function ServiceList() {
                       </View>
                       <View style={{ flex: 1, marginLeft: 8 }}>
                         <CustomText style={[globalStyles.f12Bold, { color: '#222' }]}>Payment Pending</CustomText>
-                        <CustomText style={[globalStyles.f10Light, { color: '#666', marginTop: 2 }]}>Tap below to resume and complete your booking.</CustomText>
+                        <CustomText style={[globalStyles.f10Light, { color: '#666', marginTop: 2 }]}>To Pay: ₹{getPayableAmount(booking)}</CustomText>
                       </View>
                     </View>
                     <TouchableOpacity
-                      onPress={() => navigation.navigate('Cart', { resumeBookingId: booking.BookingID })}
+                      onPress={() => openRazorpayForBooking(booking)}
                       style={styles.resumeBtn}
                       activeOpacity={0.9}
                     >
                       <Ionicons name="refresh-outline" size={16} color={color.black} style={{ marginRight: 6 }} />
-                      <CustomText style={[globalStyles.f12Bold, { color: color.black }]}>Resume Booking</CustomText>
+                      <CustomText style={[globalStyles.f12Bold, { color: color.black }]}>Pay Now</CustomText>
                     </TouchableOpacity>
                   </View>
                 )}

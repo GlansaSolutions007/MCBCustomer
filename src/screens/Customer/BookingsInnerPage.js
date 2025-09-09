@@ -706,7 +706,8 @@ export default function BookingsInnerPage() {
                 : "Payment Failed"}
             </CustomText>
           </View>
-          {booking.BookingStatus.toLowerCase() === "pending" && (
+          {booking.BookingStatus.toLowerCase() === "pending" && 
+            !(booking.BookingStatus.toLowerCase() === "pending" && (!booking.Payments || booking.Payments.length === 0)) && (
             <View
               style={[
                 styles.section,
@@ -752,10 +753,42 @@ export default function BookingsInnerPage() {
               )}
             </View>
           )}
+
+          {/* Resume Booking Section - for pending bookings with no payments */}
+          {booking.BookingStatus.toLowerCase() === "pending" && 
+            (!booking.Payments || booking.Payments.length === 0) && (
+            <View
+              style={[
+                styles.section,
+                { justifyContent: "center", alignItems: "center" },
+              ]}
+            >
+              <TouchableOpacity
+                style={{
+                  backgroundColor: color.primary,
+                  padding: 12,
+                  borderRadius: 8,
+                  alignItems: "center",
+                  minWidth: 140,
+                  marginTop: 10,
+                }}
+                onPress={() =>
+                  navigation.navigate("Cart", {
+                    resumeBookingId: booking.BookingID,
+                  })
+                }
+              >
+                <CustomText style={[globalStyles.f10Bold, { color: "#FFF" }]}>
+                  Resume Booking
+                </CustomText>
+              </TouchableOpacity>
+            </View>
+          )}
         </Animated.View>
 
         {booking.BookingStatus?.toLowerCase() !== "completed" &&
-          booking.BookingStatus?.toLowerCase() !== "cancelled" && (
+          booking.BookingStatus?.toLowerCase() !== "cancelled" &&
+          booking.TechID !== null && (
             <View
               style={{
                 backgroundColor: "#fff",

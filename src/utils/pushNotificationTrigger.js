@@ -1,5 +1,6 @@
-import axios from "axios";
-import { API_URL } from "@env";
+/* PUSH NOTIFICATION TRIGGER DISABLED
+// import axios from "axios";
+// import { API_URL } from "@env";
 
 // Push notification trigger for backend integration
 export const triggerPushNotification = async (customerId, notificationData) => {
@@ -147,3 +148,8 @@ export const testPushNotification = async (customerId) => {
   
   return await triggerPushNotification(customerId, testData);
 };
+*/
+
+// Export empty functions to prevent errors
+export const triggerPushNotification = () => Promise.resolve();
+export const testPushNotification = () => Promise.resolve();

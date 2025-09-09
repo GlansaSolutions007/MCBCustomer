@@ -1,19 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Notifications from "expo-notifications";
-import CustomText from "../../components/CustomText";
-import { color } from "../../styles/theme";
-import globalStyles from "../../styles/globalStyles";
-import { testPushNotification } from "../../utils/pushNotificationTrigger";
-import { Ionicons } from "@expo/vector-icons";
+/* NOTIFICATION SETTINGS SCREEN DISABLED
+// import React, { useState, useEffect } from 'react';
+// import {
+//   View,
+//   ScrollView,
+//   StyleSheet,
+//   Switch,
+//   TouchableOpacity,
+//   Alert,
+// } from 'react-native';
+// import AsyncStorage from "@react-native-async-storage/async-storage";
+// import * as Notifications from "expo-notifications";
+// import CustomText from "../../components/CustomText";
+// import { color } from "../../styles/theme";
+// import globalStyles from "../../styles/globalStyles";
+// import { testPushNotification } from "../../utils/pushNotificationTrigger";
+// import { Ionicons } from "@expo/vector-icons";
 
 const NotificationSettingsScreen = () => {
   const [settings, setSettings] = useState({
@@ -348,5 +349,18 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 });
+*/
+
+// Export empty component to prevent errors
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const NotificationSettingsScreen = () => {
+    return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text>Notification settings are disabled</Text>
+        </View>
+    );
+};
 
 export default NotificationSettingsScreen;

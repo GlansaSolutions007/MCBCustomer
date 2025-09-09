@@ -157,7 +157,12 @@ export const MyCarDetails = () => {
       console.log("Car added:", res.data);
       setAlertVisible(true);
     } catch (error) {
-      console.error("Error submitting car:", error);
+      if(error.status === false){
+        setAlertVisible(true);
+        console.log("hsdkakhakjad",error.response.message);
+        // setAlertMessage(error.response.data.Message);
+      }
+      // console.error("Error submitting car:", error.response.data);
     }
   };
 

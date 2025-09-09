@@ -892,7 +892,6 @@ const InteriorService = () => {
           styles.container,
           { paddingBottom: cartItems.length > 0 ? 110 : 20 },
         ]}
-        stickyHeaderIndices={[0, 1]}
       />
       {cartItems.length > 0 && (
         <Pressable

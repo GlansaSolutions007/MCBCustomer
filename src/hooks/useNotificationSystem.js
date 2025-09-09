@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { initializeNotificationSystem } from '../utils/notificationService';
-import { unregisterBackgroundFetch } from '../utils/backgroundTaskService';
+/* NOTIFICATION SYSTEM HOOK DISABLED
+// import { useEffect, useRef } from 'react';
+// import AsyncStorage from "@react-native-async-storage/async-storage";
+// import { initializeNotificationSystem } from '../utils/notificationService';
+// import { unregisterBackgroundFetch } from '../utils/backgroundTaskService';
 
 export const useNotificationSystem = () => {
   const cleanupRef = useRef(null);
@@ -39,5 +40,11 @@ export const useNotificationSystem = () => {
     };
   }, []);
 
+  return null;
+};
+*/
+
+// Export empty hook to prevent errors
+export const useNotificationSystem = () => {
   return null;
 };

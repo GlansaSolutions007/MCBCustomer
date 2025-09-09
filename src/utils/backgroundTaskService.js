@@ -1,9 +1,10 @@
-import * as TaskManager from 'expo-task-manager';
-import * as BackgroundFetch from 'expo-background-fetch';
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
-import { monitorBookingsForNotifications } from "./notificationService";
-import { API_URL, API_IMAGE_URL, RAZORPAY_KEY } from "@env";
+/* BACKGROUND TASK SERVICE DISABLED
+// import * as TaskManager from 'expo-task-manager';
+// import * as BackgroundFetch from 'expo-background-fetch';
+// import AsyncStorage from "@react-native-async-storage/async-storage";
+// import axios from "axios";
+// import { monitorBookingsForNotifications } from "./notificationService";
+// import { API_URL, API_IMAGE_URL, RAZORPAY_KEY } from "@env";
 
 
 // Background task name
@@ -77,3 +78,9 @@ export const getBackgroundFetchStatus = async () => {
     return null;
   }
 };
+*/
+
+// Export empty functions to prevent errors
+export const registerBackgroundFetch = () => Promise.resolve();
+export const unregisterBackgroundFetch = () => Promise.resolve();
+export const getBackgroundFetchStatus = () => Promise.resolve(null);

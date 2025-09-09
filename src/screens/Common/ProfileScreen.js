@@ -20,7 +20,7 @@ import { color } from "../../styles/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL, API_IMAGE_URL } from "@env";
 import NoInternetScreen from "./NoInternetScreen";
-import testNotificationUtils from "../../utils/notificationTestUtils";
+// import testNotificationUtils from "../../utils/notificationTestUtils";
 
 export default function ProfileScreen() {
   const [image, setImage] = useState(null);
@@ -73,12 +73,13 @@ export default function ProfileScreen() {
       const userData = await AsyncStorage.getItem("userData");
       const parsedData = JSON.parse(userData);
       const custID = parsedData?.custID;
-      const tokens = await testNotificationUtils.testFCMTokenGeneration();
-      if (tokens) {
-        alert(`FCM Test Results:\nExpo Token: ${tokens.expoPushToken ? '✅ Generated' : '❌ Null'}\nFCM Token: ${tokens.fcmToken ? '✅ Generated' : '❌ Null'}`);
-      } else {
-        alert('❌ FCM token generation failed');
-      }
+      // const tokens = await testNotificationUtils.testFCMTokenGeneration();
+      // if (tokens) {
+      //   alert(`FCM Test Results:\nExpo Token: ${tokens.expoPushToken ? '✅ Generated' : '❌ Null'}\nFCM Token: ${tokens.fcmToken ? '✅ Generated' : '❌ Null'}`);
+      // } else {
+      //   alert('❌ FCM token generation failed');
+      // }
+      alert('Notifications are disabled');
     } catch (e) {
       console.log('FCM token test error:', e);
       alert(`FCM test failed: ${e?.message || 'Unknown error'}`);
@@ -90,12 +91,13 @@ export default function ProfileScreen() {
       const userData = await AsyncStorage.getItem("userData");
       const parsedData = JSON.parse(userData);
       const custID = parsedData?.custID;
-      const result = await testNotificationUtils.testTokenSaving(custID);
-      if (result) {
-        alert('✅ Tokens saved to Firebase successfully!');
-      } else {
-        alert('❌ Token saving failed');
-      }
+      // const result = await testNotificationUtils.testTokenSaving(custID);
+      // if (result) {
+      //   alert('✅ Tokens saved to Firebase successfully!');
+      // } else {
+      //   alert('❌ Token saving failed');
+      // }
+      alert('Notifications are disabled');
     } catch (e) {
       console.log('Token saving test error:', e);
       alert(`Token saving test failed: ${e?.message || 'Unknown error'}`);
@@ -107,12 +109,13 @@ export default function ProfileScreen() {
       const userData = await AsyncStorage.getItem("userData");
       const parsedData = JSON.parse(userData);
       const custID = parsedData?.custID;
-      const result = await testNotificationUtils.testFirebaseNotification(custID);
-      if (result) {
-        alert('✅ Firebase notification test successful!');
-      } else {
-        alert('❌ Firebase notification test failed');
-      }
+      // const result = await testNotificationUtils.testFirebaseNotification(custID);
+      // if (result) {
+      //   alert('✅ Firebase notification test successful!');
+      // } else {
+      //   alert('❌ Firebase notification test failed');
+      // }
+      alert('Notifications are disabled');
     } catch (e) {
       console.log('Firebase notification test error:', e);
       alert(`Firebase notification test failed: ${e?.message || 'Unknown error'}`);
@@ -124,8 +127,9 @@ export default function ProfileScreen() {
       const userData = await AsyncStorage.getItem("userData");
       const parsedData = JSON.parse(userData);
       const custID = parsedData?.custID;
-      const results = await testNotificationUtils.runAllTests(custID);
-      alert(`🧪 FCM Test Results:\nPermissions: ${results.permissions ? '✅' : '❌'}\nToken Generation: ${results.tokenGeneration ? '✅' : '❌'}\nToken Saving: ${results.tokenSaving ? '✅' : '❌'}\nFirebase Notification: ${results.firebaseNotification ? '✅' : '❌'}`);
+      // const results = await testNotificationUtils.runAllTests(custID);
+      // alert(`🧪 FCM Test Results:\nPermissions: ${results.permissions ? '✅' : '❌'}\nToken Generation: ${results.tokenGeneration ? '✅' : '❌'}\nToken Saving: ${results.tokenSaving ? '✅' : '❌'}\nFirebase Notification: ${results.firebaseNotification ? '✅' : '❌'}`);
+      alert('Notifications are disabled');
     } catch (e) {
       console.log('All FCM tests error:', e);
       alert(`All FCM tests failed: ${e?.message || 'Unknown error'}`);

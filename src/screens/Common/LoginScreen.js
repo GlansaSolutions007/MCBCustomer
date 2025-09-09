@@ -24,7 +24,7 @@ import { color } from "../../styles/theme";
 import CustomText from "../../components/CustomText";
 import { useNavigation } from "@react-navigation/native";
 import * as Device from "expo-device";
-import { registerForPushNotificationsAsync, saveCustomerPushToken } from "../../utils/notifications";
+// import { registerForPushNotificationsAsync, saveCustomerPushToken } from "../../utils/notifications";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AntDesign from '@expo/vector-icons/AntDesign';
@@ -163,13 +163,14 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const DeviceId = Device.osInternalBuildId || Device.osBuildId || "unknown-device-id";
-      const tokens = await registerForPushNotificationsAsync();
-      console.log("Tokens Vishal:", tokens);
-      console.log("Expo token:", tokens.expoPushToken);
-      console.log("FCM/APNs token:", tokens.fcmToken);
-      const DeviceToken = tokens.fcmToken || tokens.expoPushToken || 'unknown-token';
-      console.log("Tokens:", tokens);
-      console.log("Device Token:", DeviceToken);
+      // const tokens = await registerForPushNotificationsAsync();
+      // console.log("Tokens Vishal:", tokens);
+      // console.log("Expo token:", tokens.expoPushToken);
+      // console.log("FCM/APNs token:", tokens.fcmToken);
+      // const DeviceToken = tokens.fcmToken || tokens.expoPushToken || 'unknown-token';
+      // console.log("Tokens:", tokens);
+      // console.log("Device Token:", DeviceToken);
+      const DeviceToken = 'notification-disabled';
       console.log("Device Id:", DeviceId);
       const response = await fetch(`${API_URL}Auth/verify-otp`, {
         method: "POST",
@@ -198,22 +199,22 @@ export default function LoginScreen() {
           DeviceId,
         });
         try {
-          if (result?.custID && tokens) {
-            await saveCustomerPushToken(result.custID, tokens);
-            try {
-              await AsyncStorage.setItem("pushToken", DeviceToken);
-              await AsyncStorage.setItem("pushTokenType", tokens.fcmToken ? "fcm" : (tokens.expoPushToken ? "expo" : "unknown"));
-            } catch (_) { }
-            try {
-              await axios.post(`${API_URL}Push/register`, {
-                userRole: "customer",
-                userId: Number(result.custID),
-                fcmToken: tokens.fcmToken || null,
-                expoToken: tokens.expoPushToken || null,
-                platform: Platform.OS,
-              });
-            } catch (_) { }
-          }
+          // if (result?.custID && tokens) {
+          //   await saveCustomerPushToken(result.custID, tokens);
+          //   try {
+          //     await AsyncStorage.setItem("pushToken", DeviceToken);
+          //     await AsyncStorage.setItem("pushTokenType", tokens.fcmToken ? "fcm" : (tokens.expoPushToken ? "expo" : "unknown"));
+          //   } catch (_) { }
+          //   try {
+          //     await axios.post(`${API_URL}Push/register`, {
+          //       userRole: "customer",
+          //       userId: Number(result.custID),
+          //       fcmToken: tokens.fcmToken || null,
+          //       expoToken: tokens.expoPushToken || null,
+          //       platform: Platform.OS,
+          //     });
+          //   } catch (_) { }
+          // }
         } catch (_) { }
         navigation.replace("CustomerTabs");
       } else {
