@@ -144,10 +144,20 @@ export default function ServiceList() {
 
       let orderId = null;
       try {
-        // Try to create/get an order for existing booking (backend support expected)
-        const res = await axios.post(
-          `${API_URL}Bookings/create-order`,
-          { bookingID: booking.BookingID, amount },
+
+        const payload = {
+          bookingID: booking.BookingID,
+          BookingTrackID: booking.BookingTrackID,
+          BookingDate: updatedData.BookingDate,
+          TimeSlot: updatedData.TimeSlot,
+          PaymentMethod: "Razorpay",
+          BookingFrom: "app",
+          amount,
+        };
+
+        const res = await axios.put(
+          `${API_URL}Bookings/update-booking`,
+          payload,
           { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
         );
         orderId = res?.data?.orderID || res?.data?.razorpay?.orderID || null;
@@ -529,7 +539,7 @@ export default function ServiceList() {
                     >
                       BID: {booking.BookingTrackID}
                     </CustomText>
-                    <View style={[styles.statusChip, { backgroundColor: getStatusColor(booking.BookingStatus) + '26' }]}> 
+                    <View style={[styles.statusChip, { backgroundColor: getStatusColor(booking.BookingStatus) + '26' }]}>
                       <View style={[styles.statusDot, { backgroundColor: getStatusColor(booking.BookingStatus) }]} />
                       <CustomText style={[globalStyles.f10Bold, { color: getStatusColor(booking.BookingStatus) }]}>
                         {
@@ -556,7 +566,7 @@ export default function ServiceList() {
                               <CustomText
                                 style={[styles.techStatus, { color: color.primary }]}
                               >
-                                
+
                               </CustomText>
                             );
                           }
@@ -573,7 +583,7 @@ export default function ServiceList() {
                     </View>
                   )}
                 </View>
-                { (booking.BookingStatus || '').toLowerCase() === 'startjourney' && booking.TechID !== null && (
+                {(booking.BookingStatus || '').toLowerCase() === 'startjourney' && booking.TechID !== null && (
                   <View style={styles.onTheWayRow}>
                     <Ionicons name="navigate" color={color.primary} size={16} style={{ marginRight: 6 }} />
                     <CustomText style={[globalStyles.f12Medium, { color: color.primary }]}>Technician is on the way</CustomText>
@@ -705,7 +715,7 @@ export default function ServiceList() {
                       </View>
 
                       {/* Right: status only for last package */}
-                      
+
                     </View>
                   ))}
                 </View>
