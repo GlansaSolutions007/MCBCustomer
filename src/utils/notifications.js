@@ -1,46 +1,46 @@
-/* NOTIFICATIONS DISABLED
-// import * as Notifications from "expo-notifications";
-// import * as Device from "expo-device";
-// import { Platform } from "react-native";
-// import { db } from "../config/firebaseConfig";
-// import { ref, set } from "firebase/database";
+// NOTIFICATIONS - DEPRECATED - Use notificationService.js instead
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
+import { Platform } from "react-native";
+import { db } from "../config/firebaseConfig";
+import { ref, set } from "firebase/database";
 
-// export async function registerForPushNotificationsAsync() {
-//   if (!Device.isDevice) {
-//     return null;
-//   }
+export async function registerForPushNotificationsAsync() {
+  if (!Device.isDevice) {
+    return null;
+  }
 
-//   const { status: existingStatus } = await Notifications.getPermissionsAsync();
-//   let finalStatus = existingStatus;
-//   if (existingStatus !== "granted") {
-//     const { status } = await Notifications.requestPermissionsAsync();
-//     finalStatus = status;
-//   }
-//   if (finalStatus !== "granted") {
-//     return null;
-//   }
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+  if (existingStatus !== "granted") {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+  if (finalStatus !== "granted") {
+    return null;
+  }
 
-//   if (Platform.OS === "android") {
-//     await Notifications.setNotificationChannelAsync("default", {
-//       name: "default",
-//       importance: Notifications.AndroidImportance.MAX,
-//     });
-//   }
+  if (Platform.OS === "android") {
+    await Notifications.setNotificationChannelAsync("default", {
+      name: "default",
+      importance: Notifications.AndroidImportance.MAX,
+    });
+  }
 
-//   let expoPushToken = null;
-//   try {
-//     expoPushToken = (await Notifications.getExpoPushTokenAsync()).data;
-//   } catch (_) {}
+  let expoPushToken = null;
+  try {
+    expoPushToken = (await Notifications.getExpoPushTokenAsync()).data;
+  } catch (_) {}
 
-//   let fcmToken = null;
-//   try {
-//     const deviceToken = await Notifications.getDevicePushTokenAsync();
-//     fcmToken = deviceToken?.data || null;
-//     console.log("FCM Token:", fcmToken);
-//   } catch (_) {}
+  let fcmToken = null;
+  try {
+    const deviceToken = await Notifications.getDevicePushTokenAsync();
+    fcmToken = deviceToken?.data || null;
+    console.log("FCM Token:", fcmToken);
+  } catch (_) {}
 
-//   return { expoPushToken, fcmToken };
-// }
+  return { expoPushToken, fcmToken };
+}
 
 export async function registerForPushNotificationsAsync() {
   let expoPushToken = null;
@@ -113,8 +113,7 @@ export async function saveCustomerPushToken(customerId, tokens) {
     }
   } catch (_) {}
 }
-*/
 
-// Export empty functions to prevent errors
-export const registerForPushNotificationsAsync = () => Promise.resolve({});
-export const saveCustomerPushToken = () => Promise.resolve();
+
+// DEPRECATED: These functions are now in notificationService.js
+// Keeping this file for backward compatibility but functions are disabled

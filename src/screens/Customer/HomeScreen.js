@@ -230,19 +230,19 @@ export default function HomeScreen() {
       {/* Banner Skeleton */}
       <View style={[styles.banner, globalStyles.mb35]}>
         <View style={styles.bannerHeader}>
-          <View style={[styles.logo, { backgroundColor: "#f1f1f1ff" }]} />
+          <View style={[styles.logo, { backgroundColor: "rgba(78, 200, 202, 0.18)" , borderRadius: 10}]} />
         </View>
         <View style={styles.bannerContent}>
           <View
             style={[
               styles.carImagePositioned,
-              { backgroundColor: "#f1f1f1ff" },
+              { backgroundColor: "rgba(78, 200, 202, 0.18)" , borderRadius: 10},
             ]}
           />
           <View style={styles.bannerTextContainer}>
             <View
               style={{
-                backgroundColor: "#f1f1f1ff",
+                backgroundColor: "rgba(78, 200, 202, 0.18)",
                 height: 20,
                 width: "90%",
                 borderRadius: 4,
@@ -251,7 +251,7 @@ export default function HomeScreen() {
             />
             <View
               style={{
-                backgroundColor: "#f1f1f1ff",
+                backgroundColor: "rgba(78, 200, 202, 0.18)",
                 height: 16,
                 width: "70%",
                 borderRadius: 4,
@@ -1103,7 +1103,7 @@ export default function HomeScreen() {
                             <CustomText style={[globalStyles.f12Bold]}>
                               {booking.PaymentMethod === "COS"
                                 ? `Pay On Completion`
-                                : "Paid"}
+                                : "Online Payment"}
                             </CustomText>
                           </View>
                         </View>
@@ -1191,7 +1191,13 @@ export default function HomeScreen() {
                                     { color: "#666", marginTop: 2 },
                                   ]}
                                 >
-                                  Tap below to resume and complete your booking.
+                                  To Pay: ₹{(() => {
+                                    const total = Number(booking?.TotalPrice || 0);
+                                    const gst = Number(booking?.GSTAmount || 0);
+                                    const discount = Number(booking?.CouponAmount || 0);
+                                    const computed = Math.max(total - discount + gst, 0);
+                                    return computed || total || 0;
+                                  })()}
                                 </CustomText>
                               </View>
                             </View>
@@ -1216,7 +1222,7 @@ export default function HomeScreen() {
                                   { color: color.black },
                                 ]}
                               >
-                                Resume Booking
+                                Pay Now
                               </CustomText>
                             </TouchableOpacity>
                           </View>
@@ -1631,7 +1637,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    flexDirection: "column",
+    flexDirection: "row",
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },

@@ -28,6 +28,7 @@ import CustomDropdown from "../../components/CustomDropdown";
 // import { API_BASE_URL } from '@env';
 import { API_URL } from "@env";
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { Ionicons } from '@expo/vector-icons';
 
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -41,6 +42,7 @@ export const MyCarDetails = () => {
 
   const [yearOfPurchase, setYearOfPurchase] = useState(null);
   const [showYearPicker, setShowYearPicker] = useState(false);
+  const [showTransmissionPicker, setShowTransmissionPicker] = useState(false);
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
@@ -243,169 +245,307 @@ export const MyCarDetails = () => {
                 </View>
               )}
               <View
-                style={{
-                  padding: 20,
-                  backgroundColor: "#f1f0f5",
-                  flex: 1,
-                  borderTopLeftRadius: 20,
-                  borderTopRightRadius: 20,
-                }}
+                style={[
+                  globalStyles.p4,
+                  {
+                    backgroundColor: "#f8f9fa",
+                    flex: 1,
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                  }
+                ]}
               >
+                {/* Banner Section */}
                 <View style={styles.bannerContainer}>
                   <Image source={bannerImage} style={styles.bannerImage} />
-
                   <View style={styles.bannerTextContainer}>
-                    <CustomText style={styles.bannerTitle}>
+                    <CustomText style={[globalStyles.f20Bold, globalStyles.textWhite, globalStyles.mb1]}>
                       Your car,{"\n"}our priority
                     </CustomText>
-                    <CustomText style={styles.bannerSubtitle}>
-                      Filling these details ensures better{"\n"}service accuracy
-                      & reminders
+                    <CustomText style={[globalStyles.f12Regular, globalStyles.textWhite]}>
+                      Filling these details ensures better{"\n"}service accuracy & reminders
                     </CustomText>
+                  </View>
+                </View>
+
+                {/* Car Summary Card */}
+                <View style={styles.summaryCard}>
+                  <View style={[globalStyles.flexrow, globalStyles.alineItemscenter, globalStyles.mb3]}>
+                    <Ionicons name="car-sport" size={24} color={color.secondary} />
+                    <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack, globalStyles.ml2]}>{model?.name || "Your Car"}</CustomText>
+                  </View>
+                  
+                  <View style={[globalStyles.flexrow, globalStyles.flexwrap, globalStyles.alineItemscenter]}>
+                    {!!vehicleNumber && (
+                      <View style={[styles.chip, styles.primaryChip]}>
+                        <Ionicons name="pricetag" size={14} color={color.white} />
+                        <CustomText style={[globalStyles.f10Bold, globalStyles.textWhite, globalStyles.ml1]}>
+                          {vehicleNumber}
+                        </CustomText>
+                      </View>
+                    )}
+                    {!!yearOfPurchase && (
+                      <View style={styles.chip}>
+                        <Ionicons name="calendar" size={14} color={color.primary} />
+                        <CustomText style={[globalStyles.f10Bold, globalStyles.primary, globalStyles.ml1]}>
+                          {yearOfPurchase}
+                        </CustomText>
+                      </View>
+                    )}
+                    {!!fuelType && (
+                      <View style={styles.chip}>
+                        <Ionicons name="flame" size={14} color={color.primary} />
+                        <CustomText style={[globalStyles.f10Bold, globalStyles.primary, globalStyles.ml1]}>
+                          {fuelType}
+                        </CustomText>
+                      </View>
+                    )}
+                    {!!transmission && (
+                      <View style={styles.chip}>
+                        <Ionicons name="git-compare" size={14} color={color.primary} />
+                        <CustomText style={[globalStyles.f10Bold, globalStyles.primary, globalStyles.ml1]}>
+                          {transmission}
+                        </CustomText>
+                      </View>
+                    )}
                   </View>
                 </View>
 
                 {!isViewOnly ? (
                   <>
-                    <CustomText style={styles.label}>
-                      Registration Number
-                      <CustomText style={styles.optional}> *</CustomText>
-                    </CustomText>
-                    <TextInput
-                      placeholder="e.g. TS08AB1234"
-                      placeholderTextColor="#888"
-                      value={vehicleNumber}
-                      onChangeText={handleVehicleNumberChange}
-                      style={[
-                        styles.input,
-                        vehicleNumberError && styles.inputError,
-                      ]}
-                      editable={!isViewOnly}
-                      autoCapitalize="characters"
-                    />
-
-                    <View style={styles.row}>
-                      <View style={{ flex: 1, marginRight: 8 }}>
-                        <CustomText style={styles.label}>
-                          Year of Purchase
+                    {/* Vehicle Information Section */}
+                    <View style={styles.sectionContainer}>
+                      <View style={[globalStyles.flexrow, globalStyles.alineItemscenter, globalStyles.mb3]}>
+                        <Ionicons name="information-circle" size={16} color={color.primary} style={globalStyles.mr1} />
+                        <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack]}>
+                          Vehicle Information
                         </CustomText>
-                        <TouchableOpacity
-                          onPress={() => setShowYearPicker(true)}
-                        >
+                      </View>
+                      
+                      <View style={styles.formCard}>
+                        {/* Registration Number */}
+                        <View style={styles.inputGroup}>
+                          <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack, globalStyles.mb1]}>
+                            Registration Number
+                            <CustomText style={[globalStyles.f14Bold, { color: "#ef4444" }]}> *</CustomText>
+                          </CustomText>
                           <TextInput
-                            value={yearOfPurchase}
-                            placeholder="YYYY"
-                            style={styles.input}
-                            placeholderTextColor="#888"
-                            editable={false}
-                            pointerEvents="none"
+                            placeholder="e.g. TS08AB1234"
+                            placeholderTextColor="#999"
+                            value={vehicleNumber}
+                            onChangeText={handleVehicleNumberChange}
+                            style={[
+                              styles.input,
+                              vehicleNumberError && styles.inputError,
+                            ]}
+                            autoCapitalize="characters"
                           />
-                        </TouchableOpacity>
+                          {vehicleNumberError && (
+                            <CustomText style={[globalStyles.f12Regular, { color: "#ef4444" }, globalStyles.mt1]}>
+                              {typeof vehicleNumberError === 'string' ? vehicleNumberError : 'Registration number is required'}
+                            </CustomText>
+                          )}
+                        </View>
 
-                        <Modal
-                          visible={showYearPicker}
-                          transparent
-                          animationType="slide"
-                          onRequestClose={() => setShowYearPicker(false)} // for Android back button
-                        >
-                          <TouchableWithoutFeedback
-                            onPress={() => setShowYearPicker(false)}
-                          >
-                            <View
-                              style={{
-                                flex: 1,
-                                backgroundColor: "rgba(0,0,0,0.5)",
-                                justifyContent: "center",
-                              }}
+                        {/* Year and Transmission Row */}
+                        <View style={[globalStyles.flexrow, globalStyles.justifysb, globalStyles.mb3]}>
+                          <View style={styles.halfWidth}>
+                            <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack, globalStyles.mb1]}>
+                              Year of Purchase
+                            </CustomText>
+                            <TouchableOpacity
+                              onPress={() => setShowYearPicker(true)}
+                              style={styles.input}
                             >
-                              <TouchableWithoutFeedback onPress={() => { }}>
-                                <View
-                                  style={{
-                                    backgroundColor: "white",
-                                    margin: 20,
-                                    borderRadius: 10,
-                                    padding: 20,
-                                    maxHeight: 300,
-                                  }}
-                                >
-                                  <FlatList
-                                    data={years}
-                                    keyExtractor={(item) => item}
-                                    renderItem={({ item }) => (
-                                      <TouchableOpacity
-                                        onPress={() => {
-                                          setYearOfPurchase(item);
-                                          setShowYearPicker(false);
-                                        }}
-                                        style={{
-                                          padding: 15,
-                                          borderBottomWidth: 1,
-                                          borderBottomColor: "#ccc",
-                                        }}
-                                      >
-                                        <CustomText
-                                          style={globalStyles.textBlack}
-                                        >
-                                          {item}
-                                        </CustomText>
-                                      </TouchableOpacity>
+                              <CustomText style={[globalStyles.f14Regular, !yearOfPurchase && { color: "#999" }]}>
+                                {yearOfPurchase || "Select Year"}
+                              </CustomText>
+                              <Ionicons name="chevron-down" size={16} color="#999" style={{ position: 'absolute', right: 12, top: 12 }} />
+                            </TouchableOpacity>
+                          </View>
+                          
+                          <View style={styles.halfWidth}>
+                            <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack, globalStyles.mb1]}>
+                              Transmission Type
+                              <CustomText style={[globalStyles.f14Bold, { color: "#ef4444" }]}> *</CustomText>
+                            </CustomText>
+                            <TouchableOpacity
+                              onPress={() => setShowTransmissionPicker(true)}
+                              style={[
+                                styles.input,
+                                transmissionError && styles.inputError
+                              ]}
+                            >
+                              <CustomText style={[globalStyles.f14Regular, !transmission && { color: "#999" }]}>
+                                {transmission || "Select Type"}
+                              </CustomText>
+                              <Ionicons name="chevron-down" size={16} color="#999" style={{ position: 'absolute', right: 12, top: 12 }} />
+                            </TouchableOpacity>
+                            {transmissionError && (
+                              <CustomText style={[globalStyles.f12Regular, { color: "#ef4444" }, globalStyles.mt1]}>
+                                Transmission type is required
+                              </CustomText>
+                            )}
+                          </View>
+                        </View>
+
+                        {/* Engine Type */}
+                        <View style={styles.inputGroup}>
+                          <View style={globalStyles.mb1}>
+                            <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack, globalStyles.mb1]}>
+                              Engine Type / Size
+                            </CustomText>
+                            <CustomText style={[globalStyles.f10Regular, { color: "#666" }]}>
+                              Helpful for technicians
+                            </CustomText>
+                          </View>
+                          <TextInput
+                            placeholder="e.g. 1.2L i-VTEC"
+                            placeholderTextColor="#999"
+                            value={engineType}
+                            onChangeText={setEngineType}
+                            style={styles.input}
+                          />
+                        </View>
+
+                        {/* Kilometers Driven */}
+                        <View style={styles.inputGroup}>
+                          <View style={globalStyles.mb1}>
+                            <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack, globalStyles.mb1]}>
+                              Kilometers Driven
+                            </CustomText>
+                            <CustomText style={[globalStyles.f10Regular, { color: "#666" }]}>
+                              Helpful for technicians
+                            </CustomText>
+                          </View>
+                          <TextInput
+                            placeholder="e.g. 50000"
+                            placeholderTextColor="#999"
+                            value={kilometersDriven}
+                            onChangeText={setKilometersDriven}
+                            style={styles.input}
+                            keyboardType="numeric"
+                          />
+                        </View>
+                      </View>
+
+                      {/* Tips Box */}
+                      <View style={[globalStyles.flexrow, globalStyles.alineItemsstart, styles.tipBox]}>
+                        <Ionicons name="bulb" size={18} color={color.primary} />
+                        <CustomText style={[globalStyles.f12Regular, color.primary, globalStyles.ml2, { flex: 1, lineHeight: 18 }]}>
+                          Providing accurate car details helps us match the right technician and ensures better service quality.
+                        </CustomText>
+                      </View>
+                    </View>
+
+                    {/* Year Picker Modal */}
+                    <Modal
+                      visible={showYearPicker}
+                      transparent
+                      animationType="slide"
+                      onRequestClose={() => setShowYearPicker(false)}
+                    >
+                      <TouchableWithoutFeedback onPress={() => setShowYearPicker(false)}>
+                        <View style={styles.modalOverlay}>
+                          <TouchableWithoutFeedback onPress={() => {}}>
+                            <View style={styles.yearPickerModal}>
+                              <View style={[globalStyles.flexrow, globalStyles.justifysb, globalStyles.alineItemscenter, globalStyles.p3]}>
+                                <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack]}>Select Year</CustomText>
+                                <TouchableOpacity onPress={() => setShowYearPicker(false)}>
+                                  <Ionicons name="close" size={24} color="#666" />
+                                </TouchableOpacity>
+                              </View>
+                              <FlatList
+                                data={years}
+                                keyExtractor={(item) => item}
+                                renderItem={({ item }) => (
+                                  <TouchableOpacity
+                                    onPress={() => {
+                                      setYearOfPurchase(item);
+                                      setShowYearPicker(false);
+                                    }}
+                                    style={[
+                                      globalStyles.flexrow,
+                                      globalStyles.justifysb,
+                                      globalStyles.alineItemscenter,
+                                      globalStyles.p3,
+                                      { borderBottomWidth: 1, borderBottomColor: "#f1f5f9" },
+                                      yearOfPurchase === item && { backgroundColor: "#f0f9ff" }
+                                    ]}
+                                  >
+                                    <CustomText style={[
+                                      globalStyles.f16Regular,
+                                      { color: "#333" },
+                                      yearOfPurchase === item && [globalStyles.f16Bold, { color: color.primary }]
+                                    ]}>
+                                      {item}
+                                    </CustomText>
+                                    {yearOfPurchase === item && (
+                                      <Ionicons name="checkmark" size={20} color={color.primary} />
                                     )}
-                                  />
-                                </View>
-                              </TouchableWithoutFeedback>
+                                  </TouchableOpacity>
+                                )}
+                              />
                             </View>
                           </TouchableWithoutFeedback>
-                        </Modal>
-                      </View>
-                      <View style={[{ flex: 1, marginLeft: 8 }]}>
-                        <CustomText style={styles.label}>
-                          Transmission Type
-                          <CustomText style={styles.optional}> *</CustomText>
-                        </CustomText>
-                        <CustomDropdown
-                          value={transmission}
-                          onSelect={(value) => {
-                            setTransmission(value);
-                            setTransmissionError("");
-                          }}
-                          options={transmissionOptions}
-                          error={!!transmissionError}
-                          disabled={isViewOnly}
-                        />
-                      </View>
-                    </View>
-                    <View style={styles.labelWithHelperRow}>
-                      <CustomText style={styles.label}>
-                        Engine Type / Size
-                      </CustomText>
-                      <CustomText style={styles.helperTextInline}>
-                        Useful for technicians
-                      </CustomText>
-                    </View>
-                    <TextInput
-                      placeholder="e.g. 1.2L i-VTEC"
-                      style={styles.input}
-                      placeholderTextColor="#888"
-                      value={engineType}
-                      onChangeText={setEngineType}
-                      editable={!isViewOnly}
-                    />
-                    <View style={styles.labelWithHelperRow}>
-                      <CustomText style={styles.label}>
-                        Kilometers Driven
-                      </CustomText>
-                      <CustomText style={styles.helperTextInline}>
-                        Useful for technicians
-                      </CustomText>
-                    </View>
-                    <TextInput
-                      placeholder="---"
-                      style={styles.input}
-                      placeholderTextColor="#888"
-                      value={kilometersDriven}
-                      onChangeText={setKilometersDriven}
-                      editable={!isViewOnly}
-                    />
+                        </View>
+                      </TouchableWithoutFeedback>
+                    </Modal>
+
+                    {/* Transmission Picker Modal */}
+                    <Modal
+                      visible={showTransmissionPicker}
+                      transparent
+                      animationType="slide"
+                      onRequestClose={() => setShowTransmissionPicker(false)}
+                    >
+                      <TouchableWithoutFeedback onPress={() => setShowTransmissionPicker(false)}>
+                        <View style={styles.modalOverlay}>
+                          <TouchableWithoutFeedback onPress={() => {}}>
+                            <View style={styles.transmissionPickerModal}>
+                              <View style={[globalStyles.flexrow, globalStyles.justifysb, globalStyles.alineItemscenter, globalStyles.p3]}>
+                                <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack]}>Select Transmission</CustomText>
+                                <TouchableOpacity onPress={() => setShowTransmissionPicker(false)}>
+                                  <Ionicons name="close" size={24} color="#666" />
+                                </TouchableOpacity>
+                              </View>
+                              <FlatList
+                                data={transmissionOptions}
+                                keyExtractor={(item) => item.value}
+                                renderItem={({ item }) => (
+                                  <TouchableOpacity
+                                    onPress={() => {
+                                      setTransmission(item.value);
+                                      setTransmissionError("");
+                                      setShowTransmissionPicker(false);
+                                    }}
+                                    style={[
+                                      globalStyles.flexrow,
+                                      globalStyles.justifysb,
+                                      globalStyles.alineItemscenter,
+                                      globalStyles.p3,
+                                      { borderBottomWidth: 1, borderBottomColor: "#f1f5f9" },
+                                      transmission === item.value && { backgroundColor: "#f0f9ff" }
+                                    ]}
+                                  >
+                                    <CustomText style={[
+                                      globalStyles.f16Regular,
+                                      { color: "#333" },
+                                      transmission === item.value && [globalStyles.f16Bold, { color: color.primary }]
+                                    ]}>
+                                      {item.label}
+                                    </CustomText>
+                                    {transmission === item.value && (
+                                      <Ionicons name="checkmark" size={20} color={color.primary} />
+                                    )}
+                                  </TouchableOpacity>
+                                )}
+                              />
+                            </View>
+                          </TouchableWithoutFeedback>
+                        </View>
+                      </TouchableWithoutFeedback>
+                    </Modal>
                   </>
                 ) : (
                   <>
@@ -468,41 +608,63 @@ export const MyCarDetails = () => {
                 )}
 
                 {!isViewOnly && (
-                  <View style={styles.privacyContainer}>
-                    <TouchableOpacity
-                      style={styles.privacyRow}
-                      onPress={() => setPrivacyAccepted((prev) => !prev)}
-                      activeOpacity={0.7}
-                    >
-                      <Checkbox
-                        value={privacyAccepted}
-                        onValueChange={setPrivacyAccepted}
-                      />
-                      <CustomText style={styles.privacyText}>
-                        I accept the Privacy Policy
+                  <>
+                    {/* Privacy Policy Section */}
+                    <View style={styles.privacySection}>
+                      <View style={[globalStyles.flexrow, globalStyles.alineItemscenter, styles.privacyContainer]}>
+                        <TouchableOpacity
+                          style={[globalStyles.flexrow, globalStyles.alineItemscenter, { flex: 1 }]}
+                          onPress={() => setPrivacyAccepted((prev) => !prev)}
+                          activeOpacity={0.7}
+                        >
+                          <Checkbox
+                            value={privacyAccepted}
+                            onValueChange={setPrivacyAccepted}
+                            color={privacyAccepted ? color.primary : undefined}
+                          />
+                          <CustomText style={[globalStyles.f14Regular, globalStyles.textBlack, globalStyles.ml2]}>
+                            I accept the Privacy Policy
+                          </CustomText>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                          onPress={() => setPrivacyModalVisible(true)} 
+                          style={globalStyles.p1}
+                        >
+                          <AntDesign name="infocirlceo" size={18} color={color.primary} />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+
+                    {/* Submit Button Section */}
+                    <View style={styles.submitSection}>
+                      <TouchableOpacity
+                        style={[
+                          globalStyles.flexrow,
+                          globalStyles.alineItemscenter,
+                          globalStyles.justifycenter,
+                          styles.submitButton,
+                          !privacyAccepted && styles.disabledButton,
+                        ]}
+                        onPress={handleSubmit}
+                        disabled={!privacyAccepted}
+                      >
+                        <Ionicons 
+                          name="checkmark-circle" 
+                          size={20} 
+                          color={color.white} 
+                          style={globalStyles.mr2} 
+                        />
+                        <CustomText style={[globalStyles.f16Bold, globalStyles.textWhite]}>
+                          Save Car Details
+                        </CustomText>
+                      </TouchableOpacity>
+                      <CustomText style={[globalStyles.f12Regular, { color: "#666", textAlign: "center" }, globalStyles.mt2]}>
+                        You can edit these details anytime from My Cars
                       </CustomText>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => setPrivacyModalVisible(true)} style={{ marginLeft: 6 }}>
-                      <AntDesign name="infocirlceo" size={18} color={color.yellow} />
-                    </TouchableOpacity>
-                  </View>
+                    </View>
+                  </>
                 )}
-                {!isViewOnly && (
-                  <TouchableOpacity
-                    style={[
-                      styles.submitButton,
-                      !privacyAccepted && styles.disabledButton,
-                    ]}
-                    onPress={handleSubmit}
-                    disabled={!privacyAccepted}
-                  >
-                    <CustomText
-                      style={{ ...globalStyles.f12Bold, color: color.white }}
-                    >
-                      Submit
-                    </CustomText>
-                  </TouchableOpacity>
-                )}
+                
               </View>
               <CustomAlert
                 visible={alertVisible}
@@ -565,6 +727,134 @@ export const MyCarDetails = () => {
   );
 };
 const styles = StyleSheet.create({
+  summaryCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 4,
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: "#f0f9ff",
+    marginRight: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#e0f2fe",
+  },
+  primaryChip: {
+    backgroundColor: color.primary,
+    borderColor: color.primary,
+  },
+  sectionContainer: {
+    marginBottom: 20,
+  },
+  formCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: "#f8f9fa",
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: "#333",
+    minHeight: 48,
+    justifyContent: "center",
+  },
+  inputError: {
+    borderColor: "#ef4444",
+    backgroundColor: "#fef2f2",
+  },
+  halfWidth: {
+    flex: 1,
+    marginRight: 8,
+  },
+  tipBox: {
+    backgroundColor: "#f0f9ff",
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#e0f2fe",
+    marginBottom: 16,
+  },
+  yearPickerModal: {
+    backgroundColor: "#fff",
+    margin: 20,
+    borderRadius: 16,
+    maxHeight: 400,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  transmissionPickerModal: {
+    backgroundColor: "#fff",
+    margin: 20,
+    borderRadius: 16,
+    maxHeight: 300,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  privacySection: {
+    marginBottom: 20,
+  },
+  privacyContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  submitSection: {
+    marginBottom: 20,
+  },
+  submitButton: {
+    backgroundColor: color.primary,
+    borderRadius: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    shadowColor: color.primary,
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  disabledButton: {
+    backgroundColor: "#d1d5db",
+    shadowOpacity: 0,
+    elevation: 0,
+  },
   deleteBtn: {
     backgroundColor: color.alertError,
     padding: 18,
@@ -614,102 +904,25 @@ const styles = StyleSheet.create({
     height: 140,
     marginBottom: 20,
     borderRadius: 20,
-    overflow: "hidden", // ensures rounded corners affect children
+    overflow: "hidden",
   },
-
   bannerImage: {
     width: "100%",
     height: "100%",
     resizeMode: "cover",
   },
-
   bannerTextContainer: {
     position: "absolute",
     padding: 20,
   },
-
   bannerTitle: {
     ...globalStyles.textWhite,
     ...globalStyles.f16Bold,
     marginBottom: 4,
   },
-
   bannerSubtitle: {
     ...globalStyles.textWhite,
     ...globalStyles.f10Regular,
-  },
-
-  label: {
-    ...globalStyles.f14Bold,
-    marginBottom: 4,
-    ...globalStyles.textBlack,
-    // marginTop: 10,
-  },
-  optional: {
-    ...globalStyles.f12Bold,
-    color: "red",
-  },
-  input: {
-    backgroundColor: "#fff",
-    color: "#111111",
-    borderRadius: 8,
-    padding: 8,
-    ...globalStyles.f14Bold,
-    marginBottom: 10,
-  },
-  itemTextStyle: {
-    ...globalStyles.f10Bold,
-  },
-
-  itemContainerStyle: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-  },
-
-  labelWithHelperRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  helperTextInline: {
-    marginTop: 4,
-    ...globalStyles.f10Regular,
-    color: "#999",
-  },
-  row: {
-    flexDirection: "row",
-    marginBottom: 10,
-  },
-  privacyContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 15,
-  },
-
-  privacyRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  privacyText: {
-    marginLeft: 6,
-    ...globalStyles.f10Regular,
-    color: "#999",
-  },
-  submitButton: {
-    backgroundColor: color.secondary,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 15,
-  },
-  disabledButton: {
-    backgroundColor: "#ccc",
-  },
-  inputError: {
-    borderWidth: 1,
-    borderColor: "#f16b6bff",
   },
   modalOverlay: {
     flex: 1,

@@ -282,9 +282,9 @@ export default function BookingsInnerPage() {
               style={[styles.mapCard, { opacity: summaryOpacity }]}
             >
               <Animated.View
-                style={{ height: 220, borderRadius: 12, overflow: "hidden" }}
+                style={{ height: mapHeight, borderRadius: 12, overflow: "hidden" }}
               >
-                <View style={styles.mapDragHandle}>
+                <View style={styles.mapDragHandle} {...panResponder.panHandlers}>
                   <View style={styles.mapGrabber} />
                 </View>
                 <MapView
@@ -345,7 +345,7 @@ export default function BookingsInnerPage() {
                 <TouchableOpacity onPress={recenterMap} style={styles.mapRecenterBtn}>
                   <Icon name="my-location" size={22} color={color.primary} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => {}} style={styles.mapExpandBtn}>
+                <TouchableOpacity onPress={toggleMapExpand} style={styles.mapExpandBtn}>
                   <Icon name="open-in-full" size={20} color="#333" />
                 </TouchableOpacity>
               </Animated.View>

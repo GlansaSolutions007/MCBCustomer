@@ -1,8 +1,8 @@
-/* NOTIFICATIONS CONFIG DISABLED
-// import * as Notifications from "expo-notifications";
-// import * as Device from "expo-device";
-// import { Platform } from "react-native";
-// import Constants from "expo-constants";
+// NOTIFICATIONS CONFIG - DEPRECATED - Use notificationService.js instead
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
+import { Platform } from "react-native";
+import Constants from "expo-constants";
 
 export async function registerForPushNotificationsAsync() {
   if (!Device.isDevice) {
@@ -45,7 +45,7 @@ export async function registerForPushNotificationsAsync() {
 
   return { expoPushToken, fcmToken };
 }
-*/
 
-// Export empty function to prevent errors
-export const registerForPushNotificationsAsync = () => Promise.resolve({ expoPushToken: null, fcmToken: null });
+
+// DEPRECATED: This function is now in notificationService.js
+// Keeping this file for backward compatibility but functions are disabled

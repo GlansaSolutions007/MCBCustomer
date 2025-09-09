@@ -1,12 +1,11 @@
-// import * as Notifications from "expo-notifications";
-// import * as Device from "expo-device";
-// import { Platform } from "react-native";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
-// import axios from "axios";
-// import { registerBackgroundFetch } from "./backgroundTaskService";
-// import { API_URL, API_IMAGE_URL, RAZORPAY_KEY } from "@env";
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
+import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { registerBackgroundFetch } from "./backgroundTaskService";
+import { API_URL } from "@env";
 
-/* NOTIFICATION SERVICE DISABLED
 // Notification status tracking keys
 const NOTIFICATION_KEYS = {
   TECH_ASSIGNED: 'tech_assigned_',
@@ -440,10 +439,3 @@ export const initializeNotificationSystem = async (customerId) => {
     console.error("Error initializing notification system:", error);
   }
 };
-*/
-
-// Export empty functions to prevent errors
-export const initializeNotificationSystem = () => {};
-export const monitorBookingsForNotifications = () => {};
-export const registerForPushNotificationsAsync = () => Promise.resolve({});
-export const saveCustomerPushToken = () => Promise.resolve();

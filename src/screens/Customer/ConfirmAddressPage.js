@@ -823,10 +823,10 @@ const ConfirmAddressPage = ({ navigation }) => {
                       <CustomText style={styles.locationTitle}>
                         {address || "Selected Location"}
                       </CustomText>
-                      <CustomText style={styles.locationSub}>
+                      {/* <CustomText style={styles.locationSub}>
                         Lat: {region?.latitude?.toFixed(4)}, Lng:{" "}
                         {region?.longitude?.toFixed(4)}
-                      </CustomText>
+                      </CustomText> */}
                     </View>
                   </View>
                   <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-start" }}>
@@ -1043,6 +1043,7 @@ const styles = StyleSheet.create({
     color: color.primary,
     marginBottom: 4,
     paddingHorizontal: 10,
+    marginBottom: 10,
   },
   locationSub: {
     color: "#777",
