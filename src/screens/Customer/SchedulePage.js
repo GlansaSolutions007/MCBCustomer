@@ -32,7 +32,8 @@ const SchedulePage = () => {
   const today = moment().startOf("day");
   const [currentWeekStart, setCurrentWeekStart] = useState(today.clone());
   const [selectedDate, setSelectedDate] = useState(today.clone());
-  const [selectedTime, setSelectedTime] = useState(null);
+  const [selectedTime, setSelectedTime] = useState([]);
+  const [selectedTimes, setSelectedTimes] = useState([]);
   const [timeSlots, setTimeSlots] = useState([]);
   const [timeError, setTimeError] = useState("");
 
@@ -85,7 +86,7 @@ const SchedulePage = () => {
           if (currentDate === sDate) {
             const endTime = moment(slot.EndTime, "HH:mm:ss");
             return endTime.isAfter(currentTime);
-          }else{
+          } else {
             return true; // For future dates, include all slots
           }
         })
@@ -244,10 +245,16 @@ const SchedulePage = () => {
                   key={slot.TsID}
                   style={[
                     styles.timeSlot,
-                    selectedTime === slot.TsID && styles.selectedTimeSlot,
+                    selectedTimes.includes(slot.TsID) && styles.selectedTimeSlot,
                   ]}
                   onPress={() => {
-                    setSelectedTime(slot.TsID);
+                    if (selectedTimes.includes(slot.TsID)) {
+                      // Deselect
+                      setSelectedTimes(selectedTimes.filter(id => id !== slot.TsID));
+                    } else {
+                      // Select
+                      setSelectedTimes([...selectedTimes, slot.TsID]);
+                    }
                     setTimeError("");
                   }}
                 >
@@ -255,7 +262,7 @@ const SchedulePage = () => {
                     style={[
                       {
                         color:
-                          selectedTime === slot.TsID
+                          selectedTimes.includes(slot.TsID)
                             ? "white"
                             : color.secondary,
                       },
@@ -287,8 +294,8 @@ const SchedulePage = () => {
               {timeError}
             </CustomText>
           ) : null}
-
-          {selectedTime && (
+          {/* 
+          {selectedTimes.length > 0 && (
             <View style={{ marginTop: 20 }}>
               <CustomText
                 style={[globalStyles.f16Bold, globalStyles.secondary]}
@@ -318,7 +325,31 @@ const SchedulePage = () => {
                 </CustomText>
               </View>
             </View>
+          )} */}
+
+          {selectedTimes.length > 0 && (
+            <View style={{ marginTop: 20 }}>
+              <CustomText style={[globalStyles.f16Bold, globalStyles.secondary]}>
+                Scheduled On
+              </CustomText>
+
+              {selectedTimes.map((id) => {
+                const slot = timeSlots.find((t) => t.TsID === id);
+                return (
+                  <View key={id} style={styles.scheduledRow}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+                      <MaterialCommunityIcons name="calendar" size={20} color="#444" />
+                      <CustomText style={styles.scheduledText}>
+                        {selectedDate.format("Do MMMM, YYYY")}
+                      </CustomText>
+                    </View>
+                    <CustomText style={styles.scheduledText}>{slot?.label}</CustomText>
+                  </View>
+                );
+              })}
+            </View>
           )}
+
 
           <CustomText style={styles.sectionTitle}>Selected Services</CustomText>
           {selectedServices?.map((item) => (
@@ -395,7 +426,10 @@ const SchedulePage = () => {
                 );
                 await AsyncStorage.setItem(
                   "selectedTimeSlotLabel",
-                  selectedSlot.label
+                  // selectedSlot.label
+                  JSON.stringify(
+                    selectedTimes.map(id => timeSlots.find(t => t.TsID === id)?.label)
+                  )
                 );
 
                 navigation.goBack();

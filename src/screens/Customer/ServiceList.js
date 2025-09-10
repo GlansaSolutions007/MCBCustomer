@@ -637,9 +637,13 @@ export default function ServiceList() {
                       >
                         Booked Slot:
                       </CustomText>
-                      <CustomText style={[globalStyles.f12Bold]}>
-                        {booking.TimeSlot}
-                      </CustomText>
+                      <View>
+                        {booking.TimeSlot?.split(",").map((slot, index) => (
+                          <CustomText key={index} style={[globalStyles.f12Bold]}>
+                            {slot.trim()}
+                          </CustomText>
+                        ))}
+                      </View>
                     </View>
                     <View style={styles.bookingDate}>
                       <CustomText
