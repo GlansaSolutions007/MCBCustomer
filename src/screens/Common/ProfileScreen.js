@@ -423,6 +423,28 @@ export default function ProfileScreen() {
                       color={color.primary}
                     />
                   </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.eachTouchable}
+                    onPress={() => navigation.navigate("FirebaseTests")}
+                  >
+                    <View style={styles.row}>
+                      <Ionicons
+                        name="alert-circle"
+                        size={22}
+                        color={color.primary}
+                      />
+                      <CustomText
+                        style={[styles.touchableText, globalStyles.f16Medium]}
+                      >
+                        Firebase Tests
+                      </CustomText>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward-outline"
+                      size={20}
+                      color={color.primary}
+                    />
+                  </TouchableOpacity>
                   <View style={styles.divider} />
                 </View>
                 <View style={styles.profileDetails}>

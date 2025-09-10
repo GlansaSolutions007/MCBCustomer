@@ -25,6 +25,7 @@ import CustomText from "../../components/CustomText";
 import { useNavigation } from "@react-navigation/native";
 import * as Device from "expo-device";
 import { registerForPushNotificationsAsync, saveCustomerPushToken } from "../../utils/notificationService";
+import { saveOrUpdateCustomerFcmToken } from "../../utils/notifications";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AntDesign from '@expo/vector-icons/AntDesign';
@@ -44,12 +45,13 @@ export default function LoginScreen() {
   const [message, setMessage] = useState("");
   const [title, setTitle] = useState("Login Info");
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(0);
   const [resendDisabled, setResendDisabled] = useState(true);
   const [showLogo, setShowLogo] = useState(false);
+  const [mobileFieldFrozen, setMobileFieldFrozen] = useState(false);
 
   const navigation = useNavigation();
 
@@ -63,6 +65,42 @@ export default function LoginScreen() {
   const inputFocusScale = useRef(new Animated.Value(1)).current;
   const contentTranslateY = useRef(new Animated.Value(0)).current;
   const keyboardHeight = useRef(new Animated.Value(0)).current;
+  
+  // OTP input refs
+  const otpRefs = useRef([]);
+
+  // Helper functions for OTP handling
+  const handleOtpChange = (value, index) => {
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    
+    // Auto-focus next input
+    if (value && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+    
+    // Check if all 6 digits are entered
+    if (newOtp.every(digit => digit !== "") && index === 5) {
+      setMobileFieldFrozen(true);
+    }
+  };
+
+  const handleOtpKeyPress = (key, index) => {
+    if (key === 'Backspace' && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const clearOtp = () => {
+    setOtp(["", "", "", "", "", ""]);
+    setMobileFieldFrozen(false);
+    otpRefs.current[0]?.focus();
+  };
+
+  const getOtpString = () => {
+    return otp.join("");
+  };
 
   // alert(API_BASE_URL);
   const startResendTimer = () => {
@@ -117,6 +155,7 @@ export default function LoginScreen() {
 
       if (response.ok) {
         setOtpSent(true);
+        clearOtp(); // Clear OTP fields when sending new OTP
         setTitle("OTP Sent");
         setMessage("Your OTP is on its way, check your phone!");
         setStatus("success");
@@ -152,9 +191,10 @@ export default function LoginScreen() {
   };
 
   const handleVerifyOtp = async () => {
-    if (!otp) {
+    const otpString = getOtpString();
+    if (!otpString || otpString.length !== 6) {
       setTitle("Missing OTP");
-      setMessage("Please enter the OTP.");
+      setMessage("Please enter the complete 6-digit OTP.");
       setStatus("error");
       setShowAlert(true);
       return;
@@ -177,7 +217,7 @@ export default function LoginScreen() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           loginId,
-          otp,
+          otp: otpString,
           deviceToken: DeviceToken,
           deviceId: DeviceId,
         }),
@@ -201,6 +241,9 @@ export default function LoginScreen() {
         try {
           if (result?.custID && tokens) {
             await saveCustomerPushToken(result.custID, tokens);
+            if (tokens.fcmToken) {
+              await saveOrUpdateCustomerFcmToken(result.custID, tokens.fcmToken);
+            }
             try {
               await AsyncStorage.setItem("pushToken", DeviceToken);
               await AsyncStorage.setItem("pushTokenType", tokens.fcmToken ? "fcm" : (tokens.expoPushToken ? "expo" : "unknown"));
@@ -304,6 +347,7 @@ export default function LoginScreen() {
     ]).start();
   }, []);
 
+
   return (
     <ImageBackground
       source={BgImage}
@@ -356,11 +400,11 @@ export default function LoginScreen() {
               onChangeText={setLoginId}
               style={[
                 styles.textInputWithPrefix,
-                otpSent && styles.disabledInput
+                (otpSent || mobileFieldFrozen) && styles.disabledInput
               ]}
               keyboardType="phone-pad"
               autoCapitalize="none"
-              editable={!otpSent}
+              editable={!otpSent && !mobileFieldFrozen}
               maxLength={10}
               onFocus={() => {
                 Animated.timing(inputFocusScale, {
@@ -380,7 +424,7 @@ export default function LoginScreen() {
           </View>
         </Animated.View>
 
-        {/* OTP Input with animation */}
+        {/* OTP Input with animation - 6 digit boxes */}
         {otpSent && (
           <Animated.View
             style={{
@@ -388,29 +432,27 @@ export default function LoginScreen() {
               opacity: otpInputOpacity,
             }}
           >
-            <TextInput
-              placeholder="Enter OTP"
-              placeholderTextColor={color.textInputDark}
-              value={otp}
-              onChangeText={setOtp}
-              style={styles.textInput}
-              keyboardType="number-pad"
-              maxLength={6}
-              onFocus={() => {
-                Animated.timing(inputFocusScale, {
-                  toValue: 1.02,
-                  duration: 200,
-                  useNativeDriver: true,
-                }).start();
-              }}
-              onBlur={() => {
-                Animated.timing(inputFocusScale, {
-                  toValue: 1,
-                  duration: 200,
-                  useNativeDriver: true,
-                }).start();
-              }}
-            />
+            <View style={styles.otpContainer}>
+              {otp.map((digit, index) => (
+                <TextInput
+                  key={index}
+                  ref={(ref) => (otpRefs.current[index] = ref)}
+                  style={[
+                    styles.otpInput,
+                    digit && styles.otpInputFilled,
+                    mobileFieldFrozen && styles.otpInputFrozen
+                  ]}
+                  value={digit}
+                  onChangeText={(value) => handleOtpChange(value, index)}
+                  onKeyPress={({ nativeEvent }) => handleOtpKeyPress(nativeEvent.key, index)}
+                  keyboardType="number-pad"
+                  maxLength={1}
+                  textAlign="center"
+                  selectTextOnFocus
+                />
+              ))}
+            </View>
+            <CustomText style={styles.otpLabel}>Enter 6-digit OTP</CustomText>
           </Animated.View>
         )} 
 
@@ -436,7 +478,10 @@ export default function LoginScreen() {
             }}
           >
             <TouchableOpacity
-              onPress={handleSendOtp}
+              onPress={() => {
+                clearOtp();
+                handleSendOtp();
+              }}
               disabled={resendDisabled}
               style={[
                 styles.resendButton,
@@ -740,6 +785,39 @@ const styles = StyleSheet.create({
   resendButtonText: {
     fontSize: 14,
     color: color.black,
+  },
+  otpContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  otpInput: {
+    width: 45,
+    height: 50,
+    borderWidth: 2,
+    borderColor: color.black,
+    borderRadius: 8,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+    color: color.black,
+    backgroundColor: color.white,
+  },
+  otpInputFilled: {
+    borderColor: color.primary,
+    backgroundColor: '#f0f9ff',
+  },
+  otpInputFrozen: {
+    borderColor: color.primary,
+    backgroundColor: '#e0f7f4',
+  },
+  otpLabel: {
+    textAlign: 'center',
+    fontSize: 14,
+    color: color.black,
+    marginBottom: 20,
+    fontWeight: '500',
   },
   poweredByContainer: {
     position: 'absolute',
