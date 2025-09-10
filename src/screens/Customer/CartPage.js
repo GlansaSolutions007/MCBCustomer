@@ -132,7 +132,8 @@ const CartPage = () => {
           const timeLabel = await AsyncStorage.getItem("selectedTimeSlotLabel");
           if (date && timeLabel) {
             setScheduledDate(date);
-            setScheduledTimeLabel(timeLabel);
+            const parsedLabels = JSON.parse(timeLabel);
+            setScheduledTimeLabel(parsedLabels.join(", "));
           } else {
             setScheduledDate(null);
             setScheduledTimeLabel(null);
