@@ -25,6 +25,7 @@ import Reviews from "../screens/Customer/Reviews";
 import MapTest from "../screens/Customer/MapTest";
 import NotificationSettingsScreen from "../screens/Customer/NotificationSettingsScreen";
 import InvoiceListScreen from "../screens/Customer/InvoiceListScreen";
+import FirebaseTestScreen from "../screens/Common/FirebaseTestScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -146,6 +147,11 @@ export default function CustomerStackNavigator() {
           name="InvoiceList"
           component={InvoiceListScreen}
           options={{ title: "Your Invoices" }}
+        />
+        <Stack.Screen
+          name="FirebaseTests"
+          component={FirebaseTestScreen}
+          options={{ title: "Firebase Tests" }}
         />
       </Stack.Navigator>
       

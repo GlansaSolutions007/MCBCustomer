@@ -157,29 +157,48 @@ export default function BookingsInnerPage() {
     }
   }, [booking.Latitude, booking.Longitude]);
 
-  // Subscribe to technician location if journey started
+  // Subscribe to technician location whenever a TechID exists
   useEffect(() => {
-    if (
-      booking.BookingStatus?.toLowerCase() !== "startjourney" ||
-      !booking.TechID
-    )
-      return;
-    const technicianRef = ref(db, `technicians/${booking.TechID}`);
+    if (!booking.TechID) return;
+
+    const techIdSanitized = String(booking.TechID).trim();
+    console.log("Tech ID sanitized:", techIdSanitized);
+    const techPath = `technicians/${techIdSanitized}`;
+    const technicianRef = ref(db, techPath);
+
     const unsubscribe = onValue(technicianRef, (snapshot) => {
       const data = snapshot.val();
+      // Debug logs to verify incoming payload
+      console.log("Technician path:", techPath);
+      console.log("Technician snapshot exists:", snapshot.exists());
       if (!data) {
+        console.log("Technician data missing at path");
         setTechnicianOffline(true);
         setTechnicianLocation(null);
         return;
       }
-      const lat =
-        typeof data.latitude === "number"
-          ? data.latitude
-          : parseFloat(data.latitude);
-      const lng =
-        typeof data.longitude === "number"
-          ? data.longitude
-          : parseFloat(data.longitude);
+
+      // Support multiple possible data shapes
+      // 1) { latitude, longitude }
+      // 2) { lat, lng }
+      // 3) { location: { latitude, longitude } }
+      // 4) { coords: { latitude, longitude } }
+      const candidate = {
+        latitude:
+          data?.latitude ?? data?.lat ?? data?.location?.latitude ?? data?.coords?.latitude,
+        longitude:
+          data?.longitude ?? data?.lng ?? data?.location?.longitude ?? data?.coords?.longitude,
+      };
+
+      const lat = typeof candidate.latitude === "number"
+        ? candidate.latitude
+        : parseFloat(candidate.latitude);
+      const lng = typeof candidate.longitude === "number"
+        ? candidate.longitude
+        : parseFloat(candidate.longitude);
+
+      console.log("Technician parsed coords:", { lat, lng, raw: data });
+
       if (Number.isFinite(lat) && Number.isFinite(lng)) {
         const nextLoc = { latitude: lat, longitude: lng };
         setTechnicianLocation(nextLoc);
@@ -191,10 +210,41 @@ export default function BookingsInnerPage() {
             { duration: 700 }
           );
         }
+      } else {
+        console.log("Technician coords invalid or not numeric");
+        setTechnicianOffline(true);
       }
     });
+
+    // Seed initial value via one-time read
+    // Helpful if the real-time listener fires later
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    (async () => {
+      try {
+        // dynamic import to avoid adding get at top if unused elsewhere
+        const { get } = await import('firebase/database');
+        const snap = await get(technicianRef);
+        if (snap.exists()) {
+          const d = snap.val();
+          const candidate = {
+            latitude: d?.latitude ?? d?.lat ?? d?.location?.latitude ?? d?.coords?.latitude,
+            longitude: d?.longitude ?? d?.lng ?? d?.location?.longitude ?? d?.coords?.longitude,
+          };
+          const lat0 = typeof candidate.latitude === 'number' ? candidate.latitude : parseFloat(candidate.latitude);
+          const lng0 = typeof candidate.longitude === 'number' ? candidate.longitude : parseFloat(candidate.longitude);
+          if (Number.isFinite(lat0) && Number.isFinite(lng0)) {
+            const seeded = { latitude: lat0, longitude: lng0 };
+            setTechnicianLocation(seeded);
+            setTechnicianOffline(false);
+          }
+        }
+      } catch (e) {
+        console.log('Initial technician get() failed:', e?.message || e);
+      }
+    })();
+
     return () => unsubscribe();
-  }, [booking.BookingStatus, booking.TechID]);
+  }, [booking.TechID]);
 
   const fetchRoute = useCallback(async (techLoc, custLoc) => {
     try {
@@ -385,6 +435,22 @@ export default function BookingsInnerPage() {
               BID: {booking.BookingTrackID}
             </CustomText>
           </View>
+
+          {/* Debug: Show Technician ID for testing */}
+          <View style={{ marginTop: 6, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <CustomText style={[globalStyles.f10Bold, { color: "#666" }]}>TechID:</CustomText>
+            <CustomText style={[globalStyles.f10Bold, { color: "#333" }]}>
+              {booking?.TechID != null ? String(booking.TechID) : "N/A"}
+            </CustomText>
+          </View>
+          {technicianLocation && (
+            <View style={{ marginTop: 4, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <CustomText style={[globalStyles.f10Bold, { color: "#666" }]}>Tech Coords:</CustomText>
+              <CustomText style={[globalStyles.f10Bold, { color: "#333" }]}>
+                {technicianLocation.latitude.toFixed(5)}, {technicianLocation.longitude.toFixed(5)}
+              </CustomText>
+            </View>
+          )}
 
           <View style={[styles.dividerLine, { marginVertical: 12 }]} />
 
