@@ -116,7 +116,7 @@ export default function HomeScreen() {
             booking.BookingStatus?.toLowerCase() !== "cancelled" &&
             booking.BookingStatus?.toLowerCase() !== "failed"
         );
-        console.log("Upcoming Bookings:", upcoming);
+        // console.log("Upcoming Bookings:", upcoming);
 
         setUpcomingBookings(upcoming);
 

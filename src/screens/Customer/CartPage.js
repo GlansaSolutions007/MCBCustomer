@@ -15,6 +15,7 @@ import {
   TouchableWithoutFeedback,
   ImageBackground,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { color } from "../../styles/theme";
@@ -59,6 +60,7 @@ const CartPage = () => {
   // for selection of payment method
   const [paymentMethod, setPaymentMethod] = useState("Razorpay");
   const [disable, setDisable] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [bookingTrackId, setBookingTrackId] = useState(null);
   const scrollViewRef = useRef(null);
   const [customerDetailsY, setCustomerDetailsY] = useState(0);
@@ -302,6 +304,8 @@ const CartPage = () => {
   const postBooking = async () => {
     // alert(paymentMethod);
     try {
+      setIsLoading(true);
+      setDisable(true);
       const userData = await AsyncStorage.getItem("userData");
       const user = JSON.parse(userData);
       const token = getToken();
@@ -326,6 +330,8 @@ const CartPage = () => {
               navigation.navigate("Schedule", { selectedServices: cartItems });
             }
           );
+          setIsLoading(false);
+          setDisable(false);
           return;
         }
 
@@ -338,6 +344,8 @@ const CartPage = () => {
               navigation.navigate("Schedule", { selectedServices: cartItems });
             }
           );
+          setIsLoading(false);
+          setDisable(false);
           return;
         }
         if (!primaryAddress) {
@@ -353,6 +361,8 @@ const CartPage = () => {
               }
             }
           );
+          setIsLoading(false);
+          setDisable(false);
           return;
         }
 
@@ -366,6 +376,8 @@ const CartPage = () => {
               scrollViewRef.current?.scrollTo({ y: customerDetailsY, animated: true });
             }
           );
+          setIsLoading(false);
+          setDisable(false);
           return;
         }
         if (!customerEmail) {
@@ -378,6 +390,8 @@ const CartPage = () => {
               scrollViewRef.current?.scrollTo({ y: customerDetailsY, animated: true });
             }
           );
+          setIsLoading(false);
+          setDisable(false);
           return;
         }
 
@@ -388,6 +402,8 @@ const CartPage = () => {
             "Missing Vehicle",
             "Please select your vehicle for booking."
           );
+          setIsLoading(false);
+          setDisable(false);
           return;
         }
 
@@ -404,6 +420,8 @@ const CartPage = () => {
           "Missing information",
           "Please ensure all booking details are filled."
         );
+        setIsLoading(false);
+        setDisable(false);
         return;
       }
 
@@ -540,6 +558,9 @@ const CartPage = () => {
         "Booking Failed",
         "Something went wrong while booking. Please try again."
       );
+    } finally {
+      setIsLoading(false);
+      setDisable(false);
     }
   };
 
@@ -1304,16 +1325,31 @@ const CartPage = () => {
               <CustomText style={styles.totalAmount}>₹{finalAmount}</CustomText>
               <TouchableOpacity
                 disabled={disable}
+                // style={[
+                //   paymentMethod === "Razorpay"
+                //     ? styles.payNowBtn
+                //     : styles.bookNowBtn,
+                // ]}
                 style={[
-                  paymentMethod === "Razorpay"
-                    ? styles.payNowBtn
-                    : styles.bookNowBtn,
+                  isLoading ? styles.disabledBtn : (paymentMethod === "Razorpay" ? styles.payNowBtn : styles.bookNowBtn),
                 ]}
                 onPress={postBooking}
               >
-                <CustomText style={styles.payNowText}>
+                {/* <CustomText style={styles.payNowText}>
                   {paymentMethod === "Razorpay" ? "Pay Now" : "Book Now"}
-                </CustomText>
+                </CustomText> */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                  {isLoading && (
+                    <ActivityIndicator
+                      size="small"
+                      color="#fff"
+                      style={{ marginRight: 8 }}
+                    />
+                  )}
+                  <CustomText style={styles.payNowText}>
+                    {isLoading ? (paymentMethod === "Razorpay" ? "Processing Payment..." : "Booking...") : (paymentMethod === "Razorpay" ? "Pay Now" : "Book Now")}
+                  </CustomText>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -1606,7 +1642,20 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
   },
-
+  disabledBtn: {
+    backgroundColor: color.yellow, 
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
   payNowText: {
     color: "white",
     ...globalStyles.f12Bold,
