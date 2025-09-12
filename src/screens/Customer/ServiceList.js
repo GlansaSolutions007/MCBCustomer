@@ -15,7 +15,10 @@ import {
   Modal,
   TextInput,
   Text,
+  KeyboardAvoidingView,
+  Keyboard,
 } from "react-native";
+import moment from "moment";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
@@ -43,13 +46,22 @@ export default function ServiceList() {
   const navigation = useNavigation();
   const tabs = ["New", "Completed", "Cancelled"];
   const { refreshing, onRefresh } = useGlobalRefresh(fetchBookings);
-  
+
   // Reschedule modal state
   const [rescheduleModalVisible, setRescheduleModalVisible] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [newDate, setNewDate] = useState('');
   const [reason, setReason] = useState('');
   const [rescheduleLoading, setRescheduleLoading] = useState(false);
+
+  // Calendar and time slot state for reschedule
+  const [currentWeekStart, setCurrentWeekStart] = useState(moment().startOf("day"));
+  const [selectedRescheduleDate, setSelectedRescheduleDate] = useState(moment().startOf("day"));
+  const [selectedRescheduleTimes, setSelectedRescheduleTimes] = useState([]);
+  const [rescheduleTimeSlots, setRescheduleTimeSlots] = useState([]);
+  const [rescheduleTimeError, setRescheduleTimeError] = useState("");
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [showReasonOnly, setShowReasonOnly] = useState(false);
 
   // Enable LayoutAnimation on Android for smooth transitions
   useEffect(() => {
@@ -234,29 +246,144 @@ export default function ServiceList() {
   };
 
   const handleReschedule = (booking) => {
+    console.log('Opening reschedule modal for booking:', booking);
     setSelectedBooking(booking);
     setNewDate('');
     setReason('');
+    setSelectedRescheduleTimes([]);
+    setRescheduleTimeError('');
+
+    // Set minimum date based on current booking date
+    const bookingDate = moment(booking.BookingDate);
+    const today = moment().startOf("day");
+
+    if (bookingDate.isSame(today, "day")) {
+      // If booking is today, set minimum to 2 hours from now
+      const minTime = moment().add(2, 'hours');
+      setSelectedRescheduleDate(minTime.startOf("day"));
+      setCurrentWeekStart(minTime.startOf("day"));
+    } else {
+      // If booking is future, allow rescheduling to any future date
+      setSelectedRescheduleDate(today);
+      setCurrentWeekStart(today);
+    }
+
     setRescheduleModalVisible(true);
+    console.log('Modal visibility set to true');
   };
 
+  const getWeekDates = () => {
+    return [...Array(7)].map((_, i) => currentWeekStart.clone().add(i, "days"));
+  };
+
+  const goToNextWeek = () => {
+    const nextWeekStart = currentWeekStart.clone().add(7, "days");
+    setCurrentWeekStart(nextWeekStart);
+    setSelectedRescheduleDate(nextWeekStart);
+  };
+
+  const goToPreviousWeek = () => {
+    const prevWeekStart = currentWeekStart.clone().subtract(7, "days");
+    const today = moment().startOf("day");
+    if (!prevWeekStart.isBefore(today)) {
+      setCurrentWeekStart(prevWeekStart);
+      setSelectedRescheduleDate(prevWeekStart);
+    }
+  };
+
+  const isAtCurrentWeek = currentWeekStart.isSame(moment().startOf("day"), "day");
+
+  const fetchRescheduleTimeSlots = async () => {
+    try {
+      const response = await axios.get(`${API_URL}TimeSlot`);
+      const sDate = selectedRescheduleDate.format("YYYY-MM-DD");
+      const currentDate = moment().format("YYYY-MM-DD");
+      const currentTime = moment();
+
+      const slots = response.data
+        .filter((slot) => slot.Status)
+        .filter((slot) => {
+          if (currentDate === sDate) {
+            const startTime = moment(slot.StartTime, "HH:mm:ss");
+            // For today, only show slots 2 hours from now
+            const minTime = moment().add(2, 'hours');
+            return startTime.isAfter(minTime);
+          } else {
+            return true; // For future dates, include all slots
+          }
+        })
+        .sort((a, b) => {
+          return moment(a.StartTime, "HH:mm:ss").diff(
+            moment(b.StartTime, "HH:mm:ss")
+          );
+        })
+        .map((slot) => ({
+          ...slot,
+          label: `${moment(slot.StartTime, "HH:mm:ss").format(
+            "hh:mm A"
+          )} - ${moment(slot.EndTime, "HH:mm:ss").format("hh:mm A")}`,
+        }));
+
+      setRescheduleTimeSlots(slots);
+      setRescheduleTimeError("");
+    } catch (error) {
+      console.error("Failed to fetch reschedule time slots:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (rescheduleModalVisible) {
+      fetchRescheduleTimeSlots();
+    }
+  }, [selectedRescheduleDate, rescheduleModalVisible]);
+
+  // Keyboard event listeners
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setIsKeyboardVisible(true);
+      setShowReasonOnly(true);
+    });
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setIsKeyboardVisible(false);
+      setShowReasonOnly(false);
+    });
+
+    return () => {
+      keyboardDidShowListener?.remove();
+      keyboardDidHideListener?.remove();
+    };
+  }, []);
+
   const submitReschedule = async () => {
-    if (!newDate || !reason.trim()) {
-      console.log('Error: Please fill in both new date and reason');
+    if (!reason.trim()) {
+      console.log('Error: Please provide a reason for rescheduling');
+      return;
+    }
+
+    if (selectedRescheduleTimes.length === 0) {
+      setRescheduleTimeError("Please select an available time slot.");
       return;
     }
 
     setRescheduleLoading(true);
     try {
       const token = await getToken();
-      
+      const userData = await AsyncStorage.getItem("userData");
+      const parsedData = JSON.parse(userData);
+      const custID = parsedData?.custID;
+
+      // Get selected time slot labels
+      const selectedTimeLabels = selectedRescheduleTimes.map(id =>
+        rescheduleTimeSlots.find(t => t.TsID === id)?.label
+      ).filter(Boolean);
+
       const payload = {
         bookingID: selectedBooking.BookingID,
         reason: reason.trim(),
         oldSchedule: selectedBooking.BookingDate,
-        newSchedule: newDate,
-        timeSlot: selectedBooking.TimeSlot,
-        requestedBy: 1,
+        newSchedule: selectedRescheduleDate.format("YYYY-MM-DD"),
+        timeSlot: selectedTimeLabels.join(", "),
+        requestedBy: custID,
         Status: ''
       };
 
@@ -274,11 +401,11 @@ export default function ServiceList() {
       );
 
       console.log('Reschedule response:', response.data);
-      
+
       // Close modal and refresh bookings on success
       setRescheduleModalVisible(false);
       fetchBookings();
-      
+
     } catch (error) {
       console.error('Reschedule failed:', error?.response || error);
     } finally {
@@ -287,10 +414,14 @@ export default function ServiceList() {
   };
 
   const closeRescheduleModal = () => {
+    Keyboard.dismiss();
     setRescheduleModalVisible(false);
     setSelectedBooking(null);
     setNewDate('');
     setReason('');
+    setSelectedRescheduleTimes([]);
+    setRescheduleTimeError('');
+    setShowReasonOnly(false);
   };
 
   const SkeletonLoader = () => (
@@ -892,6 +1023,7 @@ export default function ServiceList() {
       </ScrollView>
 
       {/* Reschedule Modal */}
+      {console.log('Modal visibility state:', rescheduleModalVisible)}
       <Modal
         animationType="slide"
         transparent={true}
@@ -899,43 +1031,173 @@ export default function ServiceList() {
         onRequestClose={closeRescheduleModal}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <CustomText style={[globalStyles.f18Bold, { color: color.primary }]}>
-                Reschedule Service
-              </CustomText>
-              <TouchableOpacity onPress={closeRescheduleModal} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color={color.black} />
-              </TouchableOpacity>
-            </View>
+          <View style={[
+            styles.rescheduleModalContent,
+            showReasonOnly && styles.reasonOnlyModal
+          ]}>
+            {!showReasonOnly && (
+              <>
+                <View style={styles.modalHeader}>
+                  <CustomText style={[globalStyles.f14Bold, { color: color.primary }]}>
+                    Reschedule Service
+                  </CustomText>
+                  <TouchableOpacity onPress={closeRescheduleModal} style={styles.closeButton}>
+                    <Ionicons name="close" size={24} color={color.black} />
+                  </TouchableOpacity>
+                </View>
 
-            {selectedBooking && (
-              <View style={styles.bookingInfo}>
-                <CustomText style={[globalStyles.f12Bold, { color: color.primary, marginBottom: 8 }]}>
-                  Current Schedule:
-                </CustomText>
-                <CustomText style={[globalStyles.f14Bold, { color: color.black, marginBottom: 4 }]}>
-                  {formatDate(selectedBooking.BookingDate)}
-                </CustomText>
-                <CustomText style={[globalStyles.f12Regular, { color: color.muted }]}>
-                  Time: {selectedBooking.TimeSlot}
-                </CustomText>
-              </View>
+                {selectedBooking && (
+                  <View style={styles.bookingInfo}>
+                    <CustomText style={[globalStyles.f10Bold, { color: color.primary, marginBottom: 8 }]}>
+                      Current Schedule:
+                    </CustomText>
+                    <CustomText style={[globalStyles.f12Bold, { color: color.black, marginBottom: 4 }]}>
+                      {formatDate(selectedBooking.BookingDate)}
+                    </CustomText>
+                    <CustomText style={[globalStyles.f10Regular, { color: color.muted }]}>
+                      Time: {selectedBooking.TimeSlot}
+                    </CustomText>
+                  </View>
+                )}
+
+                {/* Calendar Section */}
+                <View style={styles.calendarSection}>
+                  <CustomText style={[globalStyles.f12Bold, { color: color.black, marginBottom: 12 }]}>
+                    Select New Date
+                  </CustomText>
+
+                  <View style={styles.calendarHeader}>
+                    <CustomText style={[globalStyles.f12Bold, { color: color.black }]}>
+                      {currentWeekStart.format("MMMM")}
+                    </CustomText>
+                    <View style={{ flexDirection: "row", gap: 8 }}>
+                      <TouchableOpacity
+                        onPress={goToPreviousWeek}
+                        disabled={isAtCurrentWeek}
+                        style={[
+                          styles.weekNavButton,
+                          { backgroundColor: isAtCurrentWeek ? "#eee" : "#b9b7b7ff" }
+                        ]}
+                      >
+                        <Ionicons
+                          name="chevron-back"
+                          size={20}
+                          color={isAtCurrentWeek ? "#ccc" : "#000"}
+                        />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={goToNextWeek}
+                        style={[styles.weekNavButton, { backgroundColor: "#b9b7b7ff" }]}
+                      >
+                        <Ionicons name="chevron-forward" size={20} color="#000" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  <View style={styles.weekDatesContainer}>
+                    {getWeekDates().map((date) => {
+                      const isSelected = date.isSame(selectedRescheduleDate, "day");
+                      const isPast = date.isBefore(moment().startOf("day"));
+                      return (
+                        <TouchableOpacity
+                          key={date.format("YYYY-MM-DD")}
+                          style={styles.dateButton}
+                          onPress={() => setSelectedRescheduleDate(date)}
+                          disabled={isPast}
+                        >
+                          <CustomText
+                            style={[
+                              { color: isSelected ? color.secondary : isPast ? "#ccc" : "black" },
+                              globalStyles.f10Bold,
+                            ]}
+                          >
+                            {date.format("dd").charAt(0)}
+                          </CustomText>
+                          <View
+                            style={[
+                              styles.dateCircle,
+                              {
+                                backgroundColor: isSelected ? color.primary : isPast ? "#f0f0f0" : "#F0F0F0",
+                              }
+                            ]}
+                          >
+                            <CustomText
+                              style={[
+                                { color: isSelected ? "#fff" : isPast ? "#ccc" : "#000" },
+                                globalStyles.f10Bold,
+                              ]}
+                            >
+                              {date.format("DD")}
+                            </CustomText>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Time Slots Section */}
+                <View style={styles.timeSlotsSection}>
+                  <CustomText style={[globalStyles.f12Bold, { color: color.black, marginBottom: 12 }]}>
+                    Select Time Slot
+                  </CustomText>
+
+                  {rescheduleTimeSlots.length > 0 ? (
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.timeSlotContainer}
+                    >
+                      {rescheduleTimeSlots.map((slot) => (
+                        <TouchableOpacity
+                          key={slot.TsID}
+                          style={[
+                            styles.timeSlot,
+                            selectedRescheduleTimes.includes(slot.TsID) && styles.selectedTimeSlot,
+                          ]}
+                          onPress={() => {
+                            if (selectedRescheduleTimes.includes(slot.TsID)) {
+                              setSelectedRescheduleTimes(selectedRescheduleTimes.filter(id => id !== slot.TsID));
+                            } else {
+                              setSelectedRescheduleTimes([...selectedRescheduleTimes, slot.TsID]);
+                            }
+                            setRescheduleTimeError("");
+                          }}
+                        >
+                          <CustomText
+                            style={[
+                              {
+                                color: selectedRescheduleTimes.includes(slot.TsID) ? "white" : color.secondary,
+                              },
+                              globalStyles.f10Bold,
+                            ]}
+                          >
+                            {slot.label}
+                          </CustomText>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  ) : (
+                    <View>
+                      <CustomText style={[globalStyles.f14Bold, { color: "#856404" }]}>
+                        No available slots
+                      </CustomText>
+                      <CustomText style={[globalStyles.f12Regular, { color: "#856404", marginTop: 4 }]}>
+                        Please select another date
+                      </CustomText>
+                    </View>
+                  )}
+
+                  {rescheduleTimeError ? (
+                    <CustomText style={[globalStyles.f12Regular, { color: "red", marginTop: 8 }]}>
+                      {rescheduleTimeError}
+                    </CustomText>
+                  ) : null}
+                </View>
+              </>
             )}
 
-            <View style={styles.inputContainer}>
-              <CustomText style={[globalStyles.f12Bold, { color: color.black, marginBottom: 8 }]}>
-                New Date <Text style={{ color: 'red' }}>*</Text>
-              </CustomText>
-              <TextInput
-                style={styles.dateInput}
-                value={newDate}
-                onChangeText={setNewDate}
-                placeholder="YYYY-MM-DD (e.g., 2024-01-15)"
-                placeholderTextColor={color.muted}
-              />
-            </View>
-
+            {/* Reason Section - Always visible */}
             <View style={styles.inputContainer}>
               <CustomText style={[globalStyles.f12Bold, { color: color.black, marginBottom: 8 }]}>
                 Reason for Reschedule <Text style={{ color: 'red' }}>*</Text>
@@ -947,39 +1209,41 @@ export default function ServiceList() {
                 placeholder="Please provide a reason for rescheduling..."
                 placeholderTextColor={color.muted}
                 multiline={true}
-                numberOfLines={4}
+                numberOfLines={showReasonOnly ? 8 : 3}
                 textAlignVertical="top"
               />
             </View>
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                onPress={closeRescheduleModal}
-                style={[styles.modalButton, styles.cancelButton]}
-                disabled={rescheduleLoading}
-              >
-                <CustomText style={[globalStyles.f12Bold, { color: color.black }]}>
-                  Cancel
-                </CustomText>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                onPress={submitReschedule}
-                style={[styles.modalButton, styles.submitButton]}
-                disabled={rescheduleLoading}
-              >
-                {rescheduleLoading ? (
-                  <ActivityIndicator size="small" color={color.white} />
-                ) : (
-                  <>
-                    <Ionicons name="calendar" size={16} color={color.white} style={{ marginRight: 6 }} />
-                    <CustomText style={[globalStyles.f12Bold, { color: color.white }]}>
-                      Submit Request
-                    </CustomText>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
+            {!showReasonOnly && (
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  onPress={closeRescheduleModal}
+                  style={[styles.modalButton, styles.cancelButton]}
+                  disabled={rescheduleLoading}
+                >
+                  <CustomText style={[globalStyles.f12Bold, { color: color.black }]}>
+                    Cancel
+                  </CustomText>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={submitReschedule}
+                  style={[styles.modalButton, styles.submitButton]}
+                  disabled={rescheduleLoading}
+                >
+                  {rescheduleLoading ? (
+                    <ActivityIndicator size="small" color={color.white} />
+                  ) : (
+                    <>
+                      <Ionicons name="calendar" size={16} color={color.white} style={{ marginRight: 6 }} />
+                      <CustomText style={[globalStyles.f12Bold, { color: color.white }]}>
+                        Submit Request
+                      </CustomText>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
       </Modal>
@@ -1263,7 +1527,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
+  },
+  keyboardAvoidingContainer: {
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '80%',
   },
   modalContent: {
     backgroundColor: 'white',
@@ -1288,8 +1557,8 @@ const styles = StyleSheet.create({
   bookingInfo: {
     backgroundColor: '#f8f9fa',
     borderRadius: 8,
-    padding: 12,
-    marginBottom: 20,
+    padding: 8,
+    marginBottom: 10,
     borderLeftWidth: 3,
     borderLeftColor: color.primary,
   },
@@ -1311,9 +1580,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
-    fontSize: 14,
+    fontSize: 12,
     color: color.black,
-    minHeight: 80,
+    minHeight: 60,
+    textAlignVertical: 'top',
+    width: '100%',
   },
   modalButtons: {
     flexDirection: 'row',
@@ -1335,5 +1606,86 @@ const styles = StyleSheet.create({
   submitButton: {
     backgroundColor: color.primary,
     marginLeft: 10,
+  },
+  rescheduleModalContent: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    width: '90%',
+    maxWidth: 400,
+    maxHeight: '80%',
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  reasonOnlyModal: {
+    maxHeight: '60%',
+    justifyContent: 'center',
+  },
+  modalScrollView: {
+    flex: 1,
+  },
+  modalScrollContent: {
+    padding: 20,
+    paddingBottom: 30,
+  },
+  calendarSection: {
+    marginBottom: 20,
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  weekNavButton: {
+    borderRadius: 20,
+    padding: 6,
+  },
+  weekDatesContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dateButton: {
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+  dateCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  timeSlotsSection: {
+    marginBottom: 20,
+  },
+  timeSlotContainer: {
+    paddingHorizontal: 4,
+    gap: 10,
+    alignItems: 'center',
+  },
+  timeSlot: {
+    borderWidth: 1,
+    borderColor: color.secondary,
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+  },
+  selectedTimeSlot: {
+    backgroundColor: color.secondary,
+  },
+  noSlotsContainer: {
+    backgroundColor: '#FFF3CD',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+    width: '100%',
   },
 });
