@@ -12,6 +12,9 @@ import {
   Platform,
   UIManager,
   Animated,
+  Modal,
+  TextInput,
+  Text,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -39,7 +42,14 @@ export default function ServiceList() {
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
   const tabs = ["New", "Completed", "Cancelled"];
-  const { refreshing, onRefresh } = useGlobalRefresh();
+  const { refreshing, onRefresh } = useGlobalRefresh(fetchBookings);
+  
+  // Reschedule modal state
+  const [rescheduleModalVisible, setRescheduleModalVisible] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [newDate, setNewDate] = useState('');
+  const [reason, setReason] = useState('');
+  const [rescheduleLoading, setRescheduleLoading] = useState(false);
 
   // Enable LayoutAnimation on Android for smooth transitions
   useEffect(() => {
@@ -113,8 +123,7 @@ export default function ServiceList() {
     console.log("Manual refresh triggered");
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     onRefresh();
-    fetchBookings();
-  }, [onRefresh, fetchBookings]);
+  }, [onRefresh]);
 
   const filteredBookings = (bookings || []).filter((b) => {
     const status = (b.BookingStatus || "").toLowerCase();
@@ -148,8 +157,8 @@ export default function ServiceList() {
         const payload = {
           bookingID: booking.BookingID,
           BookingTrackID: booking.BookingTrackID,
-          BookingDate: updatedData.BookingDate,
-          TimeSlot: updatedData.TimeSlot,
+          BookingDate: booking.BookingDate,
+          TimeSlot: booking.TimeSlot,
           PaymentMethod: "Razorpay",
           BookingFrom: "app",
           amount,
@@ -222,6 +231,66 @@ export default function ServiceList() {
     if (s === 'startjourney') return color.primary;
     if (s === 'pending') return color.yellow;
     return color.secondary;
+  };
+
+  const handleReschedule = (booking) => {
+    setSelectedBooking(booking);
+    setNewDate('');
+    setReason('');
+    setRescheduleModalVisible(true);
+  };
+
+  const submitReschedule = async () => {
+    if (!newDate || !reason.trim()) {
+      console.log('Error: Please fill in both new date and reason');
+      return;
+    }
+
+    setRescheduleLoading(true);
+    try {
+      const token = await getToken();
+      
+      const payload = {
+        bookingID: selectedBooking.BookingID,
+        reason: reason.trim(),
+        oldSchedule: selectedBooking.BookingDate,
+        newSchedule: newDate,
+        timeSlot: selectedBooking.TimeSlot,
+        requestedBy: 1,
+        Status: ''
+      };
+
+      console.log('Reschedule payload:', payload);
+
+      const response = await axios.post(
+        `${API_URL}Reschedules`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      console.log('Reschedule response:', response.data);
+      
+      // Close modal and refresh bookings on success
+      setRescheduleModalVisible(false);
+      fetchBookings();
+      
+    } catch (error) {
+      console.error('Reschedule failed:', error?.response || error);
+    } finally {
+      setRescheduleLoading(false);
+    }
+  };
+
+  const closeRescheduleModal = () => {
+    setRescheduleModalVisible(false);
+    setSelectedBooking(null);
+    setNewDate('');
+    setReason('');
   };
 
   const SkeletonLoader = () => (
@@ -583,6 +652,20 @@ export default function ServiceList() {
                     </View>
                   )}
                 </View>
+                {booking.BookingStatus?.toLowerCase() === "cancelled" && booking.Reason && (
+                  <View style={{
+                    backgroundColor: "#FFF3F3",
+                    borderRadius: 8,
+                    padding: 10,
+                    marginTop: 8,
+                    borderLeftWidth: 3,
+                    borderLeftColor: "red"
+                  }}>
+                    <CustomText style={[globalStyles.f10Bold, { color: "red" }]}>
+                      Reason: {booking.Reason}
+                    </CustomText>
+                  </View>
+                )}
                 {(booking.BookingStatus || '').toLowerCase() === 'startjourney' && booking.TechID !== null && (
                   <View style={styles.onTheWayRow}>
                     <Ionicons name="navigate" color={color.primary} size={16} style={{ marginRight: 6 }} />
@@ -680,6 +763,7 @@ export default function ServiceList() {
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.bookingServices}>
+                  {/* Header */}
                   <CustomText
                     style={[
                       globalStyles.f10Regular,
@@ -690,39 +774,56 @@ export default function ServiceList() {
                     Services Booked:
                   </CustomText>
 
+                  {/* Package List */}
                   {(booking.Packages || []).map((pkg, index) => (
                     <View
                       key={pkg.PackageID}
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        justifyContent:
-                          index === booking.Packages.length - 1
-                            ? "space-between" // ✅ last package row → push status to right
-                            : "flex-start", // other rows → normal alignment
+                        justifyContent: "space-between",
                         marginVertical: 4,
                       }}
                     >
                       {/* Left: icon + package name */}
-                      <View
-                        style={{ flexDirection: "row", alignItems: "center" }}
-                      >
+                      <View style={{ flexDirection: "row", alignItems: "center" }}>
                         <FontAwesome5
                           name="tools"
                           size={16}
                           color={color.primary}
                           style={{ marginRight: 6 }}
                         />
-                        <CustomText style={[globalStyles.f12Bold, { color: "#333", maxWidth: 180 }]} numberOfLines={1} ellipsizeMode="marquee">
+                        <CustomText
+                          style={[globalStyles.f12Bold, { color: "#333", maxWidth: 180 }]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
                           {pkg.PackageName}
                         </CustomText>
                       </View>
 
-                      {/* Right: status only for last package */}
-
+                      {/* Right: show button only for last package */}
+                      {index === booking.Packages.length - 1 && (
+                        <TouchableOpacity
+                          onPress={() =>
+                            navigation.navigate("BookingsInnerPage", { booking })
+                          }
+                          style={{
+                            backgroundColor: color.primary,
+                            paddingHorizontal: 16,
+                            paddingVertical: 8,
+                            borderRadius: 6,
+                          }}
+                        >
+                          <CustomText style={[globalStyles.f10Bold, { color: "#fff" }]}>
+                            View Details
+                          </CustomText>
+                        </TouchableOpacity>
+                      )}
                     </View>
                   ))}
                 </View>
+
                 {booking.BookingStatus?.toLowerCase() === 'pending' && (!booking.Payments || booking.Payments.length === 0) && (
                   <View style={styles.resumeCard}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
@@ -741,6 +842,29 @@ export default function ServiceList() {
                     >
                       <Ionicons name="refresh-outline" size={16} color={color.black} style={{ marginRight: 6 }} />
                       <CustomText style={[globalStyles.f12Bold, { color: color.black }]}>Pay Now</CustomText>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Reschedule Button - Show for pending and confirmed bookings */}
+                {(booking.BookingStatus?.toLowerCase() === 'pending' || booking.BookingStatus?.toLowerCase() === 'confirmed') && (
+                  <View style={styles.rescheduleCard}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                      <View style={styles.rescheduleIconWrap}>
+                        <Ionicons name="calendar-outline" size={16} color={color.primary} />
+                      </View>
+                      <View style={{ flex: 1, marginLeft: 8 }}>
+                        <CustomText style={[globalStyles.f12Bold, { color: '#222' }]}>Need to reschedule?</CustomText>
+                        <CustomText style={[globalStyles.f10Light, { color: '#666', marginTop: 2 }]}>Change your service date</CustomText>
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => handleReschedule(booking)}
+                      style={styles.rescheduleBtn}
+                      activeOpacity={0.9}
+                    >
+                      <Ionicons name="calendar" size={16} color={color.white} style={{ marginRight: 6 }} />
+                      <CustomText style={[globalStyles.f12Bold, { color: color.white }]}>Reschedule</CustomText>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -766,6 +890,99 @@ export default function ServiceList() {
           ))
         )}
       </ScrollView>
+
+      {/* Reschedule Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={rescheduleModalVisible}
+        onRequestClose={closeRescheduleModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <CustomText style={[globalStyles.f18Bold, { color: color.primary }]}>
+                Reschedule Service
+              </CustomText>
+              <TouchableOpacity onPress={closeRescheduleModal} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color={color.black} />
+              </TouchableOpacity>
+            </View>
+
+            {selectedBooking && (
+              <View style={styles.bookingInfo}>
+                <CustomText style={[globalStyles.f12Bold, { color: color.primary, marginBottom: 8 }]}>
+                  Current Schedule:
+                </CustomText>
+                <CustomText style={[globalStyles.f14Bold, { color: color.black, marginBottom: 4 }]}>
+                  {formatDate(selectedBooking.BookingDate)}
+                </CustomText>
+                <CustomText style={[globalStyles.f12Regular, { color: color.muted }]}>
+                  Time: {selectedBooking.TimeSlot}
+                </CustomText>
+              </View>
+            )}
+
+            <View style={styles.inputContainer}>
+              <CustomText style={[globalStyles.f12Bold, { color: color.black, marginBottom: 8 }]}>
+                New Date <Text style={{ color: 'red' }}>*</Text>
+              </CustomText>
+              <TextInput
+                style={styles.dateInput}
+                value={newDate}
+                onChangeText={setNewDate}
+                placeholder="YYYY-MM-DD (e.g., 2024-01-15)"
+                placeholderTextColor={color.muted}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <CustomText style={[globalStyles.f12Bold, { color: color.black, marginBottom: 8 }]}>
+                Reason for Reschedule <Text style={{ color: 'red' }}>*</Text>
+              </CustomText>
+              <TextInput
+                style={styles.reasonInput}
+                value={reason}
+                onChangeText={setReason}
+                placeholder="Please provide a reason for rescheduling..."
+                placeholderTextColor={color.muted}
+                multiline={true}
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                onPress={closeRescheduleModal}
+                style={[styles.modalButton, styles.cancelButton]}
+                disabled={rescheduleLoading}
+              >
+                <CustomText style={[globalStyles.f12Bold, { color: color.black }]}>
+                  Cancel
+                </CustomText>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                onPress={submitReschedule}
+                style={[styles.modalButton, styles.submitButton]}
+                disabled={rescheduleLoading}
+              >
+                {rescheduleLoading ? (
+                  <ActivityIndicator size="small" color={color.white} />
+                ) : (
+                  <>
+                    <Ionicons name="calendar" size={16} color={color.white} style={{ marginRight: 6 }} />
+                    <CustomText style={[globalStyles.f12Bold, { color: color.white }]}>
+                      Submit Request
+                    </CustomText>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -1008,5 +1225,115 @@ const styles = StyleSheet.create({
   reviewButtonText: {
     ...globalStyles.f12Medium,
     color: "#fff",
+  },
+  rescheduleCard: {
+    marginTop: 8,
+    backgroundColor: '#F0F8FF',
+    borderWidth: 1,
+    borderColor: 'rgba(1,127,119,0.15)',
+    borderRadius: 10,
+    padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  rescheduleIconWrap: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: 'rgba(1,127,119,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rescheduleBtn: {
+    backgroundColor: color.primary,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  closeButton: {
+    padding: 5,
+  },
+  bookingInfo: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 20,
+    borderLeftWidth: 3,
+    borderLeftColor: color.primary,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  dateInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: color.black,
+  },
+  reasonInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: color.black,
+    minHeight: 80,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  cancelButton: {
+    backgroundColor: '#f5f5f5',
+    marginRight: 10,
+  },
+  submitButton: {
+    backgroundColor: color.primary,
+    marginLeft: 10,
   },
 });

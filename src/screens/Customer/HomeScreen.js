@@ -230,13 +230,13 @@ export default function HomeScreen() {
       {/* Banner Skeleton */}
       <View style={[styles.banner, globalStyles.mb35]}>
         <View style={styles.bannerHeader}>
-          <View style={[styles.logo, { backgroundColor: "rgba(78, 200, 202, 0.18)" , borderRadius: 10}]} />
+          <View style={[styles.logo, { backgroundColor: "rgba(78, 200, 202, 0.18)", borderRadius: 10 }]} />
         </View>
         <View style={styles.bannerContent}>
           <View
             style={[
               styles.carImagePositioned,
-              { backgroundColor: "rgba(78, 200, 202, 0.18)" , borderRadius: 10},
+              { backgroundColor: "rgba(78, 200, 202, 0.18)", borderRadius: 10 },
             ]}
           />
           <View style={styles.bannerTextContainer}>
@@ -679,7 +679,7 @@ export default function HomeScreen() {
                             name="arrow-forward"
                             size={16}
                             color={color.white}
-                            
+
                           />
                         </View>
                       </View>
@@ -957,7 +957,7 @@ export default function HomeScreen() {
                               ]}
                             >
                               {(booking.BookingStatus || "").toLowerCase() ===
-                              "startjourney"
+                                "startjourney"
                                 ? "Started Journey"
                                 : booking.BookingStatus}
                             </CustomText>
@@ -966,33 +966,33 @@ export default function HomeScreen() {
 
                         {booking.BookingStatus?.toLowerCase() !==
                           "cancelled" && (
-                          <View
-                            style={[
-                              globalStyles.flexrow,
-                              globalStyles.alineItemscenter,
-                            ]}
-                          >
-                            {booking.TechID === null ? (
-                              <CustomText
-                                style={[
-                                  styles.techStatus,
-                                  { color: color.primary },
-                                ]}
-                              >
-                                {booking.TechID === null
-                                  ? " "
-                                  : "Tech Assigned"}
-                              </CustomText>
-                            ) : (
-                              <Ionicons
-                                name="person"
-                                size={20}
-                                color={color.primary}
-                                style={{ marginRight: 6 }}
-                              />
-                            )}
-                          </View>
-                        )}
+                            <View
+                              style={[
+                                globalStyles.flexrow,
+                                globalStyles.alineItemscenter,
+                              ]}
+                            >
+                              {booking.TechID === null ? (
+                                <CustomText
+                                  style={[
+                                    styles.techStatus,
+                                    { color: color.primary },
+                                  ]}
+                                >
+                                  {booking.TechID === null
+                                    ? " "
+                                    : "Tech Assigned"}
+                                </CustomText>
+                              ) : (
+                                <Ionicons
+                                  name="person"
+                                  size={20}
+                                  color={color.primary}
+                                  style={{ marginRight: 6 }}
+                                />
+                              )}
+                            </View>
+                          )}
                       </View>
                       {(booking.BookingStatus || "").toLowerCase() ===
                         "startjourney" &&
@@ -1041,8 +1041,8 @@ export default function HomeScreen() {
                             {booking.FuelTypeName === "Petrol"
                               ? "P"
                               : booking.FuelTypeName === "Diesel"
-                              ? "D"
-                              : "E"}
+                                ? "D"
+                                : "E"}
                             )
                           </CustomText>
                           <CustomText style={styles.subText}>
@@ -1110,6 +1110,68 @@ export default function HomeScreen() {
                       </View>
                       <View style={styles.divider} />
                       <View style={styles.bookingServices}>
+                        {/* Header */}
+                        <CustomText
+                          style={[
+                            globalStyles.f10Regular,
+                            globalStyles.mb2,
+                            { color: color.primary },
+                          ]}
+                        >
+                          Services Booked:
+                        </CustomText>
+
+                        {/* Package List */}
+                        {(booking.Packages || []).map((pkg, index) => (
+                          <View
+                            key={pkg.PackageID}
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              marginVertical: 4,
+                            }}
+                          >
+                            {/* Left: icon + package name */}
+                            <View style={{ flexDirection: "row", alignItems: "center" }}>
+                              <FontAwesome5
+                                name="tools"
+                                size={16}
+                                color={color.primary}
+                                style={{ marginRight: 6 }}
+                              />
+                              <CustomText
+                                style={[globalStyles.f12Bold, { color: "#333", maxWidth: 180 }]}
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                              >
+                                {pkg.PackageName}
+                              </CustomText>
+                            </View>
+
+                            {/* Right: show button only for last package */}
+                            {index === booking.Packages.length - 1 && (
+                              <TouchableOpacity
+                                onPress={() =>
+                                  navigation.navigate("BookingsInnerPage", { booking })
+                                }
+                                style={{
+                                  backgroundColor: color.primary,
+                                  paddingHorizontal: 16,
+                                  paddingVertical: 8,
+                                  borderRadius: 6,
+                                }}
+                              >
+                                <CustomText style={[globalStyles.f10Bold, { color: "#fff" }]}>
+                                  View Details
+                                </CustomText>
+                              </TouchableOpacity>
+                            )}
+                          </View>
+                        ))}
+                      </View>
+
+                      {/* <View style={styles.bookingServices}>
                         <CustomText
                           style={[
                             globalStyles.f10Regular,
@@ -1157,7 +1219,7 @@ export default function HomeScreen() {
                             </View>
                           </View>
                         ))}
-                      </View>
+                      </View> */}
                       {booking.BookingStatus?.toLowerCase() === "pending" &&
                         (!booking.Payments ||
                           booking.Payments.length === 0) && (
