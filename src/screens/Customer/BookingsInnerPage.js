@@ -251,8 +251,7 @@ export default function BookingsInnerPage() {
       const origin = `${techLoc.latitude},${techLoc.longitude}`;
       const destination = `${custLoc.latitude},${custLoc.longitude}`;
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${
-          process.env.GOOGLE_MAPS_APIKEY || ""
+        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${process.env.GOOGLE_MAPS_APIKEY || ""
         }&avoid=tolls&units=metric`
       );
       if (!response.ok) return;
@@ -344,11 +343,11 @@ export default function BookingsInnerPage() {
                   initialRegion={
                     customerLocation
                       ? {
-                          latitude: customerLocation.latitude,
-                          longitude: customerLocation.longitude,
-                          latitudeDelta: 0.05,
-                          longitudeDelta: 0.05,
-                        }
+                        latitude: customerLocation.latitude,
+                        longitude: customerLocation.longitude,
+                        latitudeDelta: 0.05,
+                        longitudeDelta: 0.05,
+                      }
                       : undefined
                   }
                   showsUserLocation={false}
@@ -443,14 +442,14 @@ export default function BookingsInnerPage() {
               {booking?.TechID != null ? String(booking.TechID) : "N/A"}
             </CustomText>
           </View> */}
-          {technicianLocation && (
+          {/* {technicianLocation && (
             <View style={{ marginTop: 4, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
               <CustomText style={[globalStyles.f10Bold, { color: "#666" }]}>Tech Coords:</CustomText>
               <CustomText style={[globalStyles.f10Bold, { color: "#333" }]}>
                 {technicianLocation.latitude.toFixed(5)}, {technicianLocation.longitude.toFixed(5)}
               </CustomText>
             </View>
-          )}
+          )} */}
 
           <View style={[styles.dividerLine, { marginVertical: 12 }]} />
 
@@ -499,9 +498,30 @@ export default function BookingsInnerPage() {
                 color={color.primary}
                 style={{ marginRight: 6 }}
               />
-              <CustomText style={[globalStyles.f12Bold]}>
-                {booking.TimeSlot}
-              </CustomText>
+              <View style={{ flexWrap: "wrap", flexDirection: "row", maxWidth: 180 }}>
+                {(booking.TimeSlot || "")
+                  .split(",")
+                  .map((slot, index) => (
+                    <View
+                      key={index}
+                      style={{
+                        backgroundColor: "#f1f1f1",
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: 6,
+                        marginRight: 6,
+                        marginBottom: 4,
+                      }}
+                    >
+                      <CustomText
+                        style={[globalStyles.f10Bold, { color: "#333" }]}
+                        numberOfLines={1}
+                      >
+                        {slot.trim()}
+                      </CustomText>
+                    </View>
+                  ))}
+              </View>
             </View>
           </View>
         </Animated.View>
@@ -772,31 +792,63 @@ export default function BookingsInnerPage() {
                 : "Payment Failed"}
             </CustomText>
           </View>
-          {booking.BookingStatus.toLowerCase() === "pending" && 
+          {booking.BookingStatus.toLowerCase() === "pending" &&
             !(booking.BookingStatus.toLowerCase() === "pending" && (!booking.Payments || booking.Payments.length === 0)) && (
-            <View
-              style={[
-                styles.section,
-                { justifyContent: "space-between", alignItems: "center" },
-              ]}
-            >
-              <TouchableOpacity
-                style={{
-                  backgroundColor: color.alertError || "#FF3B30",
-                  padding: 12,
-                  borderRadius: 8,
-                  alignItems: "center",
-                  minWidth: 140,
-                  marginTop: 10,
-                }}
-                onPress={() => setShowCancelAlert(true)}
-                disabled={isCancelling}
+              <View
+                style={[
+                  styles.section,
+                  { justifyContent: "space-between", alignItems: "center" },
+                ]}
               >
-                <CustomText style={[globalStyles.f10Bold, { color: "#FFF" }]}>
-                  {isCancelling ? "Cancelling..." : "Cancel Booking"}
-                </CustomText>
-              </TouchableOpacity>
-              {(!booking.Payments || booking.Payments.length === 0) && (
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: color.alertError || "#FF3B30",
+                    padding: 12,
+                    borderRadius: 8,
+                    alignItems: "center",
+                    minWidth: 140,
+                    marginTop: 10,
+                  }}
+                  onPress={() => setShowCancelAlert(true)}
+                  disabled={isCancelling}
+                >
+                  <CustomText style={[globalStyles.f10Bold, { color: "#FFF" }]}>
+                    {isCancelling ? "Cancelling..." : "Cancel Booking"}
+                  </CustomText>
+                </TouchableOpacity>
+                {(!booking.Payments || booking.Payments.length === 0) && (
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: color.primary,
+                      padding: 12,
+                      borderRadius: 8,
+                      alignItems: "center",
+                      minWidth: 140,
+                      marginTop: 10,
+                    }}
+                    onPress={() =>
+                      navigation.navigate("Cart", {
+                        resumeBookingId: booking.BookingID,
+                      })
+                    }
+                  >
+                    <CustomText style={[globalStyles.f10Bold, { color: "#FFF" }]}>
+                      Resume Booking
+                    </CustomText>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+
+          {/* Resume Booking Section - for pending bookings with no payments */}
+          {booking.BookingStatus.toLowerCase() === "pending" &&
+            (!booking.Payments || booking.Payments.length === 0) && (
+              <View
+                style={[
+                  styles.section,
+                  { justifyContent: "center", alignItems: "center" },
+                ]}
+              >
                 <TouchableOpacity
                   style={{
                     backgroundColor: color.primary,
@@ -816,40 +868,8 @@ export default function BookingsInnerPage() {
                     Resume Booking
                   </CustomText>
                 </TouchableOpacity>
-              )}
-            </View>
-          )}
-
-          {/* Resume Booking Section - for pending bookings with no payments */}
-          {booking.BookingStatus.toLowerCase() === "pending" && 
-            (!booking.Payments || booking.Payments.length === 0) && (
-            <View
-              style={[
-                styles.section,
-                { justifyContent: "center", alignItems: "center" },
-              ]}
-            >
-              <TouchableOpacity
-                style={{
-                  backgroundColor: color.primary,
-                  padding: 12,
-                  borderRadius: 8,
-                  alignItems: "center",
-                  minWidth: 140,
-                  marginTop: 10,
-                }}
-                onPress={() =>
-                  navigation.navigate("Cart", {
-                    resumeBookingId: booking.BookingID,
-                  })
-                }
-              >
-                <CustomText style={[globalStyles.f10Bold, { color: "#FFF" }]}>
-                  Resume Booking
-                </CustomText>
-              </TouchableOpacity>
-            </View>
-          )}
+              </View>
+            )}
         </Animated.View>
 
         {booking.BookingStatus?.toLowerCase() !== "completed" &&

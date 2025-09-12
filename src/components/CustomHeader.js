@@ -222,7 +222,7 @@ export default function CustomHeader({ navigation }) {
         <View style={styles.topRow}>
           <View>
             <CustomText style={[globalStyles.textWhite, globalStyles.mt1]}>
-              {name ? `Hello, ${name}` : "Hello, User"}
+              {name ? `Hello, ${name}` : "Hello, Buddy"}
             </CustomText>
             <Pressable onPress={handlePressLocation}>
               <View style={{ flexDirection: "row", alignItems: "center", maxWidth: 220 }}>

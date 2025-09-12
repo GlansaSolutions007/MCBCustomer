@@ -229,7 +229,7 @@ export default function ProfileScreen() {
           </View>
           <View style={styles.heading}>
             <CustomText style={[globalStyles.f20Bold, globalStyles.textWhite]}>
-              {name || "Hey Buddy"}
+              {name || "Hey, Buddy"}
             </CustomText>
           </View>
           <ScrollView
