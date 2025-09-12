@@ -658,9 +658,9 @@ export const MyCarDetails = () => {
                           Save Car Details
                         </CustomText>
                       </TouchableOpacity>
-                      <CustomText style={[globalStyles.f12Regular, { color: "#666", textAlign: "center" }, globalStyles.mt2]}>
+                      {/* <CustomText style={[globalStyles.f12Regular, { color: "#666", textAlign: "center" }, globalStyles.mt2]}>
                         You can edit these details anytime from My Cars
-                      </CustomText>
+                      </CustomText> */}
                     </View>
                   </>
                 )}

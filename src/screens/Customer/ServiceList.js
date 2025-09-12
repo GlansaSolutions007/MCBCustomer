@@ -583,6 +583,20 @@ export default function ServiceList() {
                     </View>
                   )}
                 </View>
+                {booking.BookingStatus?.toLowerCase() === "cancelled" && booking.Reason && (
+                  <View style={{
+                    backgroundColor: "#FFF3F3",
+                    borderRadius: 8,
+                    padding: 10,
+                    marginTop: 8,
+                    borderLeftWidth: 3,
+                    borderLeftColor: "red"
+                  }}>
+                    <CustomText style={[globalStyles.f10Bold, { color: "red" }]}>
+                      Reason: {booking.Reason}
+                    </CustomText>
+                  </View>
+                )}
                 {(booking.BookingStatus || '').toLowerCase() === 'startjourney' && booking.TechID !== null && (
                   <View style={styles.onTheWayRow}>
                     <Ionicons name="navigate" color={color.primary} size={16} style={{ marginRight: 6 }} />
@@ -680,6 +694,7 @@ export default function ServiceList() {
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.bookingServices}>
+                  {/* Header */}
                   <CustomText
                     style={[
                       globalStyles.f10Regular,
@@ -690,39 +705,56 @@ export default function ServiceList() {
                     Services Booked:
                   </CustomText>
 
+                  {/* Package List */}
                   {(booking.Packages || []).map((pkg, index) => (
                     <View
                       key={pkg.PackageID}
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        justifyContent:
-                          index === booking.Packages.length - 1
-                            ? "space-between" // ✅ last package row → push status to right
-                            : "flex-start", // other rows → normal alignment
+                        justifyContent: "space-between",
                         marginVertical: 4,
                       }}
                     >
                       {/* Left: icon + package name */}
-                      <View
-                        style={{ flexDirection: "row", alignItems: "center" }}
-                      >
+                      <View style={{ flexDirection: "row", alignItems: "center" }}>
                         <FontAwesome5
                           name="tools"
                           size={16}
                           color={color.primary}
                           style={{ marginRight: 6 }}
                         />
-                        <CustomText style={[globalStyles.f12Bold, { color: "#333", maxWidth: 180 }]} numberOfLines={1} ellipsizeMode="marquee">
+                        <CustomText
+                          style={[globalStyles.f12Bold, { color: "#333", maxWidth: 180 }]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
                           {pkg.PackageName}
                         </CustomText>
                       </View>
 
-                      {/* Right: status only for last package */}
-
+                      {/* Right: show button only for last package */}
+                      {index === booking.Packages.length - 1 && (
+                        <TouchableOpacity
+                          onPress={() =>
+                            navigation.navigate("BookingsInnerPage", { booking })
+                          }
+                          style={{
+                            backgroundColor: color.primary,
+                            paddingHorizontal: 16,
+                            paddingVertical: 8,
+                            borderRadius: 6,
+                          }}
+                        >
+                          <CustomText style={[globalStyles.f10Bold, { color: "#fff" }]}>
+                            View Details
+                          </CustomText>
+                        </TouchableOpacity>
+                      )}
                     </View>
                   ))}
                 </View>
+
                 {booking.BookingStatus?.toLowerCase() === 'pending' && (!booking.Payments || booking.Payments.length === 0) && (
                   <View style={styles.resumeCard}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>

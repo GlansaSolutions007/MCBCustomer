@@ -298,8 +298,8 @@ const SchedulePage = () => {
                 style={{
                   flex: 1,
                   width: "100%",
-                  alignItems: "center",  
-                  justifyContent: "center", 
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 <View
@@ -444,7 +444,7 @@ const SchedulePage = () => {
               marginTop: 50,
             }}
             onPress={async () => {
-              if (!selectedTime) {
+              if (selectedTimes.length === 0) {
                 setTimeError("Please select an available time slot.");
                 return;
               } else {

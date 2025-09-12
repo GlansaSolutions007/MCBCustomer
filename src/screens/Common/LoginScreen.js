@@ -13,6 +13,7 @@ import {
   TouchableWithoutFeedback,
   Alert,
   Animated,
+  AppState,
 } from "react-native";
 import fonts from "../../styles/fonts";
 import { Ionicons } from "@expo/vector-icons";
@@ -52,6 +53,7 @@ export default function LoginScreen() {
   const [resendDisabled, setResendDisabled] = useState(true);
   const [showLogo, setShowLogo] = useState(false);
   const [mobileFieldFrozen, setMobileFieldFrozen] = useState(false);
+  const [otpFromSMS, setOtpFromSMS] = useState("");
 
   const navigation = useNavigation();
 
@@ -71,12 +73,49 @@ export default function LoginScreen() {
 
   // Helper functions for OTP handling
   const handleOtpChange = (value, index) => {
+    // Clean the input - remove any non-numeric characters
+    const cleanValue = value.replace(/[^0-9]/g, '');
+    
+    // Handle auto-fill scenarios where multiple digits are pasted
+    if (cleanValue.length > 1) {
+      const digits = cleanValue.split('').slice(0, 6); // Take first 6 digits
+      const newOtp = [...otp];
+      
+      // Clear all fields first
+      for (let i = 0; i < 6; i++) {
+        newOtp[i] = '';
+      }
+      
+      // Fill the OTP array with the pasted digits starting from the current index
+      digits.forEach((digit, i) => {
+        if (index + i < 6) {
+          newOtp[index + i] = digit;
+        }
+      });
+      
+      setOtp(newOtp);
+      
+      // Focus the last filled input
+      const lastFilledIndex = Math.min(index + digits.length - 1, 5);
+      if (otpRefs.current[lastFilledIndex]) {
+        otpRefs.current[lastFilledIndex].focus();
+      }
+      
+      // Check if all 6 digits are entered
+      if (newOtp.every(digit => digit !== "")) {
+        setMobileFieldFrozen(true);
+      }
+      
+      return;
+    }
+    
+    // Handle single digit input
     const newOtp = [...otp];
-    newOtp[index] = value;
+    newOtp[index] = cleanValue;
     setOtp(newOtp);
     
     // Auto-focus next input
-    if (value && index < 5) {
+    if (cleanValue && index < 5) {
       otpRefs.current[index + 1]?.focus();
     }
     
@@ -92,15 +131,90 @@ export default function LoginScreen() {
     }
   };
 
+  // Handle paste events specifically
+  const handleOtpPaste = (event, index) => {
+    const pastedText = event.nativeEvent.text || '';
+    const cleanText = pastedText.replace(/[^0-9]/g, '');
+    
+    if (cleanText.length > 0) {
+      handleOtpChange(cleanText, index);
+    }
+  };
+
   const clearOtp = () => {
     setOtp(["", "", "", "", "", ""]);
     setMobileFieldFrozen(false);
     otpRefs.current[0]?.focus();
   };
 
+  const handleEditMobileNumber = () => {
+    // Reset all OTP-related states
+    setOtpSent(false);
+    setOtp(["", "", "", "", "", ""]);
+    setMobileFieldFrozen(false);
+    setResendDisabled(true);
+    setTimer(0);
+    setLoginId(""); // Clear the mobile number
+    
+    // Animate OTP input out
+    Animated.parallel([
+      Animated.timing(otpInputSlide, {
+        toValue: 50,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(otpInputOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
   const getOtpString = () => {
     return otp.join("");
   };
+
+  // Function to extract OTP from SMS text
+  const extractOTPFromSMS = (smsText) => {
+    // Common OTP patterns
+    const otpPatterns = [
+      /(\d{6})/, // 6 digit OTP
+      /OTP[:\s]*(\d{6})/i, // OTP: 123456
+      /code[:\s]*(\d{6})/i, // code: 123456
+      /verification[:\s]*(\d{6})/i, // verification: 123456
+      /(\d{4,6})/, // 4-6 digit number
+    ];
+
+    for (const pattern of otpPatterns) {
+      const match = smsText.match(pattern);
+      if (match) {
+        return match[1] || match[0];
+      }
+    }
+    return null;
+  };
+
+  // Function to handle OTP auto-fill
+  const handleOTPAutoFill = (otpCode) => {
+    if (otpCode && otpCode.length >= 4) {
+      const otpArray = otpCode.split('').slice(0, 6); // Take first 6 digits
+      const paddedOtp = [...otpArray, ...Array(6 - otpArray.length).fill('')];
+      setOtp(paddedOtp);
+      
+      // Auto-focus the last filled input
+      const lastFilledIndex = otpArray.length - 1;
+      if (otpRefs.current[lastFilledIndex]) {
+        otpRefs.current[lastFilledIndex].focus();
+      }
+      
+      // If 6 digits are filled, freeze the mobile field
+      if (otpArray.length === 6) {
+        setMobileFieldFrozen(true);
+      }
+    }
+  };
+
 
   // alert(API_BASE_URL);
   const startResendTimer = () => {
@@ -347,6 +461,28 @@ export default function LoginScreen() {
     ]).start();
   }, []);
 
+  // OTP Auto-fill effect
+  useEffect(() => {
+    if (otpFromSMS) {
+      handleOTPAutoFill(otpFromSMS);
+      setOtpFromSMS(""); // Clear after processing
+    }
+  }, [otpFromSMS]);
+
+  // Handle app state changes for OTP detection
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState) => {
+      if (nextAppState === 'active' && otpSent) {
+        // When app becomes active and OTP is sent, check for OTP
+        // This is a simplified approach - in a real app, you'd use SMS reading APIs
+        // For now, we rely on platform auto-fill capabilities
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription?.remove();
+  }, [otpSent]);
+
 
   return (
     <ImageBackground
@@ -421,6 +557,16 @@ export default function LoginScreen() {
                 }).start();
               }}
             />
+            {/* Edit Mobile Number Button - appears when OTP is sent */}
+            {otpSent && (
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={handleEditMobileNumber}
+              >
+                <Ionicons name="create-outline" size={16} color={color.primary} />
+                <CustomText style={styles.editButtonText}>Edit</CustomText>
+              </TouchableOpacity>
+            )}
           </View>
         </Animated.View>
 
@@ -445,10 +591,13 @@ export default function LoginScreen() {
                   value={digit}
                   onChangeText={(value) => handleOtpChange(value, index)}
                   onKeyPress={({ nativeEvent }) => handleOtpKeyPress(nativeEvent.key, index)}
+                  onPaste={(event) => handleOtpPaste(event, index)}
                   keyboardType="number-pad"
-                  maxLength={1}
+                  maxLength={index === 0 ? 6 : 1} // Allow 6 digits in first field for pasting
                   textAlign="center"
                   selectTextOnFocus
+                  textContentType={index === 0 ? "oneTimeCode" : "none"}
+                  autoComplete={index === 0 ? "sms-otp" : "off"}
                 />
               ))}
             </View>
@@ -831,5 +980,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: color.primary,
     textAlign: 'center',
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    marginLeft: 8,
+    borderRadius: 6,
+    backgroundColor: 'rgba(1, 127, 119, 0.1)',
+    borderWidth: 1,
+    borderColor: color.primary,
+    gap: 4,
+  },
+  editButtonText: {
+    fontSize: 12,
+    color: color.primary,
+    fontWeight: '500',
   },
 });

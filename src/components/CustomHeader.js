@@ -244,7 +244,7 @@ export default function CustomHeader({ navigation }) {
             </Pressable>
           </View>
           <View style={[styles.rightIcons]}>
-            <Pressable
+            {/* <Pressable
               onPress={() => navigationTo.navigate("NotificationScreen")}
             >
               <Ionicons
@@ -252,7 +252,7 @@ export default function CustomHeader({ navigation }) {
                 size={24}
                 style={globalStyles.textWhite}
               />
-            </Pressable>
+            </Pressable> */}
             <View style={styles.iconWrapper}>
               <TouchableOpacity onPress={() => navigationTo.navigate('Cart')}>
                 <Image source={Garage} style={styles.garageIcon} />

@@ -437,12 +437,12 @@ export default function BookingsInnerPage() {
           </View>
 
           {/* Debug: Show Technician ID for testing */}
-          <View style={{ marginTop: 6, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          {/* <View style={{ marginTop: 6, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <CustomText style={[globalStyles.f10Bold, { color: "#666" }]}>TechID:</CustomText>
             <CustomText style={[globalStyles.f10Bold, { color: "#333" }]}>
               {booking?.TechID != null ? String(booking.TechID) : "N/A"}
             </CustomText>
-          </View>
+          </View> */}
           {technicianLocation && (
             <View style={{ marginTop: 4, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
               <CustomText style={[globalStyles.f10Bold, { color: "#666" }]}>Tech Coords:</CustomText>
