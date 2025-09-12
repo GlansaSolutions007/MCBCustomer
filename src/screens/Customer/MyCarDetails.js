@@ -274,8 +274,8 @@ export const MyCarDetails = () => {
                     <Ionicons name="car-sport" size={24} color={color.secondary} />
                     <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack, globalStyles.ml2]}>{model?.name || "Your Car"}</CustomText>
                   </View>
-                  
-                  <View style={[globalStyles.flexrow, globalStyles.flexwrap, globalStyles.alineItemscenter]}>
+
+                  <View style={[globalStyles.flexrow, globalStyles.alineItemscenter, { flexWrap: "wrap" }]}>
                     {!!vehicleNumber && (
                       <View style={[styles.chip, styles.primaryChip]}>
                         <Ionicons name="pricetag" size={14} color={color.white} />
@@ -321,7 +321,7 @@ export const MyCarDetails = () => {
                           Vehicle Information
                         </CustomText>
                       </View>
-                      
+
                       <View style={styles.formCard}>
                         {/* Registration Number */}
                         <View style={styles.inputGroup}>
@@ -363,7 +363,7 @@ export const MyCarDetails = () => {
                               <Ionicons name="chevron-down" size={16} color="#999" style={{ position: 'absolute', right: 12, top: 12 }} />
                             </TouchableOpacity>
                           </View>
-                          
+
                           <View style={styles.halfWidth}>
                             <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack, globalStyles.mb1]}>
                               Transmission Type
@@ -447,7 +447,7 @@ export const MyCarDetails = () => {
                     >
                       <TouchableWithoutFeedback onPress={() => setShowYearPicker(false)}>
                         <View style={styles.modalOverlay}>
-                          <TouchableWithoutFeedback onPress={() => {}}>
+                          <TouchableWithoutFeedback onPress={() => { }}>
                             <View style={styles.yearPickerModal}>
                               <View style={[globalStyles.flexrow, globalStyles.justifysb, globalStyles.alineItemscenter, globalStyles.p3]}>
                                 <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack]}>Select Year</CustomText>
@@ -501,7 +501,7 @@ export const MyCarDetails = () => {
                     >
                       <TouchableWithoutFeedback onPress={() => setShowTransmissionPicker(false)}>
                         <View style={styles.modalOverlay}>
-                          <TouchableWithoutFeedback onPress={() => {}}>
+                          <TouchableWithoutFeedback onPress={() => { }}>
                             <View style={styles.transmissionPickerModal}>
                               <View style={[globalStyles.flexrow, globalStyles.justifysb, globalStyles.alineItemscenter, globalStyles.p3]}>
                                 <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack]}>Select Transmission</CustomText>
@@ -626,8 +626,8 @@ export const MyCarDetails = () => {
                             I accept the Privacy Policy
                           </CustomText>
                         </TouchableOpacity>
-                        <TouchableOpacity 
-                          onPress={() => setPrivacyModalVisible(true)} 
+                        <TouchableOpacity
+                          onPress={() => setPrivacyModalVisible(true)}
                           style={globalStyles.p1}
                         >
                           <AntDesign name="infocirlceo" size={18} color={color.primary} />
@@ -648,11 +648,11 @@ export const MyCarDetails = () => {
                         onPress={handleSubmit}
                         disabled={!privacyAccepted}
                       >
-                        <Ionicons 
-                          name="checkmark-circle" 
-                          size={20} 
-                          color={color.white} 
-                          style={globalStyles.mr2} 
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={20}
+                          color={color.white}
+                          style={globalStyles.mr2}
                         />
                         <CustomText style={[globalStyles.f16Bold, globalStyles.textWhite]}>
                           Save Car Details
@@ -664,7 +664,7 @@ export const MyCarDetails = () => {
                     </View>
                   </>
                 )}
-                
+
               </View>
               <CustomAlert
                 visible={alertVisible}
