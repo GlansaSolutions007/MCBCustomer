@@ -84,8 +84,8 @@ const SchedulePage = () => {
         .filter((slot) => slot.Status)
         .filter((slot) => {
           if (currentDate === sDate) {
-            const endTime = moment(slot.EndTime, "HH:mm:ss");
-            return endTime.isAfter(currentTime);
+            const startTime = moment(slot.StartTime, "HH:mm:ss");
+            return startTime.isAfter(currentTime);
           } else {
             return true; // For future dates, include all slots
           }
@@ -104,6 +104,12 @@ const SchedulePage = () => {
         }));
 
       setTimeSlots(slots);
+      // ✅ If no slots available for today -> show garage closed
+      if (slots.length === 0 && currentDate === sDate) {
+        setTimeSlots([]);
+      } else {
+        setTimeError("");
+      }
     } catch (error) {
       console.error("Failed to fetch time slots:", error);
     }
@@ -234,59 +240,93 @@ const SchedulePage = () => {
               marginTop: 10,
             }}
           >
-            <ScrollView
-              ref={scrollRef}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.timeSlotContainer}
-            >
-              {timeSlots.map((slot) => (
+            {timeSlots.length > 0 ? (
+              <>
+                <ScrollView
+                  ref={scrollRef}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.timeSlotContainer}
+                >
+                  {timeSlots.map((slot) => (
+                    <TouchableOpacity
+                      key={slot.TsID}
+                      style={[
+                        styles.timeSlot,
+                        selectedTimes.includes(slot.TsID) && styles.selectedTimeSlot,
+                      ]}
+                      onPress={() => {
+                        if (selectedTimes.includes(slot.TsID)) {
+                          setSelectedTimes(selectedTimes.filter(id => id !== slot.TsID));
+                        } else {
+                          setSelectedTimes([...selectedTimes, slot.TsID]);
+                        }
+                        setTimeError("");
+                      }}
+                    >
+                      <CustomText
+                        style={[
+                          {
+                            color:
+                              selectedTimes.includes(slot.TsID)
+                                ? "white"
+                                : color.secondary,
+                          },
+                          globalStyles.f10Bold,
+                        ]}
+                      >
+                        {slot.label}
+                      </CustomText>
+                    </TouchableOpacity>
+                  ))}
+
+                </ScrollView>
                 <TouchableOpacity
-                  key={slot.TsID}
-                  style={[
-                    styles.timeSlot,
-                    selectedTimes.includes(slot.TsID) && styles.selectedTimeSlot,
-                  ]}
-                  onPress={() => {
-                    if (selectedTimes.includes(slot.TsID)) {
-                      // Deselect
-                      setSelectedTimes(selectedTimes.filter(id => id !== slot.TsID));
-                    } else {
-                      // Select
-                      setSelectedTimes([...selectedTimes, slot.TsID]);
-                    }
-                    setTimeError("");
+                  onPress={scrollRight}
+                  style={{
+                    marginLeft: 6,
+                    backgroundColor: "#eee",
+                    borderRadius: 20,
+                    padding: 6,
                   }}
                 >
-                  <CustomText
-                    style={[
-                      {
-                        color:
-                          selectedTimes.includes(slot.TsID)
-                            ? "white"
-                            : color.secondary,
-                      },
-                      globalStyles.f10Bold,
-                    ]}
-                  >
-                    {slot.label}
-                  </CustomText>
+                  <Ionicons name="chevron-forward" size={20} color="#008080" />
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-
+              </>
+            ) : (
+              <View
+                style={{
+                  flex: 1,
+                  width: "100%",
+                  alignItems: "center",  
+                  justifyContent: "center", 
+                }}
+              >
+                <View
+                  style={{
+                    backgroundColor: "#FFF3CD",
+                    borderRadius: 12,
+                    padding: 30,
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                >
+                  <Ionicons name="alert-circle" size={28} color="#856404" />
+                  <CustomText
+                    style={[globalStyles.f14Bold, { color: "#856404", marginTop: 8 }]}
+                  >
+                    Garage closed for today
+                  </CustomText>
+                  <CustomText
+                    style={[globalStyles.f12Regular, { color: "#856404", marginTop: 4 }]}
+                  >
+                    Please select another date to continue booking.
+                  </CustomText>
+                </View>
+              </View>
+            )}
             {/* Scroll Arrow */}
-            <TouchableOpacity
-              onPress={scrollRight}
-              style={{
-                marginLeft: 6,
-                backgroundColor: "#eee",
-                borderRadius: 20,
-                padding: 6,
-              }}
-            >
-              <Ionicons name="chevron-forward" size={20} color="#008080" />
-            </TouchableOpacity>
+
           </View>
 
           {timeError ? (

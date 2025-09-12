@@ -62,6 +62,7 @@ const CartPage = () => {
   const [bookingTrackId, setBookingTrackId] = useState(null);
   const scrollViewRef = useRef(null);
   const [customerDetailsY, setCustomerDetailsY] = useState(0);
+  const isFetching = useRef(false);
 
   const showCustomAlert = (status, title, message, onCloseCallback = () => { }) => {
     // Use setTimeout to ensure the alert shows immediately after state updates
@@ -148,6 +149,11 @@ const CartPage = () => {
   );
 
   const fetchAddresses = async (retryCount = 0) => {
+    if (isFetching.current) {
+      console.log("Fetch already in progress, skipping...");
+      return;
+    }
+    isFetching.current = true;
     try {
       const userData = await AsyncStorage.getItem("userData");
 
@@ -195,6 +201,9 @@ const CartPage = () => {
         console.log(`Retrying fetchAddresses in 1 second... (attempt ${retryCount + 1})`);
         setTimeout(() => fetchAddresses(retryCount + 1), 1000);
       }
+    }
+    finally {
+      isFetching.current = false; // Reset fetching state
     }
   };
 
@@ -1038,47 +1047,56 @@ const CartPage = () => {
                 <CustomText style={styles.sectionTitle}>
                   Customer Details
                 </CustomText>
-                <Feather
+                {/* <Feather
                   name={customerDetailsExpanded ? "chevron-up" : "chevron-down"}
                   size={20}
                   color={color.muted}
-                />
+                /> */}
               </TouchableOpacity>
 
-              {customerDetailsExpanded && (
-                <View style={{ marginTop: 12 }}>
-                  {/* Full Name */}
-                  <TextInput
-                    value={customerName}
-                    onChangeText={setCustomerName}
-                    placeholder="Enter Full Name"
-                    style={styles.input}
-                    placeholderTextColor={color.muted}
-                  />
+              {/* {customerDetailsExpanded && ( */}
+              <View style={{ marginTop: 12 }}>
+                {/* Full Name */}
+                <CustomText style={[{ color: color.textBlack }, globalStyles.f10Bold]}>
+                  Full Name <Text style={{ color: "red" }}>*</Text>
+                </CustomText>
+                <TextInput
+                  value={customerName}
+                  onChangeText={setCustomerName}
+                  placeholder="Enter Full Name"
+                  style={styles.input}
+                  placeholderTextColor={color.muted}
+                />
 
-                  {/* Phone Number (read-only) */}
-                  <TextInput
-                    value={customerPhone}
-                    editable={false}
-                    style={[
-                      styles.input,
-                      { backgroundColor: "#f2f2f2ff", color: color.muted },
-                    ]}
-                    placeholder="Phone Number"
-                  />
+                {/* Phone Number (read-only) */}
+                <CustomText style={[{ color: color.textBlack, marginTop: 10 }, globalStyles.f10Bold]}>
+                  Mobile Number <Text style={{ color: "red" }}>*</Text>
+                </CustomText>
+                <TextInput
+                  value={customerPhone}
+                  editable={false}
+                  style={[
+                    styles.input,
+                    { backgroundColor: "#f2f2f2ff", color: color.muted },
+                  ]}
+                  placeholder="Phone Number"
+                />
 
-                  {/* Email */}
-                  <TextInput
-                    value={customerEmail}
-                    onChangeText={setCustomerEmail}
-                    placeholder="Enter Email"
-                    style={styles.input}
-                    placeholderTextColor={color.muted}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                </View>
-              )}
+                {/* Email */}
+                <CustomText style={[{ color: color.textBlack, marginTop: 10 }, globalStyles.f10Bold]}>
+                  Email <Text style={{ color: "red" }}>*</Text>
+                </CustomText>
+                <TextInput
+                  value={customerEmail}
+                  onChangeText={setCustomerEmail}
+                  placeholder="Enter Email"
+                  style={styles.input}
+                  placeholderTextColor={color.muted}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+              {/* )} */}
             </View>
 
             {/* Coupon Section */}
@@ -1495,7 +1513,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...globalStyles.f14Bold,
     color: color.primary,
-    marginBottom: 10,
+    marginBottom: 4,
   },
   sectionTitleSec: { ...globalStyles.f14Bold, color: "#fff", marginBottom: 10 },
   separator: {
