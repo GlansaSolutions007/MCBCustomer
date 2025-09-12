@@ -75,7 +75,11 @@ export default function HomeScreen() {
       console.log("Catttt");
 
       if (response.data) {
-        const activeCategories = response.data.filter((cat) => cat.IsActive);
+        // Ensure response.data is an array
+        const categoriesData = Array.isArray(response.data) ? response.data : [];
+        console.log("📊 Categories data:", categoriesData);
+        
+        const activeCategories = categoriesData.filter((cat) => cat.IsActive);
         setCategories(activeCategories);
       }
     } catch (error) {
@@ -95,7 +99,11 @@ export default function HomeScreen() {
 
       // Check if userData exists
       if (!userData) {
-        console.warn("No userData found in AsyncStorage");
+        console.warn("No userData found in AsyncStorage - this might be a timing issue");
+        console.log("Retrying in 500ms...");
+        setTimeout(() => {
+          fetchTodaysBookings();
+        }, 500);
         return;
       }
 
@@ -115,7 +123,11 @@ export default function HomeScreen() {
       });
 
       if (response.data) {
-        const upcoming = response.data.filter(
+        // Ensure response.data is an array
+        const bookingsData = Array.isArray(response.data) ? response.data : [];
+        console.log("📊 Bookings data:", bookingsData);
+        
+        const upcoming = bookingsData.filter(
           (booking) =>
             booking.BookingDate >= today &&
             booking.BookingStatus?.toLowerCase() !== "cancelled" &&

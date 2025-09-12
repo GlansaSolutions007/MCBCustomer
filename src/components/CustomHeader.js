@@ -142,7 +142,11 @@ export default function CustomHeader({ navigation }) {
       
       // Check if userData exists
       if (!userData) {
-        console.warn("No userData found in AsyncStorage");
+        console.warn("No userData found in AsyncStorage - this might be a timing issue");
+        console.log("Retrying in 500ms...");
+        setTimeout(() => {
+          getUserData();
+        }, 500);
         return;
       }
 
