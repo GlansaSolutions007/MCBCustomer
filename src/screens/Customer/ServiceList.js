@@ -20,7 +20,7 @@ import axios from "axios";
 import CustomText from "../../components/CustomText";
 import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
-import { API_URL, RAZORPAY_KEY } from "@env";
+import { API_URL, RAZORPAY_KEY, API_IMAGE_URL } from "@env";
 import RazorpayCheckout from "react-native-razorpay";
 import { getToken } from "../../utils/token";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
@@ -594,7 +594,7 @@ export default function ServiceList() {
                   <View style={styles.bookingCarImage}>
                     <Image
                       source={{
-                        uri: `https://api.mycarsbuddy.com/Images${booking.VehicleImage}`,
+                        uri: `${API_IMAGE_URL}${booking.VehicleImage}`,
                       }}
                       style={styles.bookingImage}
                       onError={(e) =>

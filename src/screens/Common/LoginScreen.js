@@ -239,8 +239,8 @@ export default function LoginScreen() {
           DeviceId,
         });
         try {
-          if (result?.custID && tokens) {
-            await saveCustomerPushToken(result.custID, tokens);
+          if (result?.custID !== 0 && tokens) {
+            // await saveCustomerPushToken(result.custID, tokens);
             if (tokens.fcmToken) {
               await saveOrUpdateCustomerFcmToken(result.custID, tokens.fcmToken);
             }

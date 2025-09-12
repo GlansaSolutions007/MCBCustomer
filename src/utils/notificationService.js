@@ -129,10 +129,10 @@ export const saveCustomerPushToken = async (customerId, tokens) => {
     
     // const API_URL = Constants.expoConfig?.extra?.API_BASE_URL;
     await axios.post(`${API_URL}Push/register`, {
-      userType: 'customer',
-      id: Number(customerId),
+      userRole: 'customer',
+      userId: Number(customerId),
       fcmToken: fcmToken || null,
-      expoPushToken: expoPushToken || null,
+      expoToken: expoPushToken || null,
       platform: Platform.OS,
     });
 
