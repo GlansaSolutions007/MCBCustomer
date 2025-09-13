@@ -20,66 +20,160 @@ export default function MyCars() {
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredBrands, setFilteredBrands] = useState([]);
 
+    // const getBrands = async () => {
+    //     try {
+    //         const token = await getToken();
+    //         if (!token) {
+    //             console.warn('Token not found');
+    //             return;
+    //         }
+
+    //         const config = {
+    //             headers: {
+    //                 Authorization: `Bearer ${token}`
+    //             }
+    //         };
+
+    //         const brandRes = await axios.get(`${API_URL}VehicleBrands/GetVehicleBrands`, config);
+    //         const modelRes = await axios.get(`${API_URL}VehicleModels/GetListVehicleModel`, config);
+    //         const brands = brandRes.data.data;
+    //         const models = modelRes.data.data;
+
+    //         // Format and attach models to each brand
+    //         const formattedBrands = brands
+    //             .filter(brand => brand.IsActive)
+    //             .map(brand => {
+    //                 const brandModels = models
+    //                     .filter(model => model.BrandID === brand.BrandID && model.IsActive)
+    //                     .map(model => {
+
+    //                         const getModelImageUrl = (path) => {
+    //                             if (!path) return null;
+    //                             const fileName = path.split('/').pop();
+    //                             return `${API_IMAGE_URL}VehicleModel/${fileName}`;
+    //                         };
+
+
+    //                         return {
+    //                             id: model.ModelID,
+    //                             name: model.ModelName,
+    //                             image: getModelImageUrl(model.VehicleImage),
+    //                             fuelType: model.FuelTypeID
+    //                         };
+    //                     });
+
+    //                 return {
+    //                     brand: brand.BrandName,
+    //                     brandId: brand.BrandID,
+    //                     logo: brand.BrandLogo
+    //                         ? { uri: `${API_IMAGE_URL}BrandLogo/${brand.BrandLogo.split('/').pop()}` }
+    //                         : Logo,
+    //                     models: brandModels
+    //                 };
+    //             });
+
+    //         setBrands(formattedBrands);
+    //         setFilteredBrands(formattedBrands);
+    //     } catch (error) {
+    //         console.error('Failed to fetch car brands or models:', error);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
     const getBrands = async () => {
         try {
             const token = await getToken();
             if (!token) {
-                console.warn('Token not found');
+                console.warn("Token not found");
                 return;
             }
 
             const config = {
                 headers: {
-                    Authorization: `Bearer ${token}`
-                }
+                    Authorization: `Bearer ${token}`,
+                },
             };
 
-            const brandRes = await axios.get(`${API_URL}VehicleBrands/GetVehicleBrands`, config);
-            const modelRes = await axios.get(`${API_URL}VehicleModels/GetListVehicleModel`, config);
+            // Get all brands
+            const brandRes = await axios.get(
+                `${API_URL}VehicleBrands/GetVehicleBrands`,
+                config
+            );
             const brands = brandRes.data.data;
-            const models = modelRes.data.data;
 
-            // Format and attach models to each brand
-            const formattedBrands = brands
-                .filter(brand => brand.IsActive)
-                .map(brand => {
-                    const brandModels = models
-                        .filter(model => model.BrandID === brand.BrandID && model.IsActive)
-                        .map(model => {
+            // For each brand, fetch its models
+            const formattedBrands = await Promise.all(
+                brands
+                    .filter((brand) => brand.IsActive)
+                    .map(async (brand) => {
+                        try {
+                            const modelRes = await axios.get(
+                                `${API_URL}VehicleModels/BrandId?brandid=${brand.BrandID}`,
+                                config
+                            );
 
-                            const getModelImageUrl = (path) => {
-                                if (!path) return null;
-                                const fileName = path.split('/').pop();
-                                return `${API_IMAGE_URL}VehicleModel/${fileName}`;
-                            };
+                            const models = modelRes.data || [];
+
+                            const brandModels = models
+                                .filter((model) => model.IsActive)
+                                .map((model) => {
+                                    const getModelImageUrl = (path) => {
+                                        if (!path) return null;
+                                        return `${API_IMAGE_URL}${path.replace(/^\//, '')}`;
+                                    };
+
+                                    return {
+                                        id: model.ModelID,
+                                        name: model.ModelName,
+                                        image: getModelImageUrl(model.VehicleImage),
+                                        fuelType: model.FuelTypeID,
+                                    };
+                                });
+                                
+                            console.log(`Fetched ${brandModels}`);
 
 
                             return {
-                                id: model.ModelID,
-                                name: model.ModelName,
-                                image: getModelImageUrl(model.VehicleImage),
-                                fuelType: model.FuelTypeID
+                                brand: brand.BrandName,
+                                brandId: brand.BrandID,
+                                logo: brand.BrandLogo
+                                    ? {
+                                        uri: `${API_IMAGE_URL}BrandLogo/${brand.BrandLogo.split(
+                                            "/"
+                                        ).pop()}`,
+                                    }
+                                    : Logo,
+                                models: brandModels,
                             };
-                        });
-
-                    return {
-                        brand: brand.BrandName,
-                        brandId: brand.BrandID,
-                        logo: brand.BrandLogo
-                            ? { uri: `${API_IMAGE_URL}BrandLogo/${brand.BrandLogo.split('/').pop()}` }
-                            : Logo,
-                        models: brandModels
-                    };
-                });
+                        } catch (err) {
+                            console.error(`Failed to fetch models for ${brand.BrandName}`, err);
+                            return {
+                                brand: brand.BrandName,
+                                brandId: brand.BrandID,
+                                logo: brand.BrandLogo
+                                    ? {
+                                        uri: `${API_IMAGE_URL}BrandLogo/${brand.BrandLogo.split(
+                                            "/"
+                                        ).pop()}`,
+                                    }
+                                    : Logo,
+                                models: [],
+                            };
+                        }
+                    })
+            );
 
             setBrands(formattedBrands);
             setFilteredBrands(formattedBrands);
         } catch (error) {
-            console.error('Failed to fetch car brands or models:', error);
+            console.error("Failed to fetch car brands:", error);
         } finally {
             setLoading(false);
         }
     };
+
+
     useEffect(() => {
         getBrands();
     }, []);
