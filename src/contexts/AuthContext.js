@@ -29,22 +29,44 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (userData) => {
-    setUser(userData);
+    try {
+      console.log("🔐 AuthContext: Starting login process...");
+      console.log("📊 UserData received:", userData);
+      
+      setUser(userData);
 
-    await AsyncStorage.setItem("authToken", userData.token);
-    await AsyncStorage.setItem("userData", JSON.stringify(userData));
+      // Save auth token
+      await AsyncStorage.setItem("authToken", userData.token);
+      console.log("✅ Auth token saved to AsyncStorage");
 
-    const response1 = await axios.get(
-      `${API_URL}CustomerVehicles/CustId?CustId=${userData.custID}`
-    );
+      // Save user data
+      await AsyncStorage.setItem("userData", JSON.stringify(userData));
+      console.log("✅ User data saved to AsyncStorage");
 
-    const primaryCar = response1.data.find((car) => car.IsPrimary);
+      // Verify userData was saved
+      const savedUserData = await AsyncStorage.getItem("userData");
+      if (!savedUserData) {
+        throw new Error("Failed to save userData to AsyncStorage");
+      }
+      console.log("✅ UserData verification successful");
 
-    const primaryCarId = primaryCar?.VehicleID || null;
+      // Fetch customer vehicles
+      const response1 = await axios.get(
+        `${API_URL}CustomerVehicles/CustId?CustId=${userData.custID}`
+      );
 
-    // console.log(response1, "Carrrrr Data");
-    await AsyncStorage.setItem("primaryVehicleId", primaryCarId ? String(primaryCarId) : "");
-    setUser((prev) => ({ ...prev, primaryVehicleId: primaryCarId }));
+      const primaryCar = response1.data.find((car) => car.IsPrimary);
+      const primaryCarId = primaryCar?.VehicleID || null;
+
+      // Save primary vehicle ID
+      await AsyncStorage.setItem("primaryVehicleId", primaryCarId ? String(primaryCarId) : "");
+      setUser((prev) => ({ ...prev, primaryVehicleId: primaryCarId }));
+      
+      console.log("✅ Login process completed successfully");
+    } catch (error) {
+      console.error("❌ Error in AuthContext login:", error);
+      throw error; // Re-throw to be caught by LoginScreen
+    }
   };
 
   const logout = async () => {

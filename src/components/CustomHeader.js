@@ -142,7 +142,11 @@ export default function CustomHeader({ navigation }) {
       
       // Check if userData exists
       if (!userData) {
-        console.warn("No userData found in AsyncStorage");
+        console.warn("No userData found in AsyncStorage - this might be a timing issue");
+        console.log("Retrying in 500ms...");
+        setTimeout(() => {
+          getUserData();
+        }, 500);
         return;
       }
 
@@ -244,7 +248,7 @@ export default function CustomHeader({ navigation }) {
             </Pressable>
           </View>
           <View style={[styles.rightIcons]}>
-            <Pressable
+            {/* <Pressable
               onPress={() => navigationTo.navigate("NotificationScreen")}
             >
               <Ionicons
@@ -252,7 +256,7 @@ export default function CustomHeader({ navigation }) {
                 size={24}
                 style={globalStyles.textWhite}
               />
-            </Pressable>
+            </Pressable> */}
             <View style={styles.iconWrapper}>
               <TouchableOpacity onPress={() => navigationTo.navigate('Cart')}>
                 <Image source={Garage} style={styles.garageIcon} />

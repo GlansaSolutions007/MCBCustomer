@@ -61,6 +61,7 @@ export default function HomeScreen() {
   const [upcomingBookings, setUpcomingBookings] = useState([]);
 
   const [loading, setLoading] = useState(true);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -74,7 +75,11 @@ export default function HomeScreen() {
       console.log("Catttt");
 
       if (response.data) {
-        const activeCategories = response.data.filter((cat) => cat.IsActive);
+        // Ensure response.data is an array
+        const categoriesData = Array.isArray(response.data) ? response.data : [];
+        console.log("📊 Categories data:", categoriesData);
+        
+        const activeCategories = categoriesData.filter((cat) => cat.IsActive);
         setCategories(activeCategories);
       }
     } catch (error) {
@@ -85,12 +90,20 @@ export default function HomeScreen() {
   };
 
   const fetchTodaysBookings = async () => {
+    // Prevent multiple simultaneous calls
+    if (bookingsLoading) return;
+    
+    setBookingsLoading(true);
     try {
       const userData = await AsyncStorage.getItem("userData");
 
       // Check if userData exists
       if (!userData) {
-        console.warn("No userData found in AsyncStorage");
+        console.warn("No userData found in AsyncStorage - this might be a timing issue");
+        console.log("Retrying in 500ms...");
+        setTimeout(() => {
+          fetchTodaysBookings();
+        }, 500);
         return;
       }
 
@@ -110,7 +123,11 @@ export default function HomeScreen() {
       });
 
       if (response.data) {
-        const upcoming = response.data.filter(
+        // Ensure response.data is an array
+        const bookingsData = Array.isArray(response.data) ? response.data : [];
+        console.log("📊 Bookings data:", bookingsData);
+        
+        const upcoming = bookingsData.filter(
           (booking) =>
             booking.BookingDate >= today &&
             booking.BookingStatus?.toLowerCase() !== "cancelled" &&
@@ -126,16 +143,25 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.error("Failed to fetch bookings:", error);
+    } finally {
+      setBookingsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchCategories();
+    fetchTodaysBookings();
   }, []);
 
   useFocusEffect(
     useCallback(() => {
-      fetchTodaysBookings();
+      // Only fetch bookings when screen comes into focus, not categories
+      // Add a small delay to prevent immediate refetch after initial load
+      const timer = setTimeout(() => {
+        fetchTodaysBookings();
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }, [])
   );
 
@@ -221,7 +247,7 @@ export default function HomeScreen() {
     })();
   }, []);
   const { refreshing, onRefresh } = useGlobalRefresh(async () => {
-    await fetchCategories();
+    // Only refresh bookings on pull-to-refresh, categories don't change often
     await fetchTodaysBookings();
   });
 
@@ -709,7 +735,12 @@ export default function HomeScreen() {
                           }}
                           style={styles.categoryCardImage}
                         />
-                        <View style={styles.cardOverlay} />
+                        <LinearGradient
+                          colors={['#136D6E', 'transparent']}
+                          start={{ x: 0.5, y: 1 }}
+                          end={{ x: 0.5, y: 0 }}
+                          style={styles.gradientOverlay}
+                        />
                       </View>
                       <View style={styles.cardContent}>
                         <CustomText style={styles.categoryCardTitle}>
@@ -1416,6 +1447,13 @@ const styles = StyleSheet.create({
     height: "60%",
     backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
+  gradientOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: "60%",
+  },
   cardContent: {
     position: "absolute",
     bottom: 0,
@@ -1432,7 +1470,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardArrow: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: color.orange,
     borderRadius: 12,
     padding: 4,
   },
