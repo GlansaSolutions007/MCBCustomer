@@ -697,7 +697,7 @@ export default function BookingsInnerPage() {
                 {booking.BookingStatus.toLowerCase() === "startjourney" &&
                   booking.TechID !== null && (
                     <View style={{ marginRight: 4 }}>
-                      <View
+                      {/* <View
                         style={{
                           flexDirection: "row",
                           alignItems: "center",
@@ -721,7 +721,7 @@ export default function BookingsInnerPage() {
                         >
                           Journey Started
                         </CustomText>
-                      </View>
+                      </View> */}
                     </View>
                   )}
               </View>
