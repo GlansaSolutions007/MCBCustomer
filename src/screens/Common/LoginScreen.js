@@ -25,13 +25,16 @@ import { color } from "../../styles/theme";
 import CustomText from "../../components/CustomText";
 import { useNavigation } from "@react-navigation/native";
 import * as Device from "expo-device";
-import { registerForPushNotificationsAsync, saveCustomerPushToken } from "../../utils/notificationService";
-import { saveOrUpdateCustomerFcmToken } from "../../utils/notifications";
+import {
+  registerForPushNotificationsAsync,
+} from "../../utils/notificationService";
+import { saveCustomerPushToken } from "../../utils/notifications";
+import { testFirebaseConnection } from "../../utils/firebaseConnectionTest";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import AntDesign from '@expo/vector-icons/AntDesign';
-import Logo from '../../../assets/Logo/logo2.png'
-import BgImage from '../../../assets/images/loginbg5.png'
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Logo from "../../../assets/Logo/logo2.png";
+import BgImage from "../../../assets/images/loginbg5.png";
 // import { API_BASE_URL } from "@env";
 import { API_URL, API_IMAGE_URL, GOOGLE_MAPS_APIKEY, RAZORPAY_KEY } from "@env";
 
@@ -67,75 +70,75 @@ export default function LoginScreen() {
   const inputFocusScale = useRef(new Animated.Value(1)).current;
   const contentTranslateY = useRef(new Animated.Value(0)).current;
   const keyboardHeight = useRef(new Animated.Value(0)).current;
-  
+
   // OTP input refs
   const otpRefs = useRef([]);
 
   // Helper functions for OTP handling
   const handleOtpChange = (value, index) => {
     // Clean the input - remove any non-numeric characters
-    const cleanValue = value.replace(/[^0-9]/g, '');
-    
+    const cleanValue = value.replace(/[^0-9]/g, "");
+
     // Handle auto-fill scenarios where multiple digits are pasted
     if (cleanValue.length > 1) {
-      const digits = cleanValue.split('').slice(0, 6); // Take first 6 digits
+      const digits = cleanValue.split("").slice(0, 6); // Take first 6 digits
       const newOtp = [...otp];
-      
+
       // Clear all fields first
       for (let i = 0; i < 6; i++) {
-        newOtp[i] = '';
+        newOtp[i] = "";
       }
-      
+
       // Fill the OTP array with the pasted digits starting from the current index
       digits.forEach((digit, i) => {
         if (index + i < 6) {
           newOtp[index + i] = digit;
         }
       });
-      
+
       setOtp(newOtp);
-      
+
       // Focus the last filled input
       const lastFilledIndex = Math.min(index + digits.length - 1, 5);
       if (otpRefs.current[lastFilledIndex]) {
         otpRefs.current[lastFilledIndex].focus();
       }
-      
+
       // Check if all 6 digits are entered
-      if (newOtp.every(digit => digit !== "")) {
+      if (newOtp.every((digit) => digit !== "")) {
         setMobileFieldFrozen(true);
       }
-      
+
       return;
     }
-    
+
     // Handle single digit input
     const newOtp = [...otp];
     newOtp[index] = cleanValue;
     setOtp(newOtp);
-    
+
     // Auto-focus next input
     if (cleanValue && index < 5) {
       otpRefs.current[index + 1]?.focus();
     }
-    
+
     // Check if all 6 digits are entered
-    if (newOtp.every(digit => digit !== "") && index === 5) {
+    if (newOtp.every((digit) => digit !== "") && index === 5) {
       setMobileFieldFrozen(true);
     }
   };
 
   const handleOtpKeyPress = (key, index) => {
-    if (key === 'Backspace' && !otp[index] && index > 0) {
+    if (key === "Backspace" && !otp[index] && index > 0) {
       otpRefs.current[index - 1]?.focus();
     }
   };
 
   // Handle paste events specifically
   const handleOtpPaste = (event, index) => {
-    const pastedText = event.nativeEvent.text || '';
-    const cleanText = pastedText.replace(/[^0-9]/g, '');
-    
+    const pastedText = event.nativeEvent.text || "";
+    const cleanText = pastedText.replace(/[^0-9]/g, "");
+
     if (cleanText.length > 0) {
       handleOtpChange(cleanText, index);
     }
@@ -155,7 +158,7 @@ export default function LoginScreen() {
     setResendDisabled(true);
     setTimer(0);
     setLoginId(""); // Clear the mobile number
-    
+
     // Animate OTP input out
     Animated.parallel([
       Animated.timing(otpInputSlide, {
@@ -198,23 +201,22 @@ export default function LoginScreen() {
   // Function to handle OTP auto-fill
   const handleOTPAutoFill = (otpCode) => {
     if (otpCode && otpCode.length >= 4) {
-      const otpArray = otpCode.split('').slice(0, 6); // Take first 6 digits
-      const paddedOtp = [...otpArray, ...Array(6 - otpArray.length).fill('')];
+      const otpArray = otpCode.split("").slice(0, 6); // Take first 6 digits
+      const paddedOtp = [...otpArray, ...Array(6 - otpArray.length).fill("")];
       setOtp(paddedOtp);
-      
+
       // Auto-focus the last filled input
       const lastFilledIndex = otpArray.length - 1;
       if (otpRefs.current[lastFilledIndex]) {
         otpRefs.current[lastFilledIndex].focus();
       }
-      
+
       // If 6 digits are filled, freeze the mobile field
       if (otpArray.length === 6) {
         setMobileFieldFrozen(true);
       }
     }
   };
-
 
   // alert(API_BASE_URL);
   const startResendTimer = () => {
@@ -233,8 +235,6 @@ export default function LoginScreen() {
     }, 1000);
   };
 
-  
-
   const handleSendOtp = async () => {
     if (!loginId || !/^[6-9]\d{9}$/.test(loginId)) {
       setTitle("Invalid Input");
@@ -245,7 +245,7 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
-    
+
     // Animate button press
     Animated.sequence([
       Animated.timing(buttonScale, {
@@ -293,7 +293,7 @@ export default function LoginScreen() {
         throw new Error(errorText);
       }
     } catch (error) {
-      console.log('error:', error.message);
+      console.log("error:", error.message);
 
       setTitle("Send OTP Failed");
       setMessage(error.message.message || "Unable to send OTP.");
@@ -304,7 +304,8 @@ export default function LoginScreen() {
     }
   };
 
-  const handleVerifyOtp = async () => {
+
+  const OtpVerify = async () => {
     const otpString = getOtpString();
     if (!otpString || otpString.length !== 6) {
       setTitle("Missing OTP");
@@ -316,46 +317,36 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      const DeviceId = Device.osInternalBuildId || Device.osBuildId || "unknown-device-id";
+      const DeviceId =
+        Device.osInternalBuildId || Device.osBuildId || "unknown-device-id";
       const tokens = await registerForPushNotificationsAsync();
-      const DeviceToken = tokens.fcmToken || tokens.expoPushToken || 'unknown-token';
-      const response = await fetch(`${API_URL}Auth/verify-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          loginId,
-          otp: otpString,
-          deviceToken: DeviceToken,
-          deviceId: DeviceId,
-        }),
+      const DeviceToken =
+        tokens.fcmToken || tokens.expoPushToken || "unknown-token";
+
+      // ✅ Use axios instead of fetch
+      const response = await axios.post(`${API_URL}Auth/verify-otp`, {
+        loginId,
+        otp: otpString,
+        deviceToken: DeviceToken,
+        deviceId: DeviceId,
       });
 
-      const result = await response.json();
+      const result = response.data; // ✅ Axios gives parsed JSON here
+      console.log("result:HJHASA", result);
 
+      if (result?.success) {
+        
 
-      if (response.ok && result?.success) {
-        await login({
-          token: result.token,
-          custID: result.custID,
-          name: result.name,
-          phone: loginId,
-          email: result.email || "",
-          DeviceToken,
-          DeviceId,
-        });
-
-        // Save FCM token to Firebase and backend
+        // Save FCM and Expo tokens to Firebase and backend API
         try {
           if (result?.custID !== 0 && tokens) {
-            if (tokens.fcmToken) {
-              await saveOrUpdateCustomerFcmToken(result.custID, tokens.fcmToken);
-            }
-            
-            // Save tokens to AsyncStorage
-            await AsyncStorage.setItem("pushToken", DeviceToken);
-            await AsyncStorage.setItem("pushTokenType", tokens.fcmToken ? "fcm" : (tokens.expoPushToken ? "expo" : "unknown"));
-            
-            // Register with backend API
+            console.log('🔔 Registering push tokens for customer (demo):', result.custID);
+            console.log('📱 Tokens received:', tokens);
+
+            // 1. Save tokens to Firebase database
+            await saveCustomerPushToken(result.custID, tokens);
+
+            // 2. Register with backend API
             await axios.post(`${API_URL}Push/register`, {
               userRole: "customer",
               userId: Number(result.custID),
@@ -363,9 +354,31 @@ export default function LoginScreen() {
               expoToken: tokens.expoPushToken || null,
               platform: Platform.OS,
             });
+            await login({
+              token: result.token,
+              custID: result.custID,
+              name: result.name || "",
+              phone: loginId,
+              email: result.email || "",
+              DeviceToken,
+              DeviceId,
+            });
+            // 3. Save tokens to AsyncStorage for backup
+            await AsyncStorage.setItem("pushToken", DeviceToken);
+            await AsyncStorage.setItem(
+              "pushTokenType",
+              tokens.fcmToken
+                ? "fcm"
+                : tokens.expoPushToken
+                ? "expo"
+                : "unknown"
+            );
+
+            console.log('✅ Push tokens registered successfully to Firebase and backend (demo)');
           }
         } catch (error) {
           // Silent error handling for push notifications
+          console.warn('❌ Push notification setup failed (demo):', error.message);
         }
 
         navigation.replace("CustomerTabs");
@@ -374,7 +387,11 @@ export default function LoginScreen() {
       }
     } catch (error) {
       setTitle("OTP Verification Failed");
-      setMessage(error.message || "Unable to verify OTP.");
+      setMessage(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to verify OTP."
+      );
       setStatus("error");
       setShowAlert(true);
     } finally {
@@ -387,7 +404,7 @@ export default function LoginScreen() {
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
       (event) => {
         setKeyboardVisible(true);
-        
+
         // Animate content up when keyboard appears with subtle bounce
         Animated.sequence([
           Animated.timing(contentTranslateY, {
@@ -401,7 +418,7 @@ export default function LoginScreen() {
             useNativeDriver: true,
           }),
         ]).start();
-        
+
         Animated.timing(keyboardHeight, {
           toValue: event.endCoordinates.height,
           duration: Platform.OS === "ios" ? 250 : 200,
@@ -409,12 +426,12 @@ export default function LoginScreen() {
         }).start();
       }
     );
-    
+
     const hideSub = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
       () => {
         setKeyboardVisible(false);
-        
+
         // Animate content back to original position with smooth transition
         Animated.parallel([
           Animated.timing(contentTranslateY, {
@@ -465,17 +482,19 @@ export default function LoginScreen() {
   // Handle app state changes for OTP detection
   useEffect(() => {
     const handleAppStateChange = (nextAppState) => {
-      if (nextAppState === 'active' && otpSent) {
+      if (nextAppState === "active" && otpSent) {
         // When app becomes active and OTP is sent, check for OTP
         // This is a simplified approach - in a real app, you'd use SMS reading APIs
         // For now, we rely on platform auto-fill capabilities
       }
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
     return () => subscription?.remove();
   }, [otpSent]);
-
 
   return (
     <ImageBackground
@@ -495,12 +514,12 @@ export default function LoginScreen() {
         </TouchableOpacity>
       )} */}
       <View />
-      <Animated.View 
+      <Animated.View
         style={[
           globalStyles.container,
           {
             transform: [{ translateY: contentTranslateY }],
-          }
+          },
         ]}
       >
         {/* Logo with animation - always show initially */}
@@ -510,10 +529,7 @@ export default function LoginScreen() {
             transform: [{ scale: logoScale }],
           }}
         >
-          <Image
-            source={Logo}
-            style={styles.logo}
-          />
+          <Image source={Logo} style={styles.logo} />
         </Animated.View>
 
         {/* Phone Number Input with +91 prefix */}
@@ -529,7 +545,7 @@ export default function LoginScreen() {
               onChangeText={setLoginId}
               style={[
                 styles.textInputWithPrefix,
-                (otpSent || mobileFieldFrozen) && styles.disabledInput
+                (otpSent || mobileFieldFrozen) && styles.disabledInput,
               ]}
               keyboardType="phone-pad"
               autoCapitalize="none"
@@ -556,7 +572,11 @@ export default function LoginScreen() {
                 style={styles.editButton}
                 onPress={handleEditMobileNumber}
               >
-                <Ionicons name="create-outline" size={16} color={color.primary} />
+                <Ionicons
+                  name="create-outline"
+                  size={16}
+                  color={color.primary}
+                />
                 <CustomText style={styles.editButtonText}>Edit</CustomText>
               </TouchableOpacity>
             )}
@@ -579,11 +599,13 @@ export default function LoginScreen() {
                   style={[
                     styles.otpInput,
                     digit && styles.otpInputFilled,
-                    mobileFieldFrozen && styles.otpInputFrozen
+                    mobileFieldFrozen && styles.otpInputFrozen,
                   ]}
                   value={digit}
                   onChangeText={(value) => handleOtpChange(value, index)}
-                  onKeyPress={({ nativeEvent }) => handleOtpKeyPress(nativeEvent.key, index)}
+                  onKeyPress={({ nativeEvent }) =>
+                    handleOtpKeyPress(nativeEvent.key, index)
+                  }
                   onPaste={(event) => handleOtpPaste(event, index)}
                   keyboardType="number-pad"
                   maxLength={index === 0 ? 6 : 1} // Allow 6 digits in first field for pasting
@@ -596,13 +618,13 @@ export default function LoginScreen() {
             </View>
             <CustomText style={styles.otpLabel}>Enter 6-digit OTP</CustomText>
           </Animated.View>
-        )} 
+        )}
 
         {/* Button with animation */}
         <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
           <TouchableOpacity
             style={styles.button}
-            onPress={otpSent ? handleVerifyOtp : handleSendOtp}
+            onPress={otpSent ? OtpVerify : handleSendOtp}
             disabled={loading}
           >
             <CustomText style={styles.buttonText}>
@@ -610,7 +632,7 @@ export default function LoginScreen() {
             </CustomText>
           </TouchableOpacity>
         </Animated.View>
-        
+
         {/* Resend Button */}
         {otpSent && (
           <Animated.View
@@ -636,12 +658,21 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </Animated.View>
         )}
-        
+
         {/* Footer content - only show when keyboard is not visible */}
         {!keyboardVisible && (
           <>
-            <View style={[globalStyles.flexrow, globalStyles.alineItemscenter, globalStyles.justifysb, globalStyles.mt1]}>
-              <View style={[globalStyles.flexrow, globalStyles.alineItemscenter]}>
+            <View
+              style={[
+                globalStyles.flexrow,
+                globalStyles.alineItemscenter,
+                globalStyles.justifysb,
+                globalStyles.mt1,
+              ]}
+            >
+              <View
+                style={[globalStyles.flexrow, globalStyles.alineItemscenter]}
+              >
                 {/* <CustomText style={globalStyles.textWhite}>Create new account? </CustomText> */}
                 {/* <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                   <CustomText style={globalStyles.textWhite}>Sign Up</CustomText>
@@ -666,7 +697,7 @@ export default function LoginScreen() {
 
       {/* Powered By Footer - always visible at bottom */}
       <View style={styles.poweredByContainer}>
-        <CustomText style={[styles.poweredByText,globalStyles.f10Bold]}>
+        <CustomText style={[styles.poweredByText, globalStyles.f10Bold]}>
           Powered By Glansa Solutions PVT LTD
         </CustomText>
       </View>
@@ -695,7 +726,7 @@ const styles = StyleSheet.create({
     width: 250,
     height: 100,
     marginBottom: 100,
-    alignSelf: 'center'
+    alignSelf: "center",
   },
   skipButton: {
     position: "absolute",
@@ -929,8 +960,8 @@ const styles = StyleSheet.create({
     color: color.black,
   },
   otpContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 10,
     paddingHorizontal: 10,
   },
@@ -940,48 +971,48 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: color.black,
     borderRadius: 8,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     color: color.black,
     backgroundColor: color.white,
   },
   otpInputFilled: {
     borderColor: color.primary,
-    backgroundColor: '#f0f9ff',
+    backgroundColor: "#f0f9ff",
   },
   otpInputFrozen: {
     borderColor: color.primary,
-    backgroundColor: '#e0f7f4',
+    backgroundColor: "#e0f7f4",
   },
   otpLabel: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 14,
     color: color.black,
     marginBottom: 20,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   poweredByContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
     left: 0,
     right: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   poweredByText: {
     fontSize: 12,
     color: color.primary,
-    textAlign: 'center',
+    textAlign: "center",
   },
   editButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 8,
     paddingVertical: 6,
     marginLeft: 8,
     borderRadius: 6,
-    backgroundColor: 'rgba(1, 127, 119, 0.1)',
+    backgroundColor: "rgba(1, 127, 119, 0.1)",
     borderWidth: 1,
     borderColor: color.primary,
     gap: 4,
@@ -989,6 +1020,6 @@ const styles = StyleSheet.create({
   editButtonText: {
     fontSize: 12,
     color: color.primary,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });

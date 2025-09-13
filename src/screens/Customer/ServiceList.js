@@ -54,6 +54,17 @@ export default function ServiceList() {
   const [reason, setReason] = useState('');
   const [rescheduleLoading, setRescheduleLoading] = useState(false);
 
+  // Repay Schedule modal state
+  const [repayModalVisible, setRepayModalVisible] = useState(false);
+  const [repayBooking, setRepayBooking] = useState(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
+  const [repayDate, setRepayDate] = useState('');
+  const [repayTimeSlot, setRepayTimeSlot] = useState('');
+  const [repayTimeSlots, setRepayTimeSlots] = useState([]);
+  const [repayLoading, setRepayLoading] = useState(false);
+  const [repayCurrentWeekStart, setRepayCurrentWeekStart] = useState(moment().startOf("day"));
+  const [repaySelectedDate, setRepaySelectedDate] = useState(moment().startOf("day"));
+
   // Calendar and time slot state for reschedule
   const [currentWeekStart, setCurrentWeekStart] = useState(moment().startOf("day"));
   const [selectedRescheduleDate, setSelectedRescheduleDate] = useState(moment().startOf("day"));
@@ -158,73 +169,142 @@ export default function ServiceList() {
     return computed || total || 0;
   };
 
-  const openRazorpayForBooking = async (booking) => {
+  const updateBookingStatus = async (bookingID, status) => {
     try {
-      const amount = getPayableAmount(booking);
       const token = await getToken();
-
-      let orderId = null;
-      try {
-
-        const payload = {
-          bookingID: booking.BookingID,
-          BookingTrackID: booking.BookingTrackID,
-          BookingDate: booking.BookingDate,
-          TimeSlot: booking.TimeSlot,
-          PaymentMethod: "Razorpay",
-          BookingFrom: "app",
-          amount,
-        };
-
-        const res = await axios.put(
-          `${API_URL}Bookings/update-booking`,
-          payload,
-          { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
-        );
-        orderId = res?.data?.orderID || res?.data?.razorpay?.orderID || null;
-      } catch (e) {
-        console.log("create-order not available, proceeding without order_id", e?.response?.data || e?.message);
-      }
-
-      const options = {
-        description: "MyCarBuddy Service Payment",
-        image: "https://mycarsbuddy.com/logo2.png",
-        currency: "INR",
-        key: RAZORPAY_KEY,
-        amount: amount * 100,
-        name: "MyCarBuddy | powered by Glansa Solutions",
-        order_id: orderId || undefined,
-        prefill: {},
-        theme: { color: color.primary },
+      const payload = {
+        bookingID: bookingID,
+        bookingStatus: status
       };
 
-      RazorpayCheckout.open(options)
-        .then(async (data) => {
-          try {
-            const confirmPayload = {
-              bookingID: booking.BookingID,
-              amountPaid: amount,
-              razorpayPaymentId: data?.razorpay_payment_id,
-              razorpayOrderId: data?.razorpay_order_id,
-              razorpaySignature: data?.razorpay_signature,
-              paymentMode: "Razorpay",
-            };
-            await axios.post(`${API_URL}Bookings/confirm-Payment`, confirmPayload, {
-              headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-            });
-            // Refresh list
-            fetchBookings();
-          } catch (err) {
-            console.error("Payment confirmation failed:", err?.response || err);
-          }
-        })
-        .catch((err) => {
-          console.log("Payment cancelled/failed:", err?.data || err?.message || err);
-        });
+      console.log("Updating booking status:", payload);
+
+      const response = await axios.put(
+        `${API_URL}Bookings/booking-status`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Booking status update response:", response.data);
+      return response.data;
     } catch (error) {
-      console.error("Failed to initiate Razorpay:", error?.response || error);
+      console.error("Failed to update booking status:", error?.response || error);
+      throw error;
     }
   };
+
+  // const openRazorpayForBooking = async (booking) => {
+    
+  //   try {
+  //     const amount = getPayableAmount(booking);
+  //     const token = await getToken();
+  
+  //     let orderId = null;
+  //     try {
+  //       const payload = {
+  //         // bookingID: booking.BookingID,
+  //         BookingTrackID: booking.BookingTrackID,
+  //         BookingDate: booking.BookingDate,
+  //         TimeSlot: booking.TimeSlot,
+  //         PaymentMethod: "Razorpay",
+  //         BookingFrom: "app",
+  //         CouponAmount: booking.CouponAmount,
+  //         GSTAmount: booking.GSTAmount,
+  //         TotalAmount: booking.TotalPrice,
+  //       };
+  
+  //       const res = await axios.put(
+  //         `${API_URL}Bookings/update-booking`,
+  //         payload,
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${token}`,
+  //             "Content-Type": "application/json",
+  //           },
+  //         }
+  //       );
+  
+  //       orderId =
+  // res?.data?.orderID ||
+  // res?.data?.razorpay?.orderID ||
+  // res?.data?.razorpayOrderId ||
+  // null;
+  //       console.log("Order ID:", orderId);
+  //     } catch (e) {
+  //       console.log(
+  //         "create-order not available, proceeding without order_id",
+  //         e?.response?.data || e?.message
+  //       );
+  //     }
+  
+  //     const options = {
+  //       description: "MyCarBuddy Service Payment",
+  //       image: "https://mycarsbuddy.com/logo2.png",
+  //       currency: "INR",
+  //       key: RAZORPAY_KEY,
+  //       amount: amount * 100, // paise
+  //       name: "MyCarBuddy | powered by Glansa Solutions",
+  //       order_id: orderId || undefined,
+  //       prefill: {},
+  //       theme: { color: color.primary },
+  //     };
+  
+  //     RazorpayCheckout.open(options)
+  //       .then(async (data) => {
+  //         try {
+  //           const confirmPayload = {
+  //             bookingID: booking.BookingID,
+  //             amountPaid: amount,
+  //             razorpayPaymentId: data?.razorpay_payment_id,
+  //             razorpayOrderId: data?.razorpay_order_id,
+  //             razorpaySignature: data?.razorpay_signature,
+  //             paymentMode: "Razorpay",
+  //           };
+  
+  //           await axios.post(
+  //             `${API_URL}Bookings/confirm-Payment`,
+  //             confirmPayload,
+  //             {
+  //               headers: {
+  //                 Authorization: `Bearer ${token}`,
+  //                 "Content-Type": "application/json",
+  //               },
+  //             }
+  //           );
+  
+  //           // Refresh list
+  //           fetchBookings();
+  //         } catch (err) {
+  //           console.error(
+  //             "Payment confirmation failed:",
+  //             err?.response?.data || err.message || err
+  //           );
+  //         }
+  //       })
+  //       .catch(async (err) => {
+  //         try {
+  //           await updateBookingStatus(booking.BookingID, "Failed"); // ✅ fixed
+  //         } catch (statusErr) {
+  //           console.warn("Failed to update booking status:", statusErr.message);
+  //         }
+  //         console.log(
+  //           "Payment cancelled/failed:",
+  //           err?.data || err?.message || err
+  //         );
+  //       });
+  //   } catch (error) {
+  //     console.error(
+  //       "Failed to initiate Razorpay:",
+  //       error?.response?.data || error.message || error
+  //     );
+  //   }
+  // };
+  
 
   const counts = {
     New: (bookings || []).filter((b) => {
@@ -337,6 +417,12 @@ export default function ServiceList() {
     }
   }, [selectedRescheduleDate, rescheduleModalVisible]);
 
+  useEffect(() => {
+    if (repayModalVisible) {
+      fetchRepayTimeSlots();
+    }
+  }, [repaySelectedDate, repayModalVisible]);
+
   // Keyboard event listeners
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
@@ -422,6 +508,251 @@ export default function ServiceList() {
     setSelectedRescheduleTimes([]);
     setRescheduleTimeError('');
     setShowReasonOnly(false);
+  };
+
+  // Repay Schedule Functions
+  const handleRepaySchedule = (booking) => {
+    console.log('Opening repay schedule modal for booking:', booking);
+    setRepayBooking(booking);
+    setSelectedPaymentMethod('');
+    setRepayDate('');
+    setRepayTimeSlot('');
+    setRepayTimeSlots([]);
+    setRepayCurrentWeekStart(moment().startOf("day"));
+    setRepaySelectedDate(moment().startOf("day"));
+    setRepayModalVisible(true);
+  };
+
+  const getRepayWeekDates = () => {
+    return [...Array(7)].map((_, i) => repayCurrentWeekStart.clone().add(i, "days"));
+  };
+
+  const goToRepayNextWeek = () => {
+    const nextWeekStart = repayCurrentWeekStart.clone().add(7, "days");
+    setRepayCurrentWeekStart(nextWeekStart);
+    setRepaySelectedDate(nextWeekStart);
+  };
+
+  const goToRepayPreviousWeek = () => {
+    const prevWeekStart = repayCurrentWeekStart.clone().subtract(7, "days");
+    const today = moment().startOf("day");
+    if (!prevWeekStart.isBefore(today)) {
+      setRepayCurrentWeekStart(prevWeekStart);
+      setRepaySelectedDate(prevWeekStart);
+    }
+  };
+
+  const isRepayAtCurrentWeek = repayCurrentWeekStart.isSame(moment().startOf("day"), "day");
+
+  const fetchRepayTimeSlots = async () => {
+    try {
+      const response = await axios.get(`${API_URL}TimeSlot`);
+      const sDate = repaySelectedDate.format("YYYY-MM-DD");
+      const currentDate = moment().format("YYYY-MM-DD");
+
+      const slots = response.data
+        .filter((slot) => slot.Status)
+        .filter((slot) => {
+          if (currentDate === sDate) {
+            const startTime = moment(slot.StartTime, "HH:mm:ss");
+            const minTime = moment().add(2, 'hours');
+            return startTime.isAfter(minTime);
+          } else {
+            return true;
+          }
+        })
+        .sort((a, b) => {
+          return moment(a.StartTime, "HH:mm:ss").diff(
+            moment(b.StartTime, "HH:mm:ss")
+          );
+        })
+        .map((slot) => ({
+          ...slot,
+          label: `${moment(slot.StartTime, "HH:mm:ss").format(
+            "hh:mm A"
+          )} - ${moment(slot.EndTime, "HH:mm:ss").format("hh:mm A")}`,
+        }));
+
+      setRepayTimeSlots(slots);
+    } catch (error) {
+      console.error("Failed to fetch repay time slots:", error);
+    }
+  };
+
+  const submitRepaySchedule = async () => {
+    if (!selectedPaymentMethod) {
+      console.log('Error: Please select a payment method');
+      return;
+    }
+
+    if (!repayTimeSlot) {
+      console.log('Error: Please select a time slot');
+      return;
+    }
+
+    setRepayLoading(true);
+    try {
+      const token = await getToken();
+      const userData = await AsyncStorage.getItem("userData");
+      const parsedData = JSON.parse(userData);
+      const custID = parsedData?.custID;
+
+      if (selectedPaymentMethod === 'online') {
+        // For online payment, process Razorpay payment first
+        await processRepayRazorpayPayment(repayBooking);
+      } else {
+        const formData = new FormData();
+        formData.append("BookingTrackID", repayBooking.BookingTrackID);
+        formData.append("BookingDate", repaySelectedDate.format("YYYY-MM-DD"));
+        formData.append(
+          "TimeSlot",
+          repayTimeSlots.find(slot => slot.TsID === repayTimeSlot)?.label || ''
+        );
+        formData.append("PaymentMethod", "COS");
+        formData.append("BookingFrom", "app");
+        formData.append("CouponAmount", repayBooking.CouponAmount);
+        formData.append("GSTAmount", repayBooking.GSTAmount);
+        formData.append("TotalAmount", repayBooking.TotalPrice);
+  
+        const res = await axios.put(
+          `${API_URL}Bookings/update-booking`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+    
+
+        console.log('Repay schedule response:', res.data);
+
+        // Close modal and refresh bookings on success
+        setRepayModalVisible(false);
+        fetchBookings();
+      }
+
+    } catch (error) {
+      console.error('Repay schedule failed:', error?.response || error);
+    } finally {
+      setRepayLoading(false);
+    }
+  };
+
+  const processRepayRazorpayPayment = async (booking) => {
+    try {
+      const amount = getPayableAmount(booking);
+      const token = await getToken();
+
+      let orderId = null;
+      try {
+        // Build FormData for update-booking
+        const formData = new FormData();
+        formData.append("BookingTrackID", booking.BookingTrackID);
+        formData.append("BookingDate", repaySelectedDate.format("YYYY-MM-DD"));
+        formData.append(
+          "TimeSlot",
+          repayTimeSlots.find((slot) => slot.TsID === repayTimeSlot)?.label || ""
+        );
+        formData.append("PaymentMethod", "Razorpay");
+        formData.append("BookingFrom", "app");
+        formData.append("CouponAmount", booking.CouponAmount);
+        formData.append("GSTAmount", booking.GSTAmount);
+        formData.append("TotalAmount", booking.TotalPrice);
+  
+        const res = await axios.put(
+          `${API_URL}Bookings/update-booking`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+  
+        orderId = res?.data?.orderID || res?.data?.razorpay?.orderID || null;
+      } catch (e) {
+        console.log(
+          "create-order not available, proceeding without order_id",
+          e?.response?.data || e?.message
+        );
+      }
+      
+      const options = {
+        description: "MyCarBuddy Service Repay Payment",
+        image: "https://mycarsbuddy.com/logo2.png",
+        currency: "INR",
+        key: RAZORPAY_KEY,
+        amount: amount * 100, // paise
+        name: "MyCarBuddy | powered by Glansa Solutions",
+        order_id: orderId || undefined,
+        prefill: {},
+        theme: { color: color.primary },
+      };
+
+      RazorpayCheckout.open(options)
+        .then(async (data) => {
+          try {
+            const confirmPayload = {
+              bookingID: booking.BookingID,
+              amountPaid: amount,
+              razorpayPaymentId: data?.razorpay_payment_id,
+              razorpayOrderId: data?.razorpay_order_id,
+              razorpaySignature: data?.razorpay_signature,
+              paymentMode: "Razorpay",
+              scheduledDate: repaySelectedDate.format("YYYY-MM-DD"),
+              timeSlot: repayTimeSlots.find(slot => slot.TsID === repayTimeSlot)?.label || '',
+            };
+
+            await axios.post(
+              `${API_URL}Bookings/confirm-Payment`,
+              confirmPayload,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            // Close modal and refresh bookings
+            setRepayModalVisible(false);
+            fetchBookings();
+          } catch (err) {
+            console.error(
+              "Payment confirmation failed:",
+              err?.response?.data || err.message || err
+            );
+          }
+        })
+        .catch(async (err) => {
+          try {
+            await updateBookingStatus(booking.BookingID, "Failed");
+          } catch (statusErr) {
+            console.warn("Failed to update booking status:", statusErr.message);
+          }
+          console.log(
+            "Payment cancelled/failed:",
+            err?.data || err?.message || err
+          );
+        });
+    } catch (error) {
+      console.error(
+        "Failed to initiate Razorpay:",
+        error?.response?.data || error.message || error
+      );
+    }
+  };
+
+  const closeRepayModal = () => {
+    setRepayModalVisible(false);
+    setRepayBooking(null);
+    setSelectedPaymentMethod('');
+    setRepayDate('');
+    setRepayTimeSlot('');
+    setRepayTimeSlots([]);
   };
 
   const SkeletonLoader = () => (
@@ -967,12 +1298,29 @@ export default function ServiceList() {
                       </View>
                     </View>
                     <TouchableOpacity
-                      onPress={() => openRazorpayForBooking(booking)}
+                      onPress={() => {
+                        const bookingDate = moment(booking.BookingDate);
+                        const today = moment().startOf("day");
+                        
+                        // if (bookingDate.isSame(today, "day")) {
+                        //   // Same day - proceed with immediate payment
+                        //   openRazorpayForBooking(booking);
+                        // } else {
+                        //   // After booking date - show repay schedule modal
+                          handleRepaySchedule(booking);
+                        // }
+                      }}
                       style={styles.resumeBtn}
                       activeOpacity={0.9}
                     >
                       <Ionicons name="refresh-outline" size={16} color={color.black} style={{ marginRight: 6 }} />
-                      <CustomText style={[globalStyles.f12Bold, { color: color.black }]}>Pay Now</CustomText>
+                      <CustomText style={[globalStyles.f12Bold, { color: color.black }]}>
+                        {(() => {
+                          const bookingDate = moment(booking.BookingDate);
+                          const today = moment().startOf("day");
+                          return bookingDate.isSame(today, "day") ? "Pay Now" : "Repay Schedule";
+                        })()}
+                      </CustomText>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -1244,6 +1592,285 @@ export default function ServiceList() {
                 </TouchableOpacity>
               </View>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Repay Schedule Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={repayModalVisible}
+        onRequestClose={closeRepayModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.rescheduleModalContent}>
+            <View style={styles.modalHeader}>
+              <CustomText style={[globalStyles.f14Bold, { color: color.primary }]}>
+                Repay Schedule
+              </CustomText>
+              <TouchableOpacity onPress={closeRepayModal} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color={color.black} />
+              </TouchableOpacity>
+            </View>
+
+            {repayBooking && (
+              <View style={styles.bookingInfo}>
+                <CustomText style={[globalStyles.f10Bold, { color: color.primary, marginBottom: 8 }]}>
+                  Booking Details:
+                </CustomText>
+                <CustomText style={[globalStyles.f12Bold, { color: color.black, marginBottom: 4 }]}>
+                  BID: {repayBooking.BookingTrackID}
+                </CustomText>
+                <CustomText style={[globalStyles.f10Regular, { color: color.muted, marginBottom: 4 }]}>
+                  Original Date: {formatDate(repayBooking.BookingDate)}
+                </CustomText>
+                <CustomText style={[globalStyles.f10Regular, { color: color.muted, marginBottom: 4 }]}>
+                  Amount: ₹{getPayableAmount(repayBooking)}
+                </CustomText>
+              </View>
+            )}
+
+            {/* Payment Method Selection */}
+            <View style={styles.paymentMethodSection}>
+              <CustomText style={[globalStyles.f12Bold, { color: color.black, marginBottom: 12 }]}>
+                Select Payment Method
+              </CustomText>
+              
+              <TouchableOpacity
+                style={[
+                  styles.paymentMethodOption,
+                  selectedPaymentMethod === 'cash' && styles.selectedPaymentMethod
+                ]}
+                onPress={() => setSelectedPaymentMethod('cash')}
+              >
+                <View style={styles.paymentMethodContent}>
+                  <Ionicons 
+                    name="cash-outline" 
+                    size={24} 
+                    color={selectedPaymentMethod === 'cash' ? color.primary : color.muted} 
+                  />
+                  <View style={styles.paymentMethodText}>
+                    <CustomText style={[
+                      globalStyles.f12Bold, 
+                      { color: selectedPaymentMethod === 'cash' ? color.primary : color.black }
+                    ]}>
+                      Cash on Service
+                    </CustomText>
+                    <CustomText style={[globalStyles.f10Regular, { color: color.muted }]}>
+                      Pay when technician arrives
+                    </CustomText>
+                  </View>
+                </View>
+                {selectedPaymentMethod === 'cash' && (
+                  <Ionicons name="checkmark-circle" size={20} color={color.primary} />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.paymentMethodOption,
+                  selectedPaymentMethod === 'online' && styles.selectedPaymentMethod
+                ]}
+                onPress={() => setSelectedPaymentMethod('online')}
+              >
+                <View style={styles.paymentMethodContent}>
+                  <Ionicons 
+                    name="card-outline" 
+                    size={24} 
+                    color={selectedPaymentMethod === 'online' ? color.primary : color.muted} 
+                  />
+                  <View style={styles.paymentMethodText}>
+                    <CustomText style={[
+                      globalStyles.f12Bold, 
+                      { color: selectedPaymentMethod === 'online' ? color.primary : color.black }
+                    ]}>
+                      Online Payment
+                    </CustomText>
+                    <CustomText style={[globalStyles.f10Regular, { color: color.muted }]}>
+                      Pay now with Razorpay
+                    </CustomText>
+                  </View>
+                </View>
+                {selectedPaymentMethod === 'online' && (
+                  <Ionicons name="checkmark-circle" size={20} color={color.primary} />
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* Calendar Section - Only show if payment method is selected */}
+            {selectedPaymentMethod && (
+              <View style={styles.calendarSection}>
+                <CustomText style={[globalStyles.f12Bold, { color: color.black, marginBottom: 12 }]}>
+                  Select Service Date
+                </CustomText>
+
+                <View style={styles.calendarHeader}>
+                  <CustomText style={[globalStyles.f12Bold, { color: color.black }]}>
+                    {repayCurrentWeekStart.format("MMMM")}
+                  </CustomText>
+                  <View style={{ flexDirection: "row", gap: 8 }}>
+                    <TouchableOpacity
+                      onPress={goToRepayPreviousWeek}
+                      disabled={isRepayAtCurrentWeek}
+                      style={[
+                        styles.weekNavButton,
+                        { backgroundColor: isRepayAtCurrentWeek ? "#eee" : "#b9b7b7ff" }
+                      ]}
+                    >
+                      <Ionicons
+                        name="chevron-back"
+                        size={20}
+                        color={isRepayAtCurrentWeek ? "#ccc" : "#000"}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={goToRepayNextWeek}
+                      style={[styles.weekNavButton, { backgroundColor: "#b9b7b7ff" }]}
+                    >
+                      <Ionicons name="chevron-forward" size={20} color="#000" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={styles.weekDatesContainer}>
+                  {getRepayWeekDates().map((date) => {
+                    const isSelected = date.isSame(repaySelectedDate, "day");
+                    const isPast = date.isBefore(moment().startOf("day"));
+                    return (
+                      <TouchableOpacity
+                        key={date.format("YYYY-MM-DD")}
+                        style={styles.dateButton}
+                        onPress={() => setRepaySelectedDate(date)}
+                        disabled={isPast}
+                      >
+                        <CustomText
+                          style={[
+                            { color: isSelected ? color.secondary : isPast ? "#ccc" : "black" },
+                            globalStyles.f10Bold,
+                          ]}
+                        >
+                          {date.format("dd").charAt(0)}
+                        </CustomText>
+                        <View
+                          style={[
+                            styles.dateCircle,
+                            {
+                              backgroundColor: isSelected ? color.primary : isPast ? "#f0f0f0" : "#F0F0F0",
+                            }
+                          ]}
+                        >
+                          <CustomText
+                            style={[
+                              { color: isSelected ? "#fff" : isPast ? "#ccc" : "#000" },
+                              globalStyles.f10Bold,
+                            ]}
+                          >
+                            {date.format("DD")}
+                          </CustomText>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            {/* Time Slots Section - Show for both payment methods */}
+            {selectedPaymentMethod && (
+              <View style={styles.timeSlotsSection}>
+                <View style={styles.timeSlotHeader}>
+                  <CustomText style={[globalStyles.f12Bold, { color: color.black }]}>
+                    Select Time Slot
+                  </CustomText>
+                  {repayTimeSlot && (
+                    <View style={styles.selectedSlotIndicator}>
+                      <Ionicons name="checkmark-circle" size={16} color={color.primary} />
+                      <CustomText style={[globalStyles.f10Bold, { color: color.primary, marginLeft: 4 }]}>
+                        Selected
+                      </CustomText>
+                    </View>
+                  )}
+                </View>
+
+                {repayTimeSlots.length > 0 ? (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.timeSlotContainer}
+                  >
+                    {repayTimeSlots.map((slot) => (
+                      <TouchableOpacity
+                        key={slot.TsID}
+                        style={[
+                          styles.timeSlot,
+                          repayTimeSlot === slot.TsID && styles.selectedTimeSlot,
+                        ]}
+                        onPress={() => setRepayTimeSlot(slot.TsID)}
+                      >
+                        <CustomText
+                          style={[
+                            {
+                              color: repayTimeSlot === slot.TsID ? "white" : color.secondary,
+                            },
+                            globalStyles.f10Bold,
+                          ]}
+                        >
+                          {slot.label}
+                        </CustomText>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                ) : (
+                  <View style={styles.noSlotsContainer}>
+                    <Ionicons name="time-outline" size={24} color="#856404" />
+                    <CustomText style={[globalStyles.f14Bold, { color: "#856404", marginTop: 8 }]}>
+                      No available slots
+                    </CustomText>
+                    <CustomText style={[globalStyles.f12Regular, { color: "#856404", marginTop: 4 }]}>
+                      Please select another date
+                    </CustomText>
+                  </View>
+                )}
+              </View>
+            )}
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                onPress={closeRepayModal}
+                style={[styles.modalButton, styles.cancelButton]}
+                disabled={repayLoading}
+              >
+                <CustomText style={[globalStyles.f12Bold, { color: color.black }]}>
+                  Cancel
+                </CustomText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={submitRepaySchedule}
+                style={[
+                  styles.modalButton, 
+                  selectedPaymentMethod === 'cash' ? styles.cosButton : styles.submitButton
+                ]}
+                disabled={repayLoading || !selectedPaymentMethod || !repayTimeSlot}
+              >
+                {repayLoading ? (
+                  <ActivityIndicator size="small" color={color.white} />
+                ) : (
+                  <>
+                    <Ionicons 
+                      name={selectedPaymentMethod === 'cash' ? "cash" : "card"} 
+                      size={16} 
+                      color={color.white} 
+                      style={{ marginRight: 6 }} 
+                    />
+                    <CustomText style={[globalStyles.f12Bold, { color: color.white }]}>
+                      {selectedPaymentMethod === 'cash' ? 'Proceed Cash' : 'Proceed Online'}
+                    </CustomText>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -1593,11 +2220,16 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 14,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   cancelButton: {
     backgroundColor: '#f5f5f5',
@@ -1605,6 +2237,10 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: color.primary,
+    marginLeft: 10,
+  },
+  cosButton: {
+    backgroundColor: color.secondary,
     marginLeft: 10,
   },
   rescheduleModalContent: {
@@ -1687,5 +2323,56 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     width: '100%',
+  },
+  paymentMethodSection: {
+    marginBottom: 20,
+  },
+  paymentMethodOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    marginBottom: 12,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  selectedPaymentMethod: {
+    borderColor: color.primary,
+    backgroundColor: '#f0f9ff',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  paymentMethodContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  paymentMethodText: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  timeSlotHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  selectedSlotIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f9ff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: color.primary,
   },
 });

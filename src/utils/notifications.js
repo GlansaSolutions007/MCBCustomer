@@ -47,7 +47,7 @@ export async function saveCustomerPushToken(customerId, tokens) {
     console.log('✅ All push tokens saved successfully');
   } catch (error) {
     console.error('❌ Error saving push tokens to Firebase:', error);
-    console.error('Error details:', {
+    console.error('Error detailsasdsdasdasd:', {
       code: error.code,
       message: error.message,
       customerId,
@@ -88,7 +88,7 @@ export async function saveOrUpdateCustomerFcmToken(customerId, fcmToken) {
     return true;
   } catch (error) {
     console.error('❌ Error upserting current FCM token:', error);
-    console.error('Error details:', {
+    console.error('Error detailssdddasdasdasdasdadasdasdae3444:', {
       code: error.code,
       message: error.message,
       customerId,
