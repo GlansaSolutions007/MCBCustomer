@@ -43,6 +43,7 @@ export default {
         },
       },
       usesCleartextTraffic: true,
+      userInterfaceStyle: "automatic",
     },
     web: {
       favicon: "./assets/favicon.png",

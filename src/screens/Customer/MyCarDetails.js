@@ -28,7 +28,8 @@ import CustomDropdown from "../../components/CustomDropdown";
 // import { API_BASE_URL } from '@env';
 import { API_URL } from "@env";
 import AntDesign from '@expo/vector-icons/AntDesign';
-import { Ionicons } from '@expo/vector-icons';
+// import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -316,6 +317,7 @@ export const MyCarDetails = () => {
                     {/* Vehicle Information Section */}
                     <View style={styles.sectionContainer}>
                       <View style={[globalStyles.flexrow, globalStyles.alineItemscenter, globalStyles.mb3]}>
+                      
                         <Ionicons name="information-circle" size={16} color={color.primary} style={globalStyles.mr1} />
                         <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack]}>
                           Vehicle Information
@@ -630,7 +632,7 @@ export const MyCarDetails = () => {
                           onPress={() => setPrivacyModalVisible(true)}
                           style={globalStyles.p1}
                         >
-                          <AntDesign name="infocirlceo" size={18} color={color.primary} />
+                          <Ionicons name="information-circle-outline" size={18} color={color.primary} />
                         </TouchableOpacity>
                       </View>
                     </View>
