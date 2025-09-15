@@ -118,13 +118,10 @@ export default function CustomerTabNavigator() {
           />
         ),
         tabBarIcon: ({ color, focused }) => {
-          // if (route.name === "My Car Buddy") {
-          //   return <AnimatedLogo focused={focused} />;
-          // }
 
           let iconName;
           switch (route.name) {
-            case "My Car Buddy":
+            case "Home":
               iconName = "home-outline";
               break;
             case "My Cars":
@@ -145,10 +142,18 @@ export default function CustomerTabNavigator() {
 
           return <AnimatedIcon name={iconName} color={color} focused={focused} />;
         },
-        tabBarLabel: route.name === "My Car Buddy" ? () => null : undefined,
+        tabBarLabel: undefined,
       })}
     >
-      <Tab.Screen name="My Car Buddy" component={HomeStack} />
+      <Tab.Screen 
+        name="Home" 
+        component={HomeStack}
+        listeners={({ navigation }) => ({
+          tabPress: () => {
+            navigation.navigate('Home', { screen: 'HomeScreen' });
+          },
+        })}
+      />
       <Tab.Screen name="My Cars" component={MyCarsStack} options={{ unmountOnBlur: true }} />
       <Tab.Screen name="Services" component={ServicesStack} />
       <Tab.Screen name="My Bookings" component={BookingsStack} />
