@@ -21,7 +21,7 @@ import globalStyles from "../../styles/globalStyles";
 import { color } from "../../styles/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "@env";
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
 export default function InvoiceListScreen() {
@@ -417,23 +417,47 @@ export default function InvoiceListScreen() {
                 </View>
 
                 {invoice.FolderPath && (
-                  <TouchableOpacity
-                    style={[
-                      styles.downloadButton,
-                      downloadingInvoice === invoice.PaymentID && styles.downloadButtonDisabled
-                    ]}
-                    onPress={() => downloadInvoice(invoice)}
-                    disabled={downloadingInvoice === invoice.PaymentID}
-                  >
-                    {downloadingInvoice === invoice.PaymentID ? (
-                      <ActivityIndicator size="small" color="white" />
-                    ) : (
-                      <Ionicons name="download" size={20} color="white" />
-                    )}
-                    <CustomText style={styles.downloadButtonText}>
-                      {downloadingInvoice === invoice.PaymentID ? "Downloading..." : "Download Invoice"}
-                    </CustomText>
-                  </TouchableOpacity>
+                  <View style={styles.actionRow}>
+                    <TouchableOpacity
+                      style={styles.viewButton}
+                      onPress={async () => {
+                        try {
+                          const canOpen = await Linking.canOpenURL(invoice.FolderPath);
+                          if (canOpen) {
+                            await Linking.openURL(invoice.FolderPath);
+                          } else {
+                            throw new Error('Cannot open invoice link');
+                          }
+                        } catch (e) {
+                          setAlertTitle('Error');
+                          setAlertMessage('Unable to open invoice. Please try download instead.');
+                          setAlertStatus('error');
+                          setShowAlert(true);
+                        }
+                      }}
+                    >
+                      <Ionicons name="eye" size={20} color={color.primary} />
+                      <CustomText style={styles.viewButtonText}>View</CustomText>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.downloadButton,
+                        downloadingInvoice === invoice.PaymentID && styles.downloadButtonDisabled
+                      ]}
+                      onPress={() => downloadInvoice(invoice)}
+                      disabled={downloadingInvoice === invoice.PaymentID}
+                    >
+                      {downloadingInvoice === invoice.PaymentID ? (
+                        <ActivityIndicator size="small" color="white" />
+                      ) : (
+                        <Ionicons name="download" size={20} color="white" />
+                      )}
+                      <CustomText style={styles.downloadButtonText}>
+                        {downloadingInvoice === invoice.PaymentID ? "Downloading..." : "Download"}
+                      </CustomText>
+                    </TouchableOpacity>
+                  </View>
                 )}
               </View>
             ))}
@@ -567,6 +591,7 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   downloadButton: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -583,5 +608,25 @@ const styles = StyleSheet.create({
     ...globalStyles.f14Bold,
     color: "white",
     marginLeft: 8,
+  },
+  viewButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#F1F5F9',
+  },
+  viewButtonText: {
+    ...globalStyles.f14Bold,
+    color: color.primary,
+    marginLeft: 6,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
 });

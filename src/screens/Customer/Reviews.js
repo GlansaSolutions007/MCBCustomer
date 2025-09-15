@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, TextInput, TouchableOpacity, ScrollView, Animated, KeyboardAvoidingView, Platform, Alert } from "react-native";
+import { View, TextInput, TouchableOpacity, ScrollView, Animated, KeyboardAvoidingView, Platform, Alert, StatusBar } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import CustomText from "../../components/CustomText";
 import globalStyles from "../../styles/globalStyles";
@@ -168,6 +168,10 @@ export default function ReviewsPage({ route }) {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <StatusBar
+          backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
+          barStyle="dark-content"
+        />
         <View style={styles.header}>
           <CustomText style={styles.headerText}>
             {existingReview ? 'Your Submitted Review' : 'Share Your Experience'}
