@@ -16,6 +16,7 @@ import {
   ImageBackground,
   Alert,
   ActivityIndicator,
+  AppState,
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { color } from "../../styles/theme";
@@ -65,6 +66,30 @@ const CartPage = () => {
   const scrollViewRef = useRef(null);
   const [customerDetailsY, setCustomerDetailsY] = useState(0);
   const isFetching = useRef(false);
+  const appState = useRef(AppState.currentState);
+
+  const PENDING_PAYMENT_KEY = "pendingPayment";
+
+  const setPendingPayment = async (data) => {
+    try {
+      await AsyncStorage.setItem(PENDING_PAYMENT_KEY, JSON.stringify({ ...data, createdAt: Date.now() }));
+    } catch {}
+  };
+
+  const clearPendingPayment = async () => {
+    try {
+      await AsyncStorage.removeItem(PENDING_PAYMENT_KEY);
+    } catch {}
+  };
+
+  const getPendingPayment = async () => {
+    try {
+      const raw = await AsyncStorage.getItem(PENDING_PAYMENT_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  };
 
   const showCustomAlert = (status, title, message, onCloseCallback = () => { }) => {
     // Use setTimeout to ensure the alert shows immediately after state updates
@@ -110,6 +135,53 @@ const CartPage = () => {
     };
     getPrimaryVehicle();
   }, []);
+
+  // Reconcile pending payment when app returns to foreground and on focus
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", async (next) => {
+      if (appState.current.match(/inactive|background/) && next === "active") {
+        await reconcilePendingPayment();
+      }
+      appState.current = next;
+    });
+    return () => sub.remove();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      reconcilePendingPayment();
+    }, [])
+  );
+
+  const reconcilePendingPayment = async () => {
+    try {
+      const pending = await getPendingPayment();
+      if (!pending) return;
+
+      const userData = await AsyncStorage.getItem("userData");
+      const user = JSON.parse(userData || "null");
+      if (!user?.custID) return;
+
+      const res = await axios.get(`${API_URL}Bookings/${user.custID}`);
+      const list = Array.isArray(res.data) ? res.data : [];
+      const found = list.find((b) => b.BookingID === pending.bookingID);
+
+      if (found && Array.isArray(found.Payments) && found.Payments.length > 0) {
+        await clearPendingPayment();
+        showCustomAlert(
+          "success",
+          "Payment Successful",
+          `Booking Track ID: ${found.BookingTrackID}\nYour booking is confirmed!`
+        );
+        setTimeout(() => {
+          clearCart();
+          navigation.navigate("My Bookings", { screen: "ServiceList" });
+        }, 1200);
+      }
+    } catch (e) {
+      console.log("reconcilePendingPayment error", e?.message || e);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -532,8 +604,8 @@ const CartPage = () => {
 
         setTimeout(() => {
           clearCart();
-          navigation.navigate("CustomerTabNavigator", {
-            screen: "My Bookings",
+          navigation.navigate("My Bookings", {
+            screen: "ServiceList",
           });
         }, 1500);
       }
@@ -593,7 +665,8 @@ const CartPage = () => {
     }
   };
 
-  const handlePayment = (orderid, bookingID) => {
+  const handlePayment = async (orderid, bookingID) => {
+    await setPendingPayment({ orderId: orderid, bookingID, amount: finalAmount });
     const options = {
       description: "MyCarBuddy Service Payment",
       image: "https://mycarsbuddy.com/logo2.png",
@@ -643,6 +716,7 @@ const CartPage = () => {
             );
 
             console.log("Confirm payment API response:", confirmResponse.data);
+            await clearPendingPayment();
 
             // Show success alert immediately with BookingTrackID
             showCustomAlert(
@@ -651,15 +725,15 @@ const CartPage = () => {
               `Booking Track ID: ${bookingTrackId}\nYour booking is confirmed!`
             );
 
-            // Clean up storage and navigate after a shorter delay
+            // Clean up storage and navigate after a short delay
             setTimeout(async () => {
               await AsyncStorage.removeItem("selectedDate");
               await AsyncStorage.removeItem("selectedTimeSlotLabel");
               clearCart();
-              navigation.navigate("CustomerTabNavigator", {
-                screen: "My Bookings",
+              navigation.navigate("My Bookings", {
+                screen: "ServiceList",
               });
-            }, 1500);
+            }, 800);
           } catch (error) {
             console.error(
               "Payment confirmation failed:",
@@ -688,6 +762,7 @@ const CartPage = () => {
             console.error("Failed to update booking status:", statusError);
           }
 
+          await clearPendingPayment();
           // Show appropriate message based on error type
           if (error.data?.code === 'BAD_REQUEST_ERROR' && error.data?.description?.includes('cancelled')) {
             showCustomAlert(
@@ -821,8 +896,8 @@ const CartPage = () => {
               elevation: 5,
             }}
             onPress={() =>
-              navigation.navigate("CustomerTabNavigator", {
-                screen: "Services",
+              navigation.navigate("Services", {
+                screen: "BookServiceScreen",
               })
             }
           >

@@ -17,6 +17,7 @@ import {
   Text,
   KeyboardAvoidingView,
   Keyboard,
+  AppState,
 } from "react-native";
 import moment from "moment";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -28,6 +29,7 @@ import { color } from "../../styles/theme";
 import globalStyles from "../../styles/globalStyles";
 import { API_URL, RAZORPAY_KEY, API_IMAGE_URL } from "@env";
 import RazorpayCheckout from "react-native-razorpay";
+import * as Notifications from "expo-notifications";
 import { getToken } from "../../utils/token";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
@@ -46,12 +48,15 @@ export default function ServiceList() {
   const navigation = useNavigation();
   const tabs = ["New", "Completed", "Cancelled"];
   const { refreshing, onRefresh } = useGlobalRefresh(fetchBookings);
+  const isFetchingRef = useRef(false);
+  const appState = useRef(AppState.currentState);
 
   // Reschedule modal state
   const [rescheduleModalVisible, setRescheduleModalVisible] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [newDate, setNewDate] = useState('');
   const [reason, setReason] = useState('');
+  const [reasonError, setReasonError] = useState("");
   const [rescheduleLoading, setRescheduleLoading] = useState(false);
 
   // Repay Schedule modal state
@@ -82,6 +87,10 @@ export default function ServiceList() {
   }, []);
 
   const fetchBookings = useCallback(async () => {
+    if (isFetchingRef.current) {
+      return;
+    }
+    isFetchingRef.current = true;
     setLoading(true);
     try {
       const userData = await AsyncStorage.getItem("userData");
@@ -126,6 +135,7 @@ export default function ServiceList() {
       setBookings([]);
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   }, []);
 
@@ -134,8 +144,46 @@ export default function ServiceList() {
     useCallback(() => {
       console.log("Screen focused, fetching bookings...");
       fetchBookings();
+      return () => {};
     }, [fetchBookings])
   );
+
+  // Refresh when app returns to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (appState.current.match(/inactive|background/) && nextAppState === "active") {
+        fetchBookings();
+      }
+      appState.current = nextAppState;
+    });
+    return () => {
+      subscription.remove();
+    };
+  }, [fetchBookings]);
+
+  // Realtime: Listen for booking status change notifications and update UI
+  useEffect(() => {
+    const sub = Notifications.addNotificationReceivedListener((notification) => {
+      try {
+        const data = notification?.request?.content?.data || {};
+        if (data?.event === "booking_status_changed" && data?.bookingId) {
+          const newStatus = (data?.status || "").toString();
+          setBookings((prev) => {
+            return (prev || []).map((b) =>
+              b.BookingID === data.bookingId
+                ? { ...b, BookingStatus: newStatus }
+                : b
+            );
+          });
+        }
+      } catch (e) {
+        console.log("notification parse error", e?.message || e);
+      }
+    });
+    return () => {
+      try { sub && Notifications.removeNotificationSubscription(sub); } catch {}
+    };
+  }, []);
 
   // useEffect(() => {
   //   fetchBookings();
@@ -442,8 +490,11 @@ export default function ServiceList() {
 
   const submitReschedule = async () => {
     if (!reason.trim()) {
+      setReasonError("Please provide a reason for rescheduling.");
       console.log('Error: Please provide a reason for rescheduling');
       return;
+    } else {
+      setReasonError("");
     }
 
     if (selectedRescheduleTimes.length === 0) {
@@ -1048,16 +1099,12 @@ export default function ServiceList() {
           </View>
         ) : (
           filteredBookings.map((booking, index) => (
-            <Pressable
+            <View
               key={booking.BookingID}
               style={[
                 styles.bookingCard,
                 (booking.BookingStatus || '').toLowerCase() === 'startjourney' && booking.TechID !== null ? styles.journeyCard : null,
               ]}
-              disabled={booking.BookingStatus?.toLowerCase() === "failed"}
-              onPress={() =>
-                navigation.navigate("BookingsInnerPage", { booking })
-              }
             >
               <View>
                 <View style={styles.bookingR1}>
@@ -1365,7 +1412,7 @@ export default function ServiceList() {
                   </>
                 )}
               </View>
-            </Pressable>
+            </View>
           ))
         )}
       </ScrollView>
@@ -1553,13 +1600,32 @@ export default function ServiceList() {
               <TextInput
                 style={styles.reasonInput}
                 value={reason}
-                onChangeText={setReason}
+                onChangeText={(t) => {
+                  setReason(t);
+                  if (t && t.trim().length > 0) {
+                    setReasonError("");
+                  }
+                }}
                 placeholder="Please provide a reason for rescheduling..."
                 placeholderTextColor={color.muted}
-                multiline={true}
-                numberOfLines={showReasonOnly ? 8 : 3}
+                multiline={!isKeyboardVisible}
+                numberOfLines={isKeyboardVisible ? 1 : (showReasonOnly ? 8 : 3)}
                 textAlignVertical="top"
+                returnKeyType="done"
+                blurOnSubmit={true}
+                onSubmitEditing={() => {
+                  if (reason && reason.trim().length > 0) {
+                    submitReschedule();
+                  } else {
+                    Keyboard.dismiss();
+                  }
+                }}
               />
+              {reasonError ? (
+                <CustomText style={[globalStyles.f12Regular, { color: 'red', marginTop: 6 }]}>
+                  {reasonError}
+                </CustomText>
+              ) : null}
             </View>
 
             {!showReasonOnly && (

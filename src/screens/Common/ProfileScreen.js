@@ -270,9 +270,7 @@ export default function ProfileScreen() {
                   <TouchableOpacity
                     style={styles.eachTouchable}
                     onPress={() =>
-                      navigation.navigate("CustomerTabNavigator", {
-                        screen: "My Cars",
-                      })
+                      navigation.navigate("My Cars", { screen: "MyCarsList" })
                     }
                   >
                     <View style={styles.row}>
@@ -291,35 +289,35 @@ export default function ProfileScreen() {
                   </TouchableOpacity>
                   <View style={styles.divider} />
                 </View>
-                <View style={styles.profileDetails}>
-              <TouchableOpacity
-                style={styles.eachTouchable}
-                onPress={() => navigation.navigate("NotificationSettings")}
-              >
-                <View style={styles.row}>
-                  <Ionicons
-                    name="notifications"
-                    size={22}
-                    color={color.primary}
-                  />
-                  <CustomText
-                    style={[styles.touchableText, globalStyles.f16Medium]}
+                {/* <View style={styles.profileDetails}>
+                  <TouchableOpacity
+                    style={styles.eachTouchable}
+                    onPress={() => navigation.navigate("NotificationSettings")}
                   >
-                    Notifications Settings
-                  </CustomText>
-                </View>
-                <Ionicons
-                  name="chevron-forward-outline"
-                  size={20}
-                  color={color.primary}
-                />
-              </TouchableOpacity>
-              <View style={styles.divider} />
-            </View>
+                    <View style={styles.row}>
+                      <Ionicons
+                        name="notifications"
+                        size={22}
+                        color={color.primary}
+                      />
+                      <CustomText
+                        style={[styles.touchableText, globalStyles.f16Medium]}
+                      >
+                        Notifications Settings
+                      </CustomText>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward-outline"
+                      size={20}
+                      color={color.primary}
+                    />
+                  </TouchableOpacity>
+                  <View style={styles.divider} />
+                </View> */}
                 <View style={styles.profileDetails}>
                   <TouchableOpacity
                     style={styles.eachTouchable}
-                    onPress={() => navigation.navigate("AddressList")}
+                    onPress={() => navigation.navigate("Profile", { screen: "AddressList" })}
                   >
                     <View style={styles.row}>
                       <Ionicons name="location" size={22} color={color.primary} />
@@ -349,9 +347,7 @@ export default function ProfileScreen() {
                   <TouchableOpacity
                     style={styles.eachTouchable}
                     onPress={() =>
-                      navigation.navigate("CustomerTabNavigator", {
-                        screen: "My Bookings",
-                      })
+                      navigation.navigate("My Bookings")
                     }
                   >
                     <View style={styles.row}>
@@ -373,7 +369,7 @@ export default function ProfileScreen() {
                 <View style={styles.profileDetails}>
                   <TouchableOpacity
                     style={styles.eachTouchable}
-                    onPress={() => navigation.navigate("InvoiceList")}
+                    onPress={() => navigation.navigate("Profile", { screen: "InvoiceList" })}
                   >
                     <View style={styles.row}>
                       <Ionicons name="wallet" size={22} color={color.primary} />
@@ -423,9 +419,9 @@ export default function ProfileScreen() {
                       color={color.primary}
                     />
                   </TouchableOpacity>
-                  <TouchableOpacity
+                  {/* <TouchableOpacity
                     style={styles.eachTouchable}
-                    onPress={() => navigation.navigate("FirebaseTests")}
+                    onPress={() => navigation.navigate("My Car Buddy", { screen: "FirebaseTests" })}
                   >
                     <View style={styles.row}>
                       <Ionicons
@@ -444,7 +440,7 @@ export default function ProfileScreen() {
                       size={20}
                       color={color.primary}
                     />
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                   <View style={styles.divider} />
                 </View>
                 <View style={styles.profileDetails}>

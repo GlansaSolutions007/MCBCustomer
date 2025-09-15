@@ -47,12 +47,12 @@ const ServiceInnerPage = () => {
         if (!isInCart) {
             addToCart(pkg);
         } else {
-            navigation.navigate('Cart');
+            navigation.navigate('Services', { screen: 'CartPage' });
         }
     };
 
     const handleAddYourCar = () => {
-        navigation.navigate('SelectCarBrand');
+        navigation.navigate('My Cars', { screen: 'SelectCarBrand' });
     };
 
     const DetailRow = ({ label, value, icon }) => (
@@ -85,7 +85,7 @@ const ServiceInnerPage = () => {
                                 <Ionicons name="arrow-back" size={24} color="black" />
                             </TouchableOpacity>
 
-                            <TouchableOpacity onPress={() => navigation.navigate('Cart')} style={styles.iconWrapper}>
+                            <TouchableOpacity onPress={() => navigation.navigate('Services', { screen: 'CartPage' })} style={styles.iconWrapper}>
                                 <Image source={Garage} style={styles.garageIcon} />
                                 {cartItems.length > 0 && (
                                     <View style={styles.badge}>

@@ -209,7 +209,7 @@ export default function HomeScreen() {
   };
 
   const goToCar = () => {
-    navigation.navigate("CustomerTabs", {
+    navigation.navigate("My Cars", {
       screen: "SelectCarBrand",
     });
   };
@@ -663,8 +663,8 @@ export default function HomeScreen() {
                     size={24}
                     color={color.primary}
                     onPress={() =>
-                      navigation.navigate("CustomerTabNavigator", {
-                        screen: "Services",
+                      navigation.navigate("Services", {
+                        screen: "BookServiceScreen",
                       })
                     }
                   />
@@ -848,8 +848,8 @@ export default function HomeScreen() {
               {upcomingBookings.length === 0 ? (
                 <Pressable
                   onPress={() =>
-                    navigation.navigate("CustomerTabNavigator", {
-                      screen: "Services",
+                    navigation.navigate("Services", {
+                      screen: "BookServiceScreen",
                     })
                   }
                   style={[
@@ -889,8 +889,8 @@ export default function HomeScreen() {
                   {/* CTA button */}
                   <Pressable
                     onPress={() =>
-                      navigation.navigate("CustomerTabNavigator", {
-                        screen: "Services",
+                      navigation.navigate("Services", {
+                        screen: "BookServiceScreen",
                       })
                     }
                     style={[

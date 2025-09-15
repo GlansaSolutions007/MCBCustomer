@@ -42,9 +42,9 @@ export default function InvoiceListScreen() {
       // First, download the file to cache
       const cacheFileUri = FileSystem.cacheDirectory + fileName;
       console.log("Downloading to cache:", cacheFileUri);
-      
+
       const downloadResult = await FileSystem.downloadAsync(invoiceUrl, cacheFileUri);
-      
+
       if (downloadResult.status !== 200) {
         throw new Error(`Download failed with status: ${downloadResult.status}`);
       }
@@ -75,13 +75,13 @@ export default function InvoiceListScreen() {
           if (granted === PermissionsAndroid.RESULTS.GRANTED) {
             // Try to copy to Downloads folder
             const downloadsPath = FileSystem.documentDirectory + '../Downloads/' + fileName;
-            
+
             try {
               await FileSystem.copyAsync({
                 from: cacheFileUri,
                 to: downloadsPath
               });
-              
+
               console.log("File saved to Downloads:", downloadsPath);
               return { success: true, message: "Invoice saved to Downloads folder" };
             } catch (copyError) {
@@ -113,13 +113,13 @@ export default function InvoiceListScreen() {
   const shareFile = async (fileUri, fileName) => {
     try {
       const isAvailable = await Sharing.isAvailableAsync();
-      
+
       if (isAvailable) {
         await Sharing.shareAsync(fileUri, {
           mimeType: 'application/pdf',
           dialogTitle: `Share ${fileName}`,
         });
-        
+
         return { success: true, message: "Invoice ready to share" };
       } else {
         throw new Error("Sharing not available");
@@ -133,14 +133,14 @@ export default function InvoiceListScreen() {
   const fetchCustomerBookings = async () => {
     try {
       const userData = await AsyncStorage.getItem("userData");
-      
+
       if (!userData) {
         console.warn("No userData found in AsyncStorage");
         return;
       }
 
       const parsedData = JSON.parse(userData);
-      
+
       if (!parsedData || !parsedData.custID) {
         console.warn("Invalid userData or missing custID:", parsedData);
         return;
@@ -148,7 +148,7 @@ export default function InvoiceListScreen() {
 
       const custID = parsedData.custID;
       const response = await axios.get(`${API_URL}Bookings/${custID}`);
-      
+
       if (response.data) {
         setCustomerBookings(response.data);
         console.log("Customer bookings:", response.data);
@@ -161,43 +161,43 @@ export default function InvoiceListScreen() {
   const fetchInvoices = async () => {
     try {
       setLoading(true);
-      
+
       // Always fetch fresh customer bookings first
       await fetchCustomerBookings();
-      
+
       // Get the latest customer bookings from state
       const userData = await AsyncStorage.getItem("userData");
       if (!userData) {
         throw new Error("No user data found");
       }
-      
+
       const parsedData = JSON.parse(userData);
       if (!parsedData || !parsedData.custID) {
         throw new Error("Invalid user data");
       }
-      
+
       const custID = parsedData.custID;
       console.log("Fetching bookings for custID:", custID);
-      
+
       // Fetch customer bookings
       const bookingsResponse = await axios.get(`${API_URL}Bookings/${custID}`);
       const customerBookingsData = bookingsResponse.data || [];
       console.log("Customer bookings fetched:", customerBookingsData);
-      
+
       // Fetch payments from the API
       const paymentsResponse = await axios.get(`${API_URL}Payments`);
       const allPayments = paymentsResponse.data || [];
-      
+
       console.log("All payments:", allPayments);
       console.log("Customer bookings for filtering:", customerBookingsData);
-      
+
       // Filter payments that belong to the current customer
       const customerInvoices = allPayments.filter(payment => {
-        return customerBookingsData.some(booking => 
+        return customerBookingsData.some(booking =>
           booking.BookingTrackID === payment.BookingTrackID
         );
       });
-      
+
       console.log("Filtered customer invoices:", customerInvoices);
       setInvoices(customerInvoices);
     } catch (error) {
@@ -236,25 +236,25 @@ export default function InvoiceListScreen() {
 
     try {
       setDownloadingInvoice(invoice.PaymentID);
-      
+
       // Create filename with timestamp to avoid conflicts
       const timestamp = new Date().getTime();
       const fileName = `MyCarBuddy_Invoice_${invoice.InvoiceNumber || invoice.PaymentID}_${timestamp}.pdf`;
-      
+
       console.log("Downloading invoice:", invoice.FolderPath);
       console.log("Filename:", fileName);
-      
+
       // Use the new saveInvoiceToDownloads function
       const result = await saveInvoiceToDownloads(invoice.FolderPath, fileName);
-      
+
       setAlertTitle("Success");
       setAlertMessage(result.message);
       setAlertStatus("success");
       setShowAlert(true);
-      
+
     } catch (error) {
       console.error("Download error:", error);
-      
+
       // Fallback: Try to open the URL directly in browser
       try {
         const canOpen = await Linking.canOpenURL(invoice.FolderPath);
@@ -322,7 +322,7 @@ export default function InvoiceListScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        
+
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={color.primary} />
           <CustomText style={styles.loadingText}>Loading invoices...</CustomText>
@@ -333,8 +333,11 @@ export default function InvoiceListScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      
 
+      <StatusBar
+        backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
+        barStyle="dark-content"
+      />
 
       {/* Content */}
       <ScrollView
@@ -388,21 +391,21 @@ export default function InvoiceListScreen() {
                       {formatAmount(invoice.AmountPaid)}
                     </CustomText>
                   </View>
-                  
+
                   <View style={styles.detailRow}>
                     <CustomText style={styles.detailLabel}>Payment Mode:</CustomText>
                     <CustomText style={styles.detailValue}>
                       {invoice.PaymentMode}
                     </CustomText>
                   </View>
-                  
+
                   <View style={styles.detailRow}>
                     <CustomText style={styles.detailLabel}>Date:</CustomText>
                     <CustomText style={styles.detailValue}>
                       {formatDate(invoice.PaymentDate)}
                     </CustomText>
                   </View>
-                  
+
                   {invoice.TransactionID && (
                     <View style={styles.detailRow}>
                       <CustomText style={styles.detailLabel}>Transaction ID:</CustomText>
@@ -503,9 +506,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
-     invoiceList: {
-     padding: 16,
-   },
+  invoiceList: {
+    padding: 16,
+  },
   invoiceCard: {
     backgroundColor: "white",
     borderRadius: 12,

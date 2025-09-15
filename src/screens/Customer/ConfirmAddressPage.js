@@ -423,7 +423,10 @@ const ConfirmAddressPage = ({ navigation }) => {
       edges={["bottom"]}
     >
       <View style={{ flex: 1, backgroundColor: "#fff" }}>
-        <StatusBar barStyle="light-content" backgroundColor={color.primary} />
+        <StatusBar
+          backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
+          barStyle="dark-content"
+        />
         <Animated.View
           style={{
             paddingHorizontal: 16,

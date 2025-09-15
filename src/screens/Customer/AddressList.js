@@ -109,6 +109,10 @@ export default function AddressListScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <StatusBar
+        backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
+        barStyle="dark-content"
+      />
       <ScrollView contentContainerStyle={[styles.contentContainer, { paddingBottom: insets.bottom + 16 }]}>
         {loading ? (
           <View>

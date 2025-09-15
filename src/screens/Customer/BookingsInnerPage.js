@@ -10,6 +10,8 @@ import {
   Animated,
   Dimensions,
   PanResponder,
+  StatusBar,
+  Platform,
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { useRoute, useNavigation } from "@react-navigation/native";
@@ -324,6 +326,10 @@ export default function BookingsInnerPage() {
           paddingBottom: insets.bottom + 16,
         }}
       >
+         <StatusBar
+          backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
+          barStyle="dark-content"
+        />
         {/* Live Map (shown first like Zomato) */}
         {booking.BookingStatus?.toLowerCase() === "startjourney" &&
           booking.TechID && (
@@ -816,7 +822,7 @@ export default function BookingsInnerPage() {
                     {isCancelling ? "Cancelling..." : "Cancel Booking"}
                   </CustomText>
                 </TouchableOpacity>
-                {(!booking.Payments || booking.Payments.length === 0) && (
+                {/* {(!booking.Payments || booking.Payments.length === 0) && (
                   <TouchableOpacity
                     style={{
                       backgroundColor: color.primary,
@@ -827,8 +833,9 @@ export default function BookingsInnerPage() {
                       marginTop: 10,
                     }}
                     onPress={() =>
-                      navigation.navigate("Cart", {
-                        resumeBookingId: booking.BookingID,
+                      navigation.navigate("Services", {
+                        screen: "CartPage",
+                        params: { resumeBookingId: booking.BookingID }
                       })
                     }
                   >
@@ -836,12 +843,12 @@ export default function BookingsInnerPage() {
                       Resume Booking
                     </CustomText>
                   </TouchableOpacity>
-                )}
+                )} */}
               </View>
             )}
 
           {/* Resume Booking Section - for pending bookings with no payments */}
-          {booking.BookingStatus.toLowerCase() === "pending" &&
+          {/* {booking.BookingStatus.toLowerCase() === "pending" &&
             (!booking.Payments || booking.Payments.length === 0) && (
               <View
                 style={[
@@ -859,8 +866,9 @@ export default function BookingsInnerPage() {
                     marginTop: 10,
                   }}
                   onPress={() =>
-                    navigation.navigate("Cart", {
-                      resumeBookingId: booking.BookingID,
+                    navigation.navigate("Services", {
+                      screen: "CartPage",
+                      params: { resumeBookingId: booking.BookingID }
                     })
                   }
                 >
@@ -869,7 +877,7 @@ export default function BookingsInnerPage() {
                   </CustomText>
                 </TouchableOpacity>
               </View>
-            )}
+            )} */}
         </Animated.View>
 
         {booking.BookingStatus?.toLowerCase() !== "completed" &&

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ImageBackground, StatusBar, Alert } from "react-native";
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ImageBackground, StatusBar, Alert, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import SearchBox from "../../components/SearchBox";
 import globalStyles from "../../styles/globalStyles";
@@ -130,7 +130,7 @@ export default function MyCars() {
                                         fuelType: model.FuelTypeID,
                                     };
                                 });
-                                
+
                             console.log(`Fetched ${brandModels}`);
 
 
@@ -226,6 +226,10 @@ export default function MyCars() {
 
     return (
         <View style={[styles.container, { padding: 10, flex: 1 }]}>
+            <StatusBar
+                backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
+                barStyle="dark-content"
+            />
             {loading ? (
                 <FlatList
                     data={Array(6).fill().map((_, i) => ({ id: `skeleton${i}` }))}

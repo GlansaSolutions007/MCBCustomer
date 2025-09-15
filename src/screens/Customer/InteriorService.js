@@ -284,8 +284,7 @@ const InteriorService = () => {
         );
         setLoading(true);
         const response = await axios.get(
-          `${API_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?categoryId=${categoryId}&subCategoryId=${subCategoryId}&BrandId=${
-            brandId || ""
+          `${API_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?categoryId=${categoryId}&subCategoryId=${subCategoryId}&BrandId=${brandId || ""
           }&ModelId=${modelId || ""}&fuelTypeId=${fuelId || ""}`,
           {
             headers: {
@@ -460,7 +459,7 @@ const InteriorService = () => {
                   <CustomText style={styles.discountText}>
                     {Math.round(
                       ((item.originalPrice - item.price) / item.originalPrice) *
-                        100
+                      100
                     )}
                     %
                   </CustomText>
@@ -514,7 +513,7 @@ const InteriorService = () => {
             {cars.length === 0 || !selectedCar ? (
               <TouchableOpacity
                 style={styles.addCarButton}
-                onPress={() => navigation.navigate("SelectCarBrand")}
+                onPress={() => navigation.navigate("My Cars", { screen: "SelectCarBrand" })}
               >
                 <CustomText style={styles.addButtonText}>
                   Add Your Car
@@ -551,7 +550,7 @@ const InteriorService = () => {
                         styles.addButton,
                         { backgroundColor: color.yellow },
                       ]}
-                      onPress={() => navigation.navigate("Cart")}
+                      onPress={() => navigation.navigate("Services", { screen: "CartPage" })}
                     >
                       <CustomText style={styles.addButtonTextCart}>
                         View Cart
@@ -635,7 +634,7 @@ const InteriorService = () => {
                   </TouchableOpacity>
                   <View style={styles.iconWrapper}>
                     <TouchableOpacity
-                      onPress={() => navigation.navigate("Cart")}
+                      onPress={() => navigation.navigate("Services", { screen: "CartPage" })}
                       ref={cartIconRef}
                       collapsable={false}
                     >
@@ -895,7 +894,7 @@ const InteriorService = () => {
       />
       {cartItems.length > 0 && (
         <Pressable
-          onPress={() => navigation.navigate("Cart")}
+          onPress={() => navigation.navigate("Services", { screen: "CartPage" })}
           style={styles.floatingCart}
         >
           {/* <View style={styles.floatingBadge}><CustomText style={styles.floatingBadgeText}>{cartItems.length}</CustomText></View> */}

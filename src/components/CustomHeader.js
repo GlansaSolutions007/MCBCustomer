@@ -258,7 +258,7 @@ export default function CustomHeader({ navigation }) {
               />
             </Pressable> */}
             <View style={styles.iconWrapper}>
-              <TouchableOpacity onPress={() => navigationTo.navigate('Cart')}>
+              <TouchableOpacity onPress={() => navigationTo.navigate('Services', { screen: 'CartPage' })}>
                 <Image source={Garage} style={styles.garageIcon} />
                 {cartItems.length > 0 && (
                   <View style={styles.badge}>

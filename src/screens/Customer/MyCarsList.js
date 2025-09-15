@@ -375,7 +375,7 @@ export const MyCarsList = () => {
       <View style={styles.floatingButtonWrapper}>
         <TouchableOpacity
           style={styles.bookServiceBtn}
-          onPress={() =>  navigation.navigate("CustomerTabNavigator", { screen: 'Services' })}
+          onPress={() =>  navigation.navigate("Services", { screen: 'BookServiceScreen' })}
         >
           <CustomText style={styles.bookServiceText}>Book a Service</CustomText>
         </TouchableOpacity>

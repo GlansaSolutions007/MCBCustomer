@@ -3,13 +3,13 @@ import { Image, Pressable, Animated } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
-import HomeScreen from "../screens/Customer/HomeScreen";
-import ProfileScreen from "../screens/Common/ProfileScreen";
-import BookServiceScreen from "../screens/Customer/BookServiceScreen";
-import ServiceList from "../screens/Customer/ServiceList";
+import HomeStack from "./HomeStack";
+import ProfileStack from "./ProfileStack";
+import ServicesStack from "./ServicesStack";
+import BookingsStack from "./BookingsStack";
+import MyCarsStack from "./MyCarsStack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomHeader from "../components/CustomHeader";
-import { MyCarsList } from "../screens/Customer/MyCarsList";
 import { color } from "../styles/theme";
 import logo from "../../assets/Logo/logo2.png";
 
@@ -84,8 +84,7 @@ export default function CustomerTabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: true,
-        header: () => <CustomHeader />,
+        headerShown: false,
         tabBarShowLabel: true,
         tabBarActiveTintColor: color.primary,
         tabBarInactiveTintColor: "#8e8e93",
@@ -146,11 +145,11 @@ export default function CustomerTabNavigator() {
         tabBarLabel: route.name === "My Car Buddy" ? () => null : undefined,
       })}
     >
-      <Tab.Screen name="My Car Buddy" component={HomeScreen} />
-      <Tab.Screen name="My Cars" component={MyCarsList} options={{ unmountOnBlur: true }} />
-      <Tab.Screen name="Services" component={BookServiceScreen} />
-      <Tab.Screen name="My Bookings" component={ServiceList} />
-      <Tab.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="My Car Buddy" component={HomeStack} />
+      <Tab.Screen name="My Cars" component={MyCarsStack} options={{ unmountOnBlur: true }} />
+      <Tab.Screen name="Services" component={ServicesStack} />
+      <Tab.Screen name="My Bookings" component={BookingsStack} />
+      <Tab.Screen name="Profile" component={ProfileStack} options={{ headerShown: false }} />
     </Tab.Navigator>
   );
 }

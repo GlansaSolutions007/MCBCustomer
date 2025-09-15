@@ -5,12 +5,13 @@ import NetInfo from "@react-native-community/netinfo";
 
 import LoginScreen from "../screens/Common/LoginScreen";
 import RegisterScreen from "../screens/Common/RegisterScreen";
-import CustomerStackNavigator from "./CustomerStackNavigator";
+import CustomerTabNavigator from "./CustomerTabNavigator";
 import WelcomeScreen from "../screens/Common/WelcomeScreen";
 import { useAuth } from "../contexts/AuthContext";
 import NoInternetScreen from "../screens/Common/NoInternetScreen";
-import PreLoader from "../components/PreLoader"; // 👈 import your animation
-
+import PreLoader from "@src/components/PreLoader";
+import { CartProvider } from "../contexts/CartContext";
+// import PreLoader from "../components/PreLoader"; 
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
@@ -60,13 +61,25 @@ export default function RootNavigator() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user && user.token && user.custID ? (
-          <Stack.Screen name="CustomerTabs" component={CustomerStackNavigator} />
+          <Stack.Screen name="CustomerTabs">
+            {() => (
+              <CartProvider>
+                <CustomerTabNavigator />
+              </CartProvider>
+            )}
+          </Stack.Screen>
         ) : (
           <>
             <Stack.Screen name="Welcome" component={WelcomeScreen} />
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
-            <Stack.Screen name="CustomerTabs" component={CustomerStackNavigator} />
+            <Stack.Screen name="CustomerTabs">
+              {() => (
+                <CartProvider>
+                  <CustomerTabNavigator />
+                </CartProvider>
+              )}
+            </Stack.Screen>
           </>
         )}
       </Stack.Navigator>

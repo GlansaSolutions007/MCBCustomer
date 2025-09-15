@@ -13,6 +13,7 @@ import {
   ImageBackground,
   Modal,
   FlatList,
+  StatusBar,
 } from "react-native";
 import bannerImage from "../../../assets/images/info.png";
 import globalStyles from "../../styles/globalStyles";
@@ -186,7 +187,7 @@ export const MyCarDetails = () => {
 
   const goCarList = () => {
     setAlertVisible(false);
-    navigation.navigate("CustomerTabNavigator", { screen: "My Cars" });
+    navigation.navigate("My Cars", { screen: "MyCarsList" });
   };
 
   const deleteCar = async () => {
@@ -197,7 +198,7 @@ export const MyCarDetails = () => {
       );
       if (deleteCarData.status === 200) {
         console.log("Car deleted successfully");
-        navigation.navigate("CustomerTabNavigator", { screen: "My Cars" });
+        navigation.navigate("My Cars", { screen: "MyCarsList" });
       }
     } catch (error) {
       console.error("Error deleting car:", error.message);
@@ -209,6 +210,10 @@ export const MyCarDetails = () => {
       style={{ flex: 1, backgroundColor: "#fff" }}
       edges={["bottom"]}
     >
+      <StatusBar
+        backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
+        barStyle="dark-content"
+      />
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -317,7 +322,7 @@ export const MyCarDetails = () => {
                     {/* Vehicle Information Section */}
                     <View style={styles.sectionContainer}>
                       <View style={[globalStyles.flexrow, globalStyles.alineItemscenter, globalStyles.mb3]}>
-                      
+
                         <Ionicons name="information-circle" size={16} color={color.primary} style={globalStyles.mr1} />
                         <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack]}>
                           Vehicle Information
