@@ -1362,18 +1362,19 @@ export default function ServiceList() {
                     >
                       <Ionicons name="refresh-outline" size={16} color={color.black} style={{ marginRight: 6 }} />
                       <CustomText style={[globalStyles.f12Bold, { color: color.black }]}>
-                        {(() => {
+                        {/* {(() => {
                           const bookingDate = moment(booking.BookingDate);
                           const today = moment().startOf("day");
                           return bookingDate.isSame(today, "day") ? "Pay Now" : "Repay Schedule";
-                        })()}
+                        })()} */}
+                        Pay Now
                       </CustomText>
                     </TouchableOpacity>
                   </View>
                 )}
 
                 {/* Reschedule Button - Show for pending and confirmed bookings */}
-                {(booking.BookingStatus?.toLowerCase() === 'pending' || booking.BookingStatus?.toLowerCase() === 'confirmed') && (
+                {(booking.BookingStatus?.toLowerCase() === 'confirmed') && (
                   <View style={styles.rescheduleCard}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                       <View style={styles.rescheduleIconWrap}>

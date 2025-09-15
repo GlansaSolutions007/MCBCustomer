@@ -118,12 +118,15 @@ export default function CustomerTabNavigator() {
           />
         ),
         tabBarIcon: ({ color, focused }) => {
-          if (route.name === "My Car Buddy") {
-            return <AnimatedLogo focused={focused} />;
-          }
+          // if (route.name === "My Car Buddy") {
+          //   return <AnimatedLogo focused={focused} />;
+          // }
 
           let iconName;
           switch (route.name) {
+            case "My Car Buddy":
+              iconName = "home-outline";
+              break;
             case "My Cars":
               iconName = "car-sport-outline";
               break;
