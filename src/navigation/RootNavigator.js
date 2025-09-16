@@ -11,6 +11,11 @@ import { useAuth } from "../contexts/AuthContext";
 import NoInternetScreen from "../screens/Common/NoInternetScreen";
 import PreLoader from "@src/components/PreLoader";
 import { CartProvider } from "../contexts/CartContext";
+import NotificationScreen from "../screens/Customer/NotificationScreen";
+import CartPage from "../screens/Customer/CartPage";
+import SchedulePage from "../screens/Customer/SchedulePage";
+import ConfirmAddressPage from "../screens/Customer/ConfirmAddressPage";
+import CouponsList from "../screens/Customer/Coupons";
 // import PreLoader from "../components/PreLoader"; 
 const Stack = createNativeStackNavigator();
 
@@ -73,30 +78,42 @@ export default function RootNavigator() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {user && user.token && user.custID ? (
-          <Stack.Screen name="CustomerTabs">
-            {() => (
-              <CartProvider>
-                <CustomerTabNavigator />
-              </CartProvider>
-            )}
-          </Stack.Screen>
-        ) : (
-          <>
-            <Stack.Screen name="Welcome" component={WelcomeScreen} />
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Register" component={RegisterScreen} />
-            <Stack.Screen name="CustomerTabs">
-              {() => (
-                <CartProvider>
-                  <CustomerTabNavigator />
-                </CartProvider>
-              )}
-            </Stack.Screen>
-          </>
-        )}
-      </Stack.Navigator>
+      <CartProvider>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {user && user.token && user.custID ? (
+            <Stack.Screen name="CustomerTabs" component={CustomerTabNavigator} />
+          ) : (
+            <>
+              <Stack.Screen name="Welcome" component={WelcomeScreen} />
+              <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="Register" component={RegisterScreen} />
+              <Stack.Screen name="CustomerTabs" component={CustomerTabNavigator} />
+            </>
+          )}
+          {/* Independent routes accessible from anywhere */}
+          <Stack.Screen
+            name="NotificationScreen"
+            component={NotificationScreen}
+            options={{ headerShown: true, title: "Notifications" }}
+          />
+          <Stack.Screen name="Cart" component={CartPage} />
+          <Stack.Screen
+            name="Schedule"
+            component={SchedulePage}
+            options={{ headerShown: true, title: "Schedule" }}
+          />
+          <Stack.Screen
+            name="ConfirmAddressPage"
+            component={ConfirmAddressPage}
+            options={{ headerShown: true, title: "Address" }}
+          />
+          <Stack.Screen
+            name="Coupons"
+            component={CouponsList}
+            options={{ headerShown: true, title: "Coupon List" }}
+          />
+        </Stack.Navigator>
+      </CartProvider>
     </NavigationContainer>
   );
 }

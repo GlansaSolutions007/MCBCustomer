@@ -550,7 +550,7 @@ const InteriorService = () => {
                         styles.addButton,
                         { backgroundColor: color.yellow },
                       ]}
-                      onPress={() => navigation.navigate("Services", { screen: "CartPage" })}
+                      onPress={() => navigation.navigate("Cart")}
                     >
                       <CustomText style={styles.addButtonTextCart}>
                         View Cart
@@ -634,7 +634,7 @@ const InteriorService = () => {
                   </TouchableOpacity>
                   <View style={styles.iconWrapper}>
                     <TouchableOpacity
-                      onPress={() => navigation.navigate("Services", { screen: "CartPage" })}
+                      onPress={() => navigation.navigate("Cart")}
                       ref={cartIconRef}
                       collapsable={false}
                     >
@@ -894,7 +894,7 @@ const InteriorService = () => {
       />
       {cartItems.length > 0 && (
         <Pressable
-          onPress={() => navigation.navigate("Services", { screen: "CartPage" })}
+          onPress={() => navigation.navigate("Cart")}
           style={styles.floatingCart}
         >
           {/* <View style={styles.floatingBadge}><CustomText style={styles.floatingBadgeText}>{cartItems.length}</CustomText></View> */}

@@ -3,14 +3,13 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import BookServiceScreen from "../screens/Customer/BookServiceScreen";
 import InteriorService from "../screens/Customer/InteriorService";
 import ServiceInnerPage from "../screens/Customer/ServiceInnerPage";
-import SchedulePage from "../screens/Customer/SchedulePage";
-import CouponsList from "../screens/Customer/Coupons";
+// SchedulePage is independent in RootNavigator
+// Coupons is independent in RootNavigator
 import AddressListScreen from "../screens/Customer/AddressList";
 import Reviews from "../screens/Customer/Reviews";
-import CartPage from "../screens/Customer/CartPage";
-import ConfirmAddressPage from "../screens/Customer/ConfirmAddressPage";
+// CartPage and ConfirmAddressPage are independent in RootNavigator
 import CustomHeader from "../components/CustomHeader";
-import NotificationScreen from "../screens/Customer/NotificationScreen";
+// NotificationScreen is independent in RootNavigator
 
 const Stack = createNativeStackNavigator();
 
@@ -35,36 +34,12 @@ export default function ServicesStack() {
         component={ServiceInnerPage}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name="Schedule"
-        component={SchedulePage}
-        options={{ title: "Schedule" }}
-      />
-      <Stack.Screen
-        name="Coupons"
-        component={CouponsList}
-        options={{ title: "Coupon List" }}
-      />
+     
       <Stack.Screen
         name="Reviews"
         component={Reviews}
         options={{ title: "Reviews" }}
       />
-      <Stack.Screen
-        name="CartPage"
-        component={CartPage}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="ConfirmAddressPage"
-        component={ConfirmAddressPage}
-        options={{ title: "Address" }}
-      />
-       <Stack.Screen
-          name="NotificationScreen"
-          component={NotificationScreen}
-          options={{ title: "Notifications" }}
-        />
     </Stack.Navigator>
   );
 }

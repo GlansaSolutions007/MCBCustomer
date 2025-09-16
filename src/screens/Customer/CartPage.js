@@ -175,7 +175,10 @@ const CartPage = () => {
         );
         setTimeout(() => {
           clearCart();
-          navigation.navigate("My Bookings", { screen: "ServiceList" });
+          navigation.navigate('CustomerTabs', {
+            screen: 'My Bookings',
+            params: { screen: 'ServiceList' },
+          });
         }, 1200);
       }
     } catch (e) {
@@ -604,8 +607,9 @@ const CartPage = () => {
 
         setTimeout(() => {
           clearCart();
-          navigation.navigate("My Bookings", {
-            screen: "ServiceList",
+          navigation.navigate('CustomerTabs', {
+            screen: 'My Bookings',
+            params: { screen: 'ServiceList' },
           });
         }, 1500);
       }
@@ -730,8 +734,9 @@ const CartPage = () => {
               await AsyncStorage.removeItem("selectedDate");
               await AsyncStorage.removeItem("selectedTimeSlotLabel");
               clearCart();
-              navigation.navigate("My Bookings", {
-                screen: "ServiceList",
+              navigation.navigate('CustomerTabs', {
+                screen: 'My Bookings',
+                params: { screen: 'ServiceList' },
               });
             }, 800);
           } catch (error) {
@@ -896,8 +901,9 @@ const CartPage = () => {
               elevation: 5,
             }}
             onPress={() =>
-              navigation.navigate("Services", {
-                screen: "BookServiceScreen",
+              navigation.navigate("CustomerTabs", {
+                screen: "Services",
+                params: { screen: "BookServiceScreen" } ,
               })
             }
           >
