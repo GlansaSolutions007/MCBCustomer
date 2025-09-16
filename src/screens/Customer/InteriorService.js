@@ -72,6 +72,7 @@ const InteriorService = () => {
   const [modelId, setModelId] = useState("");
   const [fuelId, setFuelId] = useState("");
   const [showCartClearedAlert, setShowCartClearedAlert] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
   // Enable LayoutAnimation on Android
   useEffect(() => {
     if (
@@ -284,7 +285,8 @@ const InteriorService = () => {
         );
         setLoading(true);
         const response = await axios.get(
-          `${API_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?categoryId=${categoryId}&subCategoryId=${subCategoryId}&BrandId=${brandId || ""
+          `${API_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?categoryId=${categoryId}&subCategoryId=${subCategoryId}&BrandId=${
+            brandId || ""
           }&ModelId=${modelId || ""}&fuelTypeId=${fuelId || ""}`,
           {
             headers: {
@@ -322,6 +324,7 @@ const InteriorService = () => {
   );
 
   useEffect(() => {
+    fetchNotifications();
     if (subCategories.length > 0) {
       const firstActive = subCategories.find((sub) => sub.IsActive);
       setSelectedSubCategoryId(firstActive?.SubCategoryID || null);
@@ -386,6 +389,41 @@ const InteriorService = () => {
       await debouncedFetchPackages(selectedSubCategoryId);
     }
   });
+
+  const fetchNotifications = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("userData");
+      if (!userData) {
+        setNotificationCount(0);
+        return;
+      }
+      const parsedData = JSON.parse(userData);
+      const customerId = parsedData?.custID;
+      if (!customerId) {
+        setNotificationCount(0);
+        return;
+      }
+
+      const response = await axios.get(
+        `${API_URL}Bookings/notifications?userId=${customerId}&userRole=customer`
+      );
+
+      // Top-level response
+      const result = response?.data;
+
+      // Your notifications are inside result.data
+      const notifications = result?.data || [];
+
+      // Count them
+      const count = Array.isArray(notifications) ? notifications.length : 0;
+
+      setNotificationCount(count);
+      console.log("Notification Count:", count);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+      setNotificationCount(0);
+    }
+  };
 
   const SkeletonLoader = () => (
     <View style={styles.rowCard}>
@@ -459,7 +497,7 @@ const InteriorService = () => {
                   <CustomText style={styles.discountText}>
                     {Math.round(
                       ((item.originalPrice - item.price) / item.originalPrice) *
-                      100
+                        100
                     )}
                     %
                   </CustomText>
@@ -513,7 +551,9 @@ const InteriorService = () => {
             {cars.length === 0 || !selectedCar ? (
               <TouchableOpacity
                 style={styles.addCarButton}
-                onPress={() => navigation.navigate("My Cars", { screen: "SelectCarBrand" })}
+                onPress={() =>
+                  navigation.navigate("My Cars", { screen: "SelectCarBrand" })
+                }
               >
                 <CustomText style={styles.addButtonText}>
                   Add Your Car
@@ -632,21 +672,46 @@ const InteriorService = () => {
                   >
                     <Ionicons name="arrow-back" size={24} color="black" />
                   </TouchableOpacity>
-                  <View style={styles.iconWrapper}>
-                    <TouchableOpacity
-                      onPress={() => navigation.navigate("Cart")}
-                      ref={cartIconRef}
-                      collapsable={false}
+                  <View style={[styles.rightIcons]}>
+                    <Pressable
+                      onPress={() =>
+                        navigationTo.navigate("NotificationScreen")
+                      }
                     >
-                      <Image source={Garage} style={styles.garageIcon} />
-                      {cartItems.length > 0 && (
-                        <View style={styles.badge}>
-                          <CustomText style={styles.badgeText}>
-                            {cartItems.length}
-                          </CustomText>
-                        </View>
-                      )}
-                    </TouchableOpacity>
+                      <View style={{ paddingRight: 10 }}>
+                        <Ionicons
+                          name="notifications"
+                          size={24}
+                          style={globalStyles.textWhite}
+                        />
+
+                        {/* Badge */}
+
+                        {notificationCount >= 0 && (
+                          <View style={styles.badge}>
+                            <Text style={styles.badgeText}>
+                              {notificationCount > 99
+                                ? "99+"
+                                : notificationCount}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    </Pressable>
+                    <View style={styles.iconWrapper}>
+                      <TouchableOpacity
+                        onPress={() => navigationTo.navigate("Cart")}
+                      >
+                        <Image source={Garage} style={styles.garageIcon} />
+                        {cartItems.length > 0 && (
+                          <View style={styles.badge}>
+                            <CustomText style={styles.badgeText}>
+                              {cartItems.length}
+                            </CustomText>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
                 <View style={styles.searchContainer}>
@@ -1110,16 +1175,24 @@ const styles = StyleSheet.create({
     height: 30,
     resizeMode: "contain",
   },
+  rightIcons: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 12,
+    alignItems: "center",
+  },
   badge: {
     position: "absolute",
-    top: -6,
-    right: -6,
-    backgroundColor: "yellow",
-    borderRadius: 8,
-    paddingHorizontal: 4,
+    right: -2,
+    top: -4,
+    backgroundColor: color.yellow,
+    borderRadius: 80,
     minWidth: 16,
-    alignItems: "center",
+    height: 16,
     justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 2,
   },
   badgeTextWrapper: {
     alignItems: "center",

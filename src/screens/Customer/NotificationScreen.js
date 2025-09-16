@@ -11,7 +11,7 @@ import {
   UIManager,
   Platform,
 } from "react-native";
-import { useIsFocused, useNavigation } from "@react-navigation/native";
+import { useIsFocused } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { API_URL, API_IMAGE_URL } from "@env";
@@ -26,7 +26,6 @@ const NotificationScreen = () => {
   const [loading, setLoading] = useState(true);
   const [customerId, setCustomerId] = useState(null);
   const isFocused = useIsFocused();
-  const navigation = useNavigation();
 
   useEffect(() => {
     if (
@@ -143,38 +142,39 @@ const NotificationScreen = () => {
       console.log("Failed to mark all read:", e?.message || e);
     }
   };
+  const formatNotificationDate = (createdDate) => {
+    if (!createdDate) return "";
 
-  const handleNavigate = async (item) => {
-    try {
-      // Mark as read first (best effort)
-      await handleMarkRead(item.id);
-    } catch (_) {}
+    const date = new Date(createdDate);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = diffMs / (1000 * 60 * 60);
 
-    const action = String(item.actionType || '').toLowerCase();
-    const shouldGoToBooking = (
-      action.includes('startjourney') ||
-      action.includes('reached') ||
-      action.includes('servicestarted') ||
-      action.includes('serviceended') ||
-      action.includes('booking') ||
-      action.includes('service')
-    );
-
-    if (shouldGoToBooking && item.relatedId) {
-      navigation.navigate('BookingsInnerPage', { bookingId: item.relatedId });
-      return;
+    // < 24 hours → show only time
+    if (diffHours < 24) {
+      return date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
     }
 
-    // Fallbacks
-    if (item.relatedId) {
-      navigation.navigate('BookingsInnerPage', { bookingId: item.relatedId });
-    } else {
-      navigation.navigate('NotificationScreen');
-    }
+    // ≥ 24 hours → show dd-mm-yyyy (hh:mm AM/PM)
+    const dd = String(date.getDate()).padStart(2, "0");
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const yyyy = date.getFullYear();
+
+    const time = date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    return `${dd}-${mm}-${yyyy} (${time})`;
   };
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity activeOpacity={0.85} onPress={() => handleNavigate(item)} style={styles.card}>
+    <View style={styles.card}>
       <View style={styles.row}>
         <View style={styles.iconWrap}>
           <MaterialIcons
@@ -188,7 +188,7 @@ const NotificationScreen = () => {
             {item.title || "Notification"}
           </CustomText>
           <CustomText
-            style={[globalStyles.f12Regular, { color: "#555", marginTop: 2 }]}
+            style={[globalStyles.f10Regular, { color: "#555", marginTop: 2 }]}
           >
             {item.message || ""}
           </CustomText>
@@ -197,11 +197,21 @@ const NotificationScreen = () => {
           onPress={() => handleMarkRead(item.id)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <MaterialIcons name="close" size={18} color="#999" />
+          <MaterialIcons name="close" style={{backgroundColor: color.primary + "20", borderRadius: 100, padding: 4}} size={15} color="#999" />
         </TouchableOpacity>
       </View>
-      {!item.isRead && <View style={styles.unreadBar} />}
-    </TouchableOpacity>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "flex-end",
+          marginTop: 2,
+        }}
+      >
+        <CustomText style={[globalStyles.f8Regular, { color: "#555" }]}>
+          {formatNotificationDate(item.createdDate)}
+        </CustomText>
+      </View>
+    </View>
   );
 
   if (loading) {
@@ -294,7 +304,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "start",
   },
   iconWrap: {
     width: 36,

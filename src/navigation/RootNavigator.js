@@ -16,6 +16,7 @@ import CartPage from "../screens/Customer/CartPage";
 import SchedulePage from "../screens/Customer/SchedulePage";
 import ConfirmAddressPage from "../screens/Customer/ConfirmAddressPage";
 import CouponsList from "../screens/Customer/Coupons";
+import TawkChatScreen from "../screens/Common/TawkChatScreen";
 // import PreLoader from "../components/PreLoader"; 
 const Stack = createNativeStackNavigator();
 
@@ -95,6 +96,11 @@ export default function RootNavigator() {
             name="NotificationScreen"
             component={NotificationScreen}
             options={{ headerShown: true, title: "Notifications" }}
+          />
+          <Stack.Screen
+            name="SupportChat"
+            component={TawkChatScreen}
+            options={{ headerShown: true, title: "Support Chat" }}
           />
           <Stack.Screen name="Cart" component={CartPage} />
           <Stack.Screen

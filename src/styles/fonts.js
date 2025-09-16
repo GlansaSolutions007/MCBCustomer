@@ -78,6 +78,7 @@ export const fonts = {
   heroMedium: { fontSize: normalize(40), fontFamily: fontFamilies.medium },
 
   // 🔹 Regular Fonts
+  tinyLittleRegular: { fontSize: normalize(8), fontFamily: fontFamilies.regular },
   tinyRegular: { fontSize: normalize(10), fontFamily: fontFamilies.regular },
   smallRegular: { fontSize: normalize(12), fontFamily: fontFamilies.regular },
   regularRegular: { fontSize: normalize(14), fontFamily: fontFamilies.regular },

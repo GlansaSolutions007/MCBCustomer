@@ -289,10 +289,10 @@ export default function ProfileScreen() {
                   </TouchableOpacity>
                   <View style={styles.divider} />
                 </View>
-                {/* <View style={styles.profileDetails}>
+                <View style={styles.profileDetails}>
                   <TouchableOpacity
                     style={styles.eachTouchable}
-                    onPress={() => navigation.navigate("NotificationSettings")}
+                    onPress={() => navigation.navigate('SupportChat')}
                   >
                     <View style={styles.row}>
                       <Ionicons
@@ -313,7 +313,7 @@ export default function ProfileScreen() {
                     />
                   </TouchableOpacity>
                   <View style={styles.divider} />
-                </View> */}
+                </View>
                 <View style={styles.profileDetails}>
                   <TouchableOpacity
                     style={styles.eachTouchable}

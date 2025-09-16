@@ -35,13 +35,15 @@ import { useCart } from "../contexts/CartContext";
 export default function CustomHeader({ navigation }) {
   const insets = useSafeAreaInsets();
   const [showModal, setShowModal] = useState(false);
-  const { locationText, locationStatus, setLocationText, setLocationStatus } = useContext(LocationContext);
+  const { locationText, locationStatus, setLocationText, setLocationStatus } =
+    useContext(LocationContext);
   const [isLocating, setIsLocating] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
   const [addressList, setAddressList] = useState([]);
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [primaryAddress, setPrimaryAddress] = useState(null);
   const { cartItems, addToCart } = useCart();
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const [alertData, setAlertData] = useState({
     title: "",
@@ -116,7 +118,7 @@ export default function CustomHeader({ navigation }) {
 
   const getUserData = async () => {
     try {
-      const userData = await AsyncStorage.getItem('userData');
+      const userData = await AsyncStorage.getItem("userData");
       if (userData) {
         const parsedData = JSON.parse(userData);
         setName(parsedData?.name || "");
@@ -129,20 +131,23 @@ export default function CustomHeader({ navigation }) {
   // useEffect(() => {
   //   getUserData()
   // }, []);
-  
+
   useFocusEffect(
     useCallback(() => {
       getUserData();
+      fetchNotifications();
     }, [])
   );
 
   const fetchAddresses = async () => {
     try {
       const userData = await AsyncStorage.getItem("userData");
-      
+
       // Check if userData exists
       if (!userData) {
-        console.warn("No userData found in AsyncStorage - this might be a timing issue");
+        console.warn(
+          "No userData found in AsyncStorage - this might be a timing issue"
+        );
         console.log("Retrying in 500ms...");
         setTimeout(() => {
           getUserData();
@@ -151,7 +156,7 @@ export default function CustomHeader({ navigation }) {
       }
 
       const parsedData = JSON.parse(userData);
-      console.log(parsedData, 'userrrrr');
+      console.log(parsedData, "userrrrr");
 
       // Check if parsedData is valid and has custID
       if (!parsedData || !parsedData.custID) {
@@ -209,6 +214,41 @@ export default function CustomHeader({ navigation }) {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const userData = await AsyncStorage.getItem("userData");
+      if (!userData) {
+        setNotificationCount(0);
+        return;
+      }
+      const parsedData = JSON.parse(userData);
+      const customerId = parsedData?.custID;
+      if (!customerId) {
+        setNotificationCount(0);
+        return;
+      }
+
+      const response = await axios.get(
+        `${API_URL}Bookings/notifications?userId=${customerId}&userRole=customer`
+      );
+
+      // Top-level response
+      const result = response?.data;
+
+      // Your notifications are inside result.data
+      const notifications = result?.data || [];
+
+      // Count them
+      const count = Array.isArray(notifications) ? notifications.length : 0;
+
+      setNotificationCount(count);
+      console.log("Notification Count:", count);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+      setNotificationCount(0);
+    }
+  };
+
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor={color.primary} />
@@ -225,7 +265,13 @@ export default function CustomHeader({ navigation }) {
               {name ? `Hello, ${name}` : "Hello, Buddy"}
             </CustomText>
             <Pressable onPress={handlePressLocation}>
-              <View style={{ flexDirection: "row", alignItems: "center", maxWidth: 220 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  maxWidth: 220,
+                }}
+              >
                 <Text
                   numberOfLines={1}
                   ellipsizeMode="tail"
@@ -249,16 +295,29 @@ export default function CustomHeader({ navigation }) {
           </View>
           <View style={[styles.rightIcons]}>
             <Pressable
-              onPress={() => navigationTo.navigate( "NotificationScreen" )}
+              onPress={() => navigationTo.navigate("NotificationScreen")}
             >
-              <Ionicons
-                name="notifications-outline"
-                size={24}
-                style={globalStyles.textWhite}
-              />
+              <View style={{ paddingRight: 10 }}>
+                <Ionicons
+                  name="notifications"
+                  size={24}
+                  style={globalStyles.textWhite}
+                />
+
+                {/* Badge */}
+
+                {notificationCount >= 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>
+                      {notificationCount > 99 ? "99+" : notificationCount}
+                    </Text>
+                  </View>
+                )}
+              </View>
             </Pressable>
             <View style={styles.iconWrapper}>
               <TouchableOpacity onPress={() => navigationTo.navigate("Cart")}>
+                
                 <Image source={Garage} style={styles.garageIcon} />
                 {cartItems.length > 0 && (
                   <View style={styles.badge}>
@@ -334,7 +393,9 @@ export default function CustomHeader({ navigation }) {
                   }}
                   onPress={() => {
                     setShowModal(false);
-                    navigationTo.navigate("Services", { screen: "ConfirmAddressPage" });
+                    navigationTo.navigate("Services", {
+                      screen: "ConfirmAddressPage",
+                    });
                   }}
                 >
                   <View
@@ -449,11 +510,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   rightIcons: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "flex-end",
     gap: 12,
-    alignItems: 'center'
+    alignItems: "center",
   },
   modalOverlay: {
     flex: 1,
@@ -477,20 +538,21 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: "absolute",
-    top: -6,
-    right: -6,
-    backgroundColor: "yellow",
-    borderRadius: 8,
-    paddingHorizontal: 4,
+    right: -2,
+    top: -4,
+    backgroundColor: color.yellow,
+    borderRadius: 80,
     minWidth: 16,
-    alignItems: "center",
+    height: 16,
     justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 2,
   },
   badgeTextWrapper: {
     alignItems: "center",
   },
   badgeText: {
-    color: "#000",
+    color: color.black,
     fontSize: 10,
     fontWeight: "bold",
   },

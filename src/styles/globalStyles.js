@@ -428,6 +428,9 @@ export default StyleSheet.create({
 
   // Regular Fonts------------start
 
+  f8Regular: {
+    ...fonts.tinyLittleRegular,
+  },
   f10Regular: {
     ...fonts.tinyRegular,
   },
