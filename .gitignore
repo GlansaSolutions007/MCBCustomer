@@ -67,8 +67,8 @@ mycarbuddycustomer-firebase-adminsdk-*.json
 # JSON rules — block all, then allow needed configs
 # ──────────────
 *.json
-!package.json
-!package-lock.json
+# !package.json
+# !package-lock.json
 !tsconfig.json
 !babel.config.js
 !app.json

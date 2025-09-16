@@ -198,7 +198,7 @@ export default function InvoiceListScreen() {
         );
       });
 
-      console.log("Filtered customer invoices:", customerInvoices);
+      console.log("Filtered customer invoices:", customerInvoices.map(invoices => invoices.PaymentStatus));
       setInvoices(customerInvoices);
     } catch (error) {
       console.error("Failed to fetch invoices:", error);
