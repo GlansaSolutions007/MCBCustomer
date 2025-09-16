@@ -56,6 +56,7 @@ export default function BookingsInnerPage() {
   const [distance, setDistance] = useState(null);
   const [technicianOffline, setTechnicianOffline] = useState(false);
   const [lastLocationUpdate, setLastLocationUpdate] = useState(null);
+  const [timelineAnimation, setTimelineAnimation] = useState(new Animated.Value(0));
   const windowHeight = Dimensions.get('window').height;
   const mapMinHeight = 220;
   const mapMaxHeight = Math.max(320, windowHeight - insets.top - 120);
@@ -112,6 +113,82 @@ export default function BookingsInnerPage() {
     return color.primary;
   };
 
+  const getTimelineSteps = () => {
+    const status = booking.BookingStatus?.toLowerCase();
+    const steps = [
+      {
+        id: "booking-created",
+        title: "Booking Created",
+        description: "Your service request has been received",
+        icon: "event-note",
+        isCompleted: true,
+        isActive: false,
+        time: formatDate(booking.BookingDate),
+      },
+      {
+        id: "technician-assigned",
+        title: "Technician Assigned",
+        description: booking.TechID 
+          ? `${booking.TechFullName} is assigned to your service`
+          : "Waiting for technician assignment",
+        icon: "person",
+        isCompleted: !!booking.TechID,
+        isActive: status === "pending" && !!booking.TechID,
+        time: booking.TechID ? "Assigned" : "Pending",
+      },
+      {
+        id: "journey-started",
+        title: "Journey Started",
+        description: technicianLocation 
+          ? `Technician is on the way to your location${distance ? ` (${distance} away)` : ""}`
+          : "Technician is on the way to your location",
+        icon: "directions-car",
+        isCompleted: status === "reached" || status === "servicestarted" || status === "completed",
+        isActive: status === "startjourney",
+        time: status === "startjourney" ? "In Progress" : null,
+      },
+      {
+        id: "reached-location",
+        title: "Reached Location",
+        description: "Technician has arrived at your location",
+        icon: "location-on",
+        isCompleted: status === "servicestarted" || status === "completed",
+        isActive: status === "reached",
+        time: status === "reached" ? "Arrived" : null,
+      },
+      {
+        id: "service-started",
+        title: "Service Started",
+        description: "Your vehicle service is in progress",
+        icon: "build",
+        isCompleted: status === "completed",
+        isActive: status === "servicestarted",
+        time: status === "servicestarted" ? "In Progress" : null,
+      },
+      {
+        id: "service-completed",
+        title: "Service Completed",
+        description: "Your vehicle service has been completed",
+        icon: "check-circle",
+        isCompleted: status === "completed",
+        isActive: false,
+        time: status === "completed" ? "Completed" : null,
+      },
+    ];
+
+    // Handle cancelled status
+    if (status === "cancelled") {
+      return steps.map((step, index) => ({
+        ...step,
+        isCompleted: index === 0, // Only booking created is completed
+        isActive: false,
+        time: index === 0 ? formatDate(booking.BookingDate) : "Cancelled",
+      }));
+    }
+
+    return steps;
+  };
+
   useEffect(() => {
     const fetchCancelReasons = async () => {
       try {
@@ -141,13 +218,18 @@ export default function BookingsInnerPage() {
         duration: 250,
         useNativeDriver: true,
       }),
+      Animated.timing(timelineAnimation, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
       Animated.timing(contentOpacity, {
         toValue: 1,
         duration: 250,
         useNativeDriver: true,
       }),
     ]).start();
-  }, [summaryOpacity, contentOpacity]);
+  }, [summaryOpacity, contentOpacity, timelineAnimation]);
 
   // Setup customer location from booking coordinates
   useEffect(() => {
@@ -282,6 +364,18 @@ export default function BookingsInnerPage() {
     }
   }, [technicianLocation, customerLocation, fetchRoute]);
 
+  // Real-time status updates for timeline
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Trigger timeline animation refresh for active status
+      if (booking.BookingStatus?.toLowerCase() === "startjourney") {
+        setTimelineAnimation(new Animated.Value(1));
+      }
+    }, 5000); // Update every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [booking.BookingStatus]);
+
   const recenterMap = () => {
     if (technicianLocation && customerLocation && mapRef.current) {
       mapRef.current.fitToCoordinates([technicianLocation, customerLocation], {
@@ -406,6 +500,165 @@ export default function BookingsInnerPage() {
               </Animated.View>
             </Animated.View>
           )}
+
+        {/* Service Timeline */}
+        <Animated.View
+          style={[
+            styles.timelineCard, 
+            { 
+              opacity: timelineAnimation,
+              transform: [{
+                translateY: timelineAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [20, 0],
+                })
+              }]
+            }
+          ]}
+        >
+          <View style={styles.timelineHeader}>
+            <CustomText style={[styles.timelineTitle, globalStyles.f14Bold]}>
+              Service Journey
+            </CustomText>
+            {booking.BookingStatus?.toLowerCase() === "startjourney" && (
+              <View style={styles.liveIndicator}>
+                <View style={styles.liveDot} />
+                <CustomText style={[globalStyles.f10Bold, { color: color.primary }]}>
+                  LIVE
+                </CustomText>
+              </View>
+            )}
+          </View>
+          <View style={styles.timelineContainer}>
+            {getTimelineSteps().map((step, index) => (
+              <Animated.View 
+                key={step.id} 
+                style={[
+                  styles.timelineStep,
+                  {
+                    opacity: timelineAnimation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, 1],
+                    }),
+                    transform: [{
+                      translateX: timelineAnimation.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [-20, 0],
+                      })
+                    }]
+                  }
+                ]}
+              >
+                <View style={styles.timelineStepContent}>
+                  <Animated.View
+                    style={[
+                      styles.timelineIcon,
+                      {
+                        backgroundColor: step.isCompleted
+                          ? step.isActive
+                            ? color.primary
+                            : "#34C759"
+                          : step.isActive
+                          ? color.primary + "20"
+                          : "#f0f0f0",
+                        transform: [{
+                          scale: step.isActive ? 1.1 : 1,
+                        }]
+                      },
+                    ]}
+                  >
+                    <Icon
+                      name={step.icon}
+                      size={20}
+                      color={
+                        step.isCompleted
+                          ? "#fff"
+                          : step.isActive
+                          ? color.primary
+                          : "#999"
+                      }
+                    />
+                  </Animated.View>
+                  <View style={styles.timelineTextContainer}>
+                    <CustomText
+                      style={[
+                        styles.timelineStepTitle,
+                        globalStyles.f12Bold,
+                        {
+                          color: step.isActive
+                            ? color.primary
+                            : step.isCompleted
+                            ? "#333"
+                            : "#999",
+                        },
+                      ]}
+                    >
+                      {step.title}
+                    </CustomText>
+                    <CustomText
+                      style={[
+                        styles.timelineStepDescription,
+                        globalStyles.f10Regular,
+                        { color: "#666" },
+                      ]}
+                    >
+                      {step.description}
+                    </CustomText>
+                    {step.time && (
+                      <View style={styles.timelineTimeContainer}>
+                        <CustomText
+                          style={[
+                            styles.timelineStepTime,
+                            globalStyles.f10Bold,
+                            { 
+                              color: step.isActive ? color.primary : "#999",
+                              backgroundColor: step.isActive ? color.primary + "10" : "#f5f5f5",
+                              paddingHorizontal: 8,
+                              paddingVertical: 2,
+                              borderRadius: 8,
+                              overflow: "hidden",
+                            },
+                          ]}
+                        >
+                          {step.time}
+                        </CustomText>
+                      </View>
+                    )}
+                  </View>
+                  {step.isActive && (
+                    <Animated.View 
+                      style={styles.timelineActiveIndicator}
+                    >
+                      <Animated.View 
+                        style={[
+                          styles.timelineActiveDot,
+                          {
+                            transform: [{
+                              scale: timelineAnimation.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0, 1],
+                              })
+                            }]
+                          }
+                        ]} 
+                      />
+                    </Animated.View>
+                  )}
+                </View>
+                {index < getTimelineSteps().length - 1 && (
+                  <View
+                    style={[
+                      styles.timelineConnector,
+                      {
+                        backgroundColor: step.isCompleted ? "#34C759" : "#e0e0e0",
+                      },
+                    ]}
+                  />
+                )}
+              </Animated.View>
+            ))}
+          </View>
+        </Animated.View>
 
         {/* Booking Summary */}
         <Animated.View
@@ -1215,5 +1468,113 @@ const styles = StyleSheet.create({
     backgroundColor: "#eee",
     alignSelf: "center",
     marginBottom: 10,
+  },
+  timelineCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    width: "100%",
+    elevation: 3,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+  },
+  timelineHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  timelineTitle: {
+    color: "#222",
+  },
+  liveIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: color.primary + "10",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: color.primary,
+    marginRight: 6,
+    shadowColor: color.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  timelineContainer: {
+    paddingLeft: 8,
+  },
+  timelineStep: {
+    position: "relative",
+    marginBottom: 4,
+  },
+  timelineStepContent: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    position: "relative",
+  },
+  timelineIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  timelineTextContainer: {
+    flex: 1,
+    paddingTop: 2,
+  },
+  timelineStepTitle: {
+    marginBottom: 2,
+  },
+  timelineStepDescription: {
+    marginBottom: 4,
+    lineHeight: 16,
+  },
+  timelineStepTime: {
+    fontSize: 10,
+  },
+  timelineTimeContainer: {
+    marginTop: 4,
+  },
+  timelineActiveIndicator: {
+    position: "absolute",
+    right: 0,
+    top: 8,
+    alignItems: "center",
+  },
+  timelineActiveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: color.primary,
+    shadowColor: color.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  timelineConnector: {
+    position: "absolute",
+    left: 20,
+    top: 40,
+    width: 2,
+    height: 24,
+    marginBottom: 4,
   },
 });
