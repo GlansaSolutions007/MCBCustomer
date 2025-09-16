@@ -10,6 +10,7 @@ import Reviews from "../screens/Customer/Reviews";
 import CartPage from "../screens/Customer/CartPage";
 import ConfirmAddressPage from "../screens/Customer/ConfirmAddressPage";
 import CustomHeader from "../components/CustomHeader";
+import NotificationScreen from "../screens/Customer/NotificationScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -59,6 +60,11 @@ export default function ServicesStack() {
         component={ConfirmAddressPage}
         options={{ title: "Address" }}
       />
+       <Stack.Screen
+          name="NotificationScreen"
+          component={NotificationScreen}
+          options={{ title: "Notifications" }}
+        />
     </Stack.Navigator>
   );
 }

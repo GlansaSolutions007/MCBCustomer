@@ -19,8 +19,22 @@ export default function RootNavigator() {
   const [isConnected, setIsConnected] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
 
+
+  const getNotifications = async () => {
+    try{
+      const notifications = await axios.get(`${API_URL}Bookings/notifications?userId=${user.custID}&&userRole="customer"`);
+      console.log(notifications, "notifications");
+    
+    }catch(error){
+      console.log(error, "error");
+    }
+  }
   // Internet check
   useEffect(() => {
+
+    if(user){
+      getNotifications();
+    }
     // Check initial connection state
     NetInfo.fetch().then(state => {
       setIsConnected(state.isConnected);
@@ -31,7 +45,7 @@ export default function RootNavigator() {
       setIsConnected(state.isConnected);
     });
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   // Play preloader once at app launch
   useEffect(() => {
