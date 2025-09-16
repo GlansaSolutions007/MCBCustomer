@@ -20,6 +20,7 @@ import { color } from "../../styles/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL, API_IMAGE_URL } from "@env";
 import NoInternetScreen from "./NoInternetScreen";
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 // import testNotificationUtils from "../../utils/notificationTestUtils";
 
 export default function ProfileScreen() {
@@ -289,31 +290,7 @@ export default function ProfileScreen() {
                   </TouchableOpacity>
                   <View style={styles.divider} />
                 </View>
-                <View style={styles.profileDetails}>
-                  <TouchableOpacity
-                    style={styles.eachTouchable}
-                    onPress={() => navigation.navigate('SupportChat')}
-                  >
-                    <View style={styles.row}>
-                      <Ionicons
-                        name="notifications"
-                        size={22}
-                        color={color.primary}
-                      />
-                      <CustomText
-                        style={[styles.touchableText, globalStyles.f16Medium]}
-                      >
-                        Notifications Settings
-                      </CustomText>
-                    </View>
-                    <Ionicons
-                      name="chevron-forward-outline"
-                      size={20}
-                      color={color.primary}
-                    />
-                  </TouchableOpacity>
-                  <View style={styles.divider} />
-                </View>
+               
                 <View style={styles.profileDetails}>
                   <TouchableOpacity
                     style={styles.eachTouchable}
@@ -395,7 +372,30 @@ export default function ProfileScreen() {
               <CustomText style={[globalStyles.f12Bold, globalStyles.mb2]}>
                 App Info
               </CustomText>
+              
               <View style={styles.profileCard}>
+              <View style={styles.profileDetails}>
+                  <TouchableOpacity
+                    style={styles.eachTouchable}
+                    onPress={() => navigation.navigate('SupportChat')}
+                  >
+                    <View style={styles.row}>
+                    <MaterialIcons name="support-agent" size={22}
+                        color={color.primary} />
+                      <CustomText
+                        style={[styles.touchableText, globalStyles.f16Medium]}
+                      >
+                        Help & Support
+                      </CustomText>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward-outline"
+                      size={20}
+                      color={color.primary}
+                    />
+                  </TouchableOpacity>
+                  <View style={styles.divider} />
+                </View>
                 <View style={styles.profileDetails}>
                   <TouchableOpacity
                     style={styles.eachTouchable}
