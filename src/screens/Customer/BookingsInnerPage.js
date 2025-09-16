@@ -12,6 +12,7 @@ import {
   PanResponder,
   StatusBar,
   Platform,
+  ImageBackground,
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { useRoute, useNavigation } from "@react-navigation/native";
@@ -28,8 +29,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ref, onValue } from "firebase/database";
 import { db } from "../../config/firebaseConfig";
 import polyline from "@mapbox/polyline";
-import technMarker from "../../../assets/images/techMarker.png";
+import technMarker from "../../../assets/icons/tech.png";
 import recenter from "../../../assets/images/recenter.png";
+import { Ionicons } from "@expo/vector-icons";
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
@@ -50,21 +52,30 @@ export default function BookingsInnerPage() {
   const contentOpacity = useState(new Animated.Value(0))[0];
   const [expandedPackages, setExpandedPackages] = useState({});
   const mapRef = useRef(null);
+  const hasFittedOnceRef = useRef(false);
+  const [isMapReady, setIsMapReady] = useState(false);
+  const [techMarkerFailed, setTechMarkerFailed] = useState(false);
   const [technicianLocation, setTechnicianLocation] = useState(null);
   const [customerLocation, setCustomerLocation] = useState(null);
   const [routeCoords, setRouteCoords] = useState([]);
   const [distance, setDistance] = useState(null);
   const [technicianOffline, setTechnicianOffline] = useState(false);
   const [lastLocationUpdate, setLastLocationUpdate] = useState(null);
-  const [timelineAnimation, setTimelineAnimation] = useState(new Animated.Value(0));
-  const windowHeight = Dimensions.get('window').height;
+  const [timelineAnimation, setTimelineAnimation] = useState(
+    new Animated.Value(0)
+  );
+  const windowHeight = Dimensions.get("window").height;
   const mapMinHeight = 220;
   const mapMaxHeight = Math.max(320, windowHeight - insets.top - 120);
   const mapHeight = useRef(new Animated.Value(mapMinHeight)).current;
   const isExpandedRef = useRef(false);
 
   const animateMapHeight = (to) => {
-    Animated.timing(mapHeight, { toValue: to, duration: 250, useNativeDriver: false }).start();
+    Animated.timing(mapHeight, {
+      toValue: to,
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
   };
 
   const toggleMapExpand = () => {
@@ -76,12 +87,18 @@ export default function BookingsInnerPage() {
   const currentDragHeightRef = useRef(mapMinHeight);
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 8,
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        Math.abs(gestureState.dy) > 8,
       onPanResponderGrant: () => {
-        mapHeight.stopAnimation((val) => { currentDragHeightRef.current = val; });
+        mapHeight.stopAnimation((val) => {
+          currentDragHeightRef.current = val;
+        });
       },
       onPanResponderMove: (_, gestureState) => {
-        const next = Math.min(mapMaxHeight, Math.max(mapMinHeight, currentDragHeightRef.current + gestureState.dy));
+        const next = Math.min(
+          mapMaxHeight,
+          Math.max(mapMinHeight, currentDragHeightRef.current + gestureState.dy)
+        );
         mapHeight.setValue(next);
       },
       onPanResponderRelease: () => {
@@ -128,7 +145,7 @@ export default function BookingsInnerPage() {
       {
         id: "technician-assigned",
         title: "Technician Assigned",
-        description: booking.TechID 
+        description: booking.TechID
           ? `${booking.TechFullName} is assigned to your service`
           : "Waiting for technician assignment",
         icon: "person",
@@ -139,11 +156,15 @@ export default function BookingsInnerPage() {
       {
         id: "journey-started",
         title: "Journey Started",
-        description: technicianLocation 
-          ? `Technician is on the way to your location${distance ? ` (${distance} away)` : ""}`
+        description: technicianLocation
+          ? `Technician is on the way to your location
+          ${distance ? `` : ""}`
           : "Technician is on the way to your location",
         icon: "directions-car",
-        isCompleted: status === "reached" || status === "servicestarted" || status === "completed",
+        isCompleted:
+          status === "reached" ||
+          status === "servicestarted" ||
+          status === "completed",
         isActive: status === "startjourney",
         time: status === "startjourney" ? "In Progress" : null,
       },
@@ -269,17 +290,25 @@ export default function BookingsInnerPage() {
       // 4) { coords: { latitude, longitude } }
       const candidate = {
         latitude:
-          data?.latitude ?? data?.lat ?? data?.location?.latitude ?? data?.coords?.latitude,
+          data?.latitude ??
+          data?.lat ??
+          data?.location?.latitude ??
+          data?.coords?.latitude,
         longitude:
-          data?.longitude ?? data?.lng ?? data?.location?.longitude ?? data?.coords?.longitude,
+          data?.longitude ??
+          data?.lng ??
+          data?.location?.longitude ??
+          data?.coords?.longitude,
       };
 
-      const lat = typeof candidate.latitude === "number"
-        ? candidate.latitude
-        : parseFloat(candidate.latitude);
-      const lng = typeof candidate.longitude === "number"
-        ? candidate.longitude
-        : parseFloat(candidate.longitude);
+      const lat =
+        typeof candidate.latitude === "number"
+          ? candidate.latitude
+          : parseFloat(candidate.latitude);
+      const lng =
+        typeof candidate.longitude === "number"
+          ? candidate.longitude
+          : parseFloat(candidate.longitude);
 
       console.log("Technician parsed coords:", { lat, lng, raw: data });
 
@@ -306,16 +335,30 @@ export default function BookingsInnerPage() {
     (async () => {
       try {
         // dynamic import to avoid adding get at top if unused elsewhere
-        const { get } = await import('firebase/database');
+        const { get } = await import("firebase/database");
         const snap = await get(technicianRef);
         if (snap.exists()) {
           const d = snap.val();
           const candidate = {
-            latitude: d?.latitude ?? d?.lat ?? d?.location?.latitude ?? d?.coords?.latitude,
-            longitude: d?.longitude ?? d?.lng ?? d?.location?.longitude ?? d?.coords?.longitude,
+            latitude:
+              d?.latitude ??
+              d?.lat ??
+              d?.location?.latitude ??
+              d?.coords?.latitude,
+            longitude:
+              d?.longitude ??
+              d?.lng ??
+              d?.location?.longitude ??
+              d?.coords?.longitude,
           };
-          const lat0 = typeof candidate.latitude === 'number' ? candidate.latitude : parseFloat(candidate.latitude);
-          const lng0 = typeof candidate.longitude === 'number' ? candidate.longitude : parseFloat(candidate.longitude);
+          const lat0 =
+            typeof candidate.latitude === "number"
+              ? candidate.latitude
+              : parseFloat(candidate.latitude);
+          const lng0 =
+            typeof candidate.longitude === "number"
+              ? candidate.longitude
+              : parseFloat(candidate.longitude);
           if (Number.isFinite(lat0) && Number.isFinite(lng0)) {
             const seeded = { latitude: lat0, longitude: lng0 };
             setTechnicianLocation(seeded);
@@ -323,7 +366,7 @@ export default function BookingsInnerPage() {
           }
         }
       } catch (e) {
-        console.log('Initial technician get() failed:', e?.message || e);
+        console.log("Initial technician get() failed:", e?.message || e);
       }
     })();
 
@@ -335,7 +378,8 @@ export default function BookingsInnerPage() {
       const origin = `${techLoc.latitude},${techLoc.longitude}`;
       const destination = `${custLoc.latitude},${custLoc.longitude}`;
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${process.env.GOOGLE_MAPS_APIKEY || ""
+        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${
+          process.env.GOOGLE_MAPS_APIKEY || ""
         }&avoid=tolls&units=metric`
       );
       if (!response.ok) return;
@@ -363,6 +407,23 @@ export default function BookingsInnerPage() {
       fetchRoute(technicianLocation, customerLocation);
     }
   }, [technicianLocation, customerLocation, fetchRoute]);
+
+  // Auto-fit to both markers once when both are available and map is ready
+  useEffect(() => {
+    if (!isMapReady) return;
+    if (technicianLocation && customerLocation && mapRef.current) {
+      try {
+        mapRef.current.fitToCoordinates(
+          [technicianLocation, customerLocation],
+          {
+            edgePadding: { top: 60, right: 60, bottom: 60, left: 60 },
+            animated: true,
+          }
+        );
+        hasFittedOnceRef.current = true;
+      } catch (_) {}
+    }
+  }, [isMapReady, technicianLocation, customerLocation]);
 
   // Real-time status updates for timeline
   useEffect(() => {
@@ -420,7 +481,7 @@ export default function BookingsInnerPage() {
           paddingBottom: insets.bottom + 16,
         }}
       >
-         <StatusBar
+        <StatusBar
           backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
           barStyle="dark-content"
         />
@@ -431,23 +492,31 @@ export default function BookingsInnerPage() {
               style={[styles.mapCard, { opacity: summaryOpacity }]}
             >
               <Animated.View
-                style={{ height: mapHeight, borderRadius: 12, overflow: "hidden" }}
+                style={{
+                  height: mapHeight,
+                  borderRadius: 12,
+                  overflow: "hidden",
+                }}
               >
-                <View style={styles.mapDragHandle} {...panResponder.panHandlers}>
+                <View
+                  style={styles.mapDragHandle}
+                  {...panResponder.panHandlers}
+                >
                   <View style={styles.mapGrabber} />
                 </View>
                 <MapView
                   ref={mapRef}
                   provider={PROVIDER_GOOGLE}
                   style={{ flex: 1 }}
+                  onMapReady={() => setIsMapReady(true)}
                   initialRegion={
                     customerLocation
                       ? {
-                        latitude: customerLocation.latitude,
-                        longitude: customerLocation.longitude,
-                        latitudeDelta: 0.05,
-                        longitudeDelta: 0.05,
-                      }
+                          latitude: customerLocation.latitude,
+                          longitude: customerLocation.longitude,
+                          latitudeDelta: 0.05,
+                          longitudeDelta: 0.05,
+                        }
                       : undefined
                   }
                   showsUserLocation={false}
@@ -456,13 +525,14 @@ export default function BookingsInnerPage() {
                   scrollEnabled
                 >
                   {technicianLocation && (
-                    <Marker coordinate={technicianLocation} title="Technician">
-                      <Image
-                        source={technMarker}
-                        style={{ width: 40, height: 40 }}
-                        resizeMode="contain"
-                      />
-                    </Marker>
+                    <Marker
+                      coordinate={technicianLocation}
+                      title="Technician"
+                      zIndex={999}
+                      image={technMarker}
+                      tracksViewChanges={false}
+                      anchor={{ x: 0.5, y: 0.5 }}
+                    />
                   )}
                   {customerLocation && (
                     <Marker
@@ -474,12 +544,12 @@ export default function BookingsInnerPage() {
                   {routeCoords.length > 0 && (
                     <Polyline
                       coordinates={routeCoords}
-                      strokeWidth={5}
+                      strokeWidth={7}
                       strokeColor={color.mapTracking || "#017F77"}
                     />
                   )}
                 </MapView>
-                <View style={styles.mapOverlayTop}>
+                {/* <View style={styles.mapOverlayTop}>
                   <CustomText style={[globalStyles.f12Bold, { color: "#fff" }]}>
                     Technician is on the way
                   </CustomText>
@@ -490,11 +560,17 @@ export default function BookingsInnerPage() {
                       Approx distance: {distance}
                     </CustomText>
                   )}
-                </View>
-                <TouchableOpacity onPress={recenterMap} style={styles.mapRecenterBtn}>
+                </View> */}
+                <TouchableOpacity
+                  onPress={recenterMap}
+                  style={styles.mapRecenterBtn}
+                >
                   <Icon name="my-location" size={22} color={color.primary} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={toggleMapExpand} style={styles.mapExpandBtn}>
+                <TouchableOpacity
+                  onPress={toggleMapExpand}
+                  style={styles.mapExpandBtn}
+                >
                   <Icon name="open-in-full" size={20} color="#333" />
                 </TouchableOpacity>
               </Animated.View>
@@ -504,16 +580,18 @@ export default function BookingsInnerPage() {
         {/* Service Timeline */}
         <Animated.View
           style={[
-            styles.timelineCard, 
-            { 
+            styles.timelineCard,
+            {
               opacity: timelineAnimation,
-              transform: [{
-                translateY: timelineAnimation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [20, 0],
-                })
-              }]
-            }
+              transform: [
+                {
+                  translateY: timelineAnimation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [20, 0],
+                  }),
+                },
+              ],
+            },
           ]}
         >
           <View style={styles.timelineHeader}>
@@ -523,7 +601,9 @@ export default function BookingsInnerPage() {
             {booking.BookingStatus?.toLowerCase() === "startjourney" && (
               <View style={styles.liveIndicator}>
                 <View style={styles.liveDot} />
-                <CustomText style={[globalStyles.f10Bold, { color: color.primary }]}>
+                <CustomText
+                  style={[globalStyles.f10Bold, { color: color.primary }]}
+                >
                   LIVE
                 </CustomText>
               </View>
@@ -531,22 +611,25 @@ export default function BookingsInnerPage() {
           </View>
           <View style={styles.timelineContainer}>
             {getTimelineSteps().map((step, index) => (
-              <Animated.View 
-                key={step.id} 
+              <Animated.View
+                key={step.id}
                 style={[
                   styles.timelineStep,
+                  step.isActive && styles.timelineActiveRow,
                   {
                     opacity: timelineAnimation.interpolate({
                       inputRange: [0, 1],
                       outputRange: [0, 1],
                     }),
-                    transform: [{
-                      translateX: timelineAnimation.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [-20, 0],
-                      })
-                    }]
-                  }
+                    transform: [
+                      {
+                        translateX: timelineAnimation.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [-20, 0],
+                        }),
+                      },
+                    ],
+                  },
                 ]}
               >
                 <View style={styles.timelineStepContent}>
@@ -561,9 +644,11 @@ export default function BookingsInnerPage() {
                           : step.isActive
                           ? color.primary + "20"
                           : "#f0f0f0",
-                        transform: [{
-                          scale: step.isActive ? 1.1 : 1,
-                        }]
+                        transform: [
+                          {
+                            scale: step.isActive ? 1.1 : 1,
+                          },
+                        ],
                       },
                     ]}
                   >
@@ -605,42 +690,52 @@ export default function BookingsInnerPage() {
                       {step.description}
                     </CustomText>
                     {step.time && (
-                      <View style={styles.timelineTimeContainer}>
-                        <CustomText
-                          style={[
-                            styles.timelineStepTime,
-                            globalStyles.f10Bold,
-                            { 
-                              color: step.isActive ? color.primary : "#999",
-                              backgroundColor: step.isActive ? color.primary + "10" : "#f5f5f5",
-                              paddingHorizontal: 8,
-                              paddingVertical: 2,
-                              borderRadius: 8,
-                              overflow: "hidden",
-                            },
-                          ]}
+                      <View
+                        style={[
+                          styles.timelineTimeContainer,
+                          step.isActive && { width: "100%" },
+                        ]}
+                      >
+                        <View
+                          style={{
+                            backgroundColor: step.isActive
+                              ? color.primary + "12"
+                              : "#f5f5f5",
+                            borderRadius: 10,
+                            paddingHorizontal: 12,
+                            paddingVertical: 6,
+                            alignSelf: step.isActive ? "stretch" : "flex-start",
+                          }}
                         >
-                          {step.time}
-                        </CustomText>
+                          <CustomText
+                            style={[
+                              styles.timelineStepTime,
+                              globalStyles.f10Bold,
+                              { color: step.isActive ? color.primary : "#999" },
+                            ]}
+                          >
+                            {step.time}
+                          </CustomText>
+                        </View>
                       </View>
                     )}
                   </View>
                   {step.isActive && (
-                    <Animated.View 
-                      style={styles.timelineActiveIndicator}
-                    >
-                      <Animated.View 
+                    <Animated.View style={styles.timelineActiveIndicator}>
+                      <Animated.View
                         style={[
                           styles.timelineActiveDot,
                           {
-                            transform: [{
-                              scale: timelineAnimation.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [0, 1],
-                              })
-                            }]
-                          }
-                        ]} 
+                            transform: [
+                              {
+                                scale: timelineAnimation.interpolate({
+                                  inputRange: [0, 1],
+                                  outputRange: [0, 1],
+                                }),
+                              },
+                            ],
+                          },
+                        ]}
                       />
                     </Animated.View>
                   )}
@@ -650,7 +745,9 @@ export default function BookingsInnerPage() {
                     style={[
                       styles.timelineConnector,
                       {
-                        backgroundColor: step.isCompleted ? "#34C759" : "#e0e0e0",
+                        backgroundColor: step.isCompleted
+                          ? "#34C759"
+                          : "#e0e0e0",
                       },
                     ]}
                   />
@@ -757,29 +854,33 @@ export default function BookingsInnerPage() {
                 color={color.primary}
                 style={{ marginRight: 6 }}
               />
-              <View style={{ flexWrap: "wrap", flexDirection: "row", maxWidth: 180 }}>
-                {(booking.TimeSlot || "")
-                  .split(",")
-                  .map((slot, index) => (
-                    <View
-                      key={index}
-                      style={{
-                        backgroundColor: "#f1f1f1",
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                        borderRadius: 6,
-                        marginRight: 6,
-                        marginBottom: 4,
-                      }}
+              <View
+                style={{
+                  flexWrap: "wrap",
+                  flexDirection: "row",
+                  maxWidth: 180,
+                }}
+              >
+                {(booking.TimeSlot || "").split(",").map((slot, index) => (
+                  <View
+                    key={index}
+                    style={{
+                      backgroundColor: "#f1f1f1",
+                      paddingHorizontal: 8,
+                      paddingVertical: 4,
+                      borderRadius: 6,
+                      marginRight: 6,
+                      marginBottom: 4,
+                    }}
+                  >
+                    <CustomText
+                      style={[globalStyles.f10Bold, { color: "#333" }]}
+                      numberOfLines={1}
                     >
-                      <CustomText
-                        style={[globalStyles.f10Bold, { color: "#333" }]}
-                        numberOfLines={1}
-                      >
-                        {slot.trim()}
-                      </CustomText>
-                    </View>
-                  ))}
+                      {slot.trim()}
+                    </CustomText>
+                  </View>
+                ))}
               </View>
             </View>
           </View>
@@ -1052,7 +1153,10 @@ export default function BookingsInnerPage() {
             </CustomText>
           </View>
           {booking.BookingStatus.toLowerCase() === "pending" &&
-            !(booking.BookingStatus.toLowerCase() === "pending" && (!booking.Payments || booking.Payments.length === 0)) && (
+            !(
+              booking.BookingStatus.toLowerCase() === "pending" &&
+              (!booking.Payments || booking.Payments.length === 0)
+            ) && (
               <View
                 style={[
                   styles.section,
@@ -1515,7 +1619,13 @@ const styles = StyleSheet.create({
   },
   timelineStep: {
     position: "relative",
-    marginBottom: 4,
+    marginBottom: 8,
+  },
+  timelineActiveRow: {
+    backgroundColor: "#F2FBFA",
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingRight: 8,
   },
   timelineStepContent: {
     flexDirection: "row",
@@ -1554,14 +1664,14 @@ const styles = StyleSheet.create({
   },
   timelineActiveIndicator: {
     position: "absolute",
-    right: 0,
-    top: 8,
+    right: 6,
+    top: 12,
     alignItems: "center",
   },
   timelineActiveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: color.primary,
     shadowColor: color.primary,
     shadowOffset: { width: 0, height: 0 },
@@ -1572,9 +1682,8 @@ const styles = StyleSheet.create({
   timelineConnector: {
     position: "absolute",
     left: 20,
-    top: 40,
+    top: 46,
     width: 2,
-    height: 24,
-    marginBottom: 4,
+    height: 36,
   },
 });
