@@ -42,11 +42,11 @@ const formatDate = (dateString) => {
 };
 
 export default function ServiceList() {
-  const [selectedTab, setSelectedTab] = useState("New");
+  const [selectedTab, setSelectedTab] = useState("Bookings");
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
-  const tabs = ["New", "Completed", "Cancelled"];
+  const tabs = ["Bookings", "Completed", "Cancelled"];
   const { refreshing, onRefresh } = useGlobalRefresh(fetchBookings);
   const isFetchingRef = useRef(false);
   const appState = useRef(AppState.currentState);
@@ -199,7 +199,7 @@ export default function ServiceList() {
   const filteredBookings = (bookings || []).filter((b) => {
     const status = (b.BookingStatus || "").toLowerCase();
     console.log("Booking status:", status, "Selected tab:", selectedTab);
-    if (selectedTab === "New") {
+    if (selectedTab === "Bookings") {
       return status !== "completed" && status !== "cancelled";
     } else if (selectedTab === "Completed") {
       return status === "completed";
@@ -355,7 +355,7 @@ export default function ServiceList() {
   
 
   const counts = {
-    New: (bookings || []).filter((b) => {
+    Bookings: (bookings || []).filter((b) => {
       const s = (b.BookingStatus || '').toLowerCase();
       return s !== 'completed' && s !== 'cancelled';
     }).length,
