@@ -137,7 +137,7 @@ const ServiceInnerPage = () => {
                 </View>
                 {/* Reviews */}
                 <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
-                    <CustomText style={[globalStyles.f16Bold, globalStyles.primary, { marginBottom: 10 }]}>
+                    {/* <CustomText style={[globalStyles.f16Bold, globalStyles.primary, { marginBottom: 10 }]}>
                         Reviews
                     </CustomText>
 
@@ -162,10 +162,9 @@ const ServiceInnerPage = () => {
                         <CustomText style={[globalStyles.f12Regular, { color: '#333', lineHeight: 18 }]}>
                             This garage is a local asset, the staff are brilliant, polite and helpful, excellent customer service. Will continue to use and recommend. Great job as always by the Oxted crew.
                         </CustomText>
-                    </View>
+                    </View> */}
 
-                    {/* Call help line button */}
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                         style={{
                             backgroundColor: '#000',
                             paddingVertical: 14,
@@ -181,7 +180,7 @@ const ServiceInnerPage = () => {
                     >
                         <Ionicons name="call-outline" size={18} color={color.secondary} style={{ marginRight: 8 }} />
                         <CustomText style={[globalStyles.f14Bold, { color: '#fff' }]}>Call help line</CustomText>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                 </View>
 
             </ScrollView>

@@ -165,7 +165,11 @@ export default function CustomerTabNavigator() {
         })}
       />
       <Tab.Screen name="My Bookings" component={BookingsStack} />
-      <Tab.Screen name="Profile" component={ProfileStack} options={{ headerShown: false }} />
+      <Tab.Screen name="Profile" component={ProfileStack} options={{ headerShown: false }} listeners={({ navigation }) => ({
+          tabPress: () => {
+            navigation.navigate('Profile', { screen: 'ProfileScreen' });
+          },
+        })} />
     </Tab.Navigator>
   );
 }

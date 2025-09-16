@@ -214,19 +214,25 @@ export const MyCarDetails = () => {
         backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
         barStyle="dark-content"
       />
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 80}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 80}
+      >
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingBottom: 20,
+          }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          scrollEventThrottle={16}
+          removeClippedSubviews={true}
+          bounces={true}
+          alwaysBounceVertical={false}
+          nestedScrollEnabled={true}
+          onScrollBeginDrag={Keyboard.dismiss}
         >
-          <ScrollView
-            contentContainerStyle={{
-              flexGrow: 1,
-            }}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
             <View style={{ flex: 1 }}>
               {model?.image && (
                 <View
@@ -451,11 +457,13 @@ export const MyCarDetails = () => {
                       transparent
                       animationType="slide"
                       onRequestClose={() => setShowYearPicker(false)}
+                      statusBarTranslucent={true}
                     >
-                      <TouchableWithoutFeedback onPress={() => setShowYearPicker(false)}>
-                        <View style={styles.modalOverlay}>
-                          <TouchableWithoutFeedback onPress={() => { }}>
-                            <View style={styles.yearPickerModal}>
+                      <View style={styles.modalOverlay}>
+                        <TouchableWithoutFeedback onPress={() => setShowYearPicker(false)}>
+                          <View style={styles.modalBackdrop} />
+                        </TouchableWithoutFeedback>
+                        <View style={styles.yearPickerModal}>
                               <View style={[globalStyles.flexrow, globalStyles.justifysb, globalStyles.alineItemscenter, globalStyles.p3]}>
                                 <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack]}>Select Year</CustomText>
                                 <TouchableOpacity onPress={() => setShowYearPicker(false)}>
@@ -465,6 +473,15 @@ export const MyCarDetails = () => {
                               <FlatList
                                 data={years}
                                 keyExtractor={(item) => item}
+                                initialNumToRender={10}
+                                maxToRenderPerBatch={10}
+                                windowSize={10}
+                                removeClippedSubviews={true}
+                                getItemLayout={(data, index) => ({
+                                  length: 60,
+                                  offset: 60 * index,
+                                  index,
+                                })}
                                 renderItem={({ item }) => (
                                   <TouchableOpacity
                                     onPress={() => {
@@ -494,9 +511,7 @@ export const MyCarDetails = () => {
                                 )}
                               />
                             </View>
-                          </TouchableWithoutFeedback>
                         </View>
-                      </TouchableWithoutFeedback>
                     </Modal>
 
                     {/* Transmission Picker Modal */}
@@ -505,11 +520,13 @@ export const MyCarDetails = () => {
                       transparent
                       animationType="slide"
                       onRequestClose={() => setShowTransmissionPicker(false)}
+                      statusBarTranslucent={true}
                     >
-                      <TouchableWithoutFeedback onPress={() => setShowTransmissionPicker(false)}>
-                        <View style={styles.modalOverlay}>
-                          <TouchableWithoutFeedback onPress={() => { }}>
-                            <View style={styles.transmissionPickerModal}>
+                      <View style={styles.modalOverlay}>
+                        <TouchableWithoutFeedback onPress={() => setShowTransmissionPicker(false)}>
+                          <View style={styles.modalBackdrop} />
+                        </TouchableWithoutFeedback>
+                        <View style={styles.transmissionPickerModal}>
                               <View style={[globalStyles.flexrow, globalStyles.justifysb, globalStyles.alineItemscenter, globalStyles.p3]}>
                                 <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack]}>Select Transmission</CustomText>
                                 <TouchableOpacity onPress={() => setShowTransmissionPicker(false)}>
@@ -519,6 +536,15 @@ export const MyCarDetails = () => {
                               <FlatList
                                 data={transmissionOptions}
                                 keyExtractor={(item) => item.value}
+                                initialNumToRender={5}
+                                maxToRenderPerBatch={5}
+                                windowSize={5}
+                                removeClippedSubviews={true}
+                                getItemLayout={(data, index) => ({
+                                  length: 60,
+                                  offset: 60 * index,
+                                  index,
+                                })}
                                 renderItem={({ item }) => (
                                   <TouchableOpacity
                                     onPress={() => {
@@ -549,9 +575,7 @@ export const MyCarDetails = () => {
                                 )}
                               />
                             </View>
-                          </TouchableWithoutFeedback>
                         </View>
-                      </TouchableWithoutFeedback>
                     </Modal>
                   </>
                 ) : (
@@ -694,8 +718,12 @@ export const MyCarDetails = () => {
                 animationType="slide"
                 transparent={true}
                 onRequestClose={() => setPrivacyModalVisible(false)}
+                statusBarTranslucent={true}
               >
                 <View style={styles.modalOverlay}>
+                  <TouchableWithoutFeedback onPress={() => setPrivacyModalVisible(false)}>
+                    <View style={styles.modalBackdrop} />
+                  </TouchableWithoutFeedback>
                   <View style={styles.modalContent}>
                     <View style={styles.modalHeader}>
                       <CustomText style={styles.modalTitle}>Privacy Policy</CustomText>
@@ -727,9 +755,8 @@ export const MyCarDetails = () => {
               </Modal>
 
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -935,6 +962,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "flex-end",
+  },
+  modalBackdrop: {
+    flex: 1,
   },
   modalContent: {
     backgroundColor: "#fff",

@@ -198,8 +198,13 @@ export default function InvoiceListScreen() {
         );
       });
 
-      console.log("Filtered customer invoices:", customerInvoices.map(invoices => invoices.PaymentStatus));
-      setInvoices(customerInvoices);
+      // Exclude pending invoices
+      const nonPendingInvoices = customerInvoices.filter(inv =>
+        (inv?.PaymentStatus || '').toLowerCase() !== 'pending'
+      );
+
+      console.log("Filtered customer invoices (non-pending):", nonPendingInvoices.map(inv => inv.PaymentStatus));
+      setInvoices(nonPendingInvoices);
     } catch (error) {
       console.error("Failed to fetch invoices:", error);
       setAlertTitle("Error");
