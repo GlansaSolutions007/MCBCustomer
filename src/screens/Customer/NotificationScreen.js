@@ -1,225 +1,316 @@
-import {React, useState, useEffect, } from 'react';
-import { View, Text, FlatList, RefreshControl, ActivityIndicator, StyleSheet, TouchableOpacity, LayoutAnimation, UIManager, Platform } from 'react-native';
-import { useIsFocused } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { React, useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  RefreshControl,
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+  LayoutAnimation,
+  UIManager,
+  Platform,
+} from "react-native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { API_URL, API_IMAGE_URL } from "@env";
 import CustomText from "../../components/CustomText";
 import globalStyles from "../../styles/globalStyles";
-import { MaterialIcons } from '@expo/vector-icons';
-import { color } from '../../styles/theme';
+import { MaterialIcons } from "@expo/vector-icons";
+import { color } from "../../styles/theme";
 
 const NotificationScreen = () => {
+  const [notifications, setNotifications] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [customerId, setCustomerId] = useState(null);
+  const isFocused = useIsFocused();
+  const navigation = useNavigation();
 
-    const [notifications, setNotifications] = useState([]);
-    const [refreshing, setRefreshing] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [customerId, setCustomerId] = useState(null);
-    const isFocused = useIsFocused();
+  useEffect(() => {
+    if (
+      Platform.OS === "android" &&
+      UIManager.setLayoutAnimationEnabledExperimental
+    ) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+    if (isFocused) {
+      loadCustomerId();
+    }
+  }, [isFocused]);
 
-    useEffect(() => {
-        if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-            UIManager.setLayoutAnimationEnabledExperimental(true);
-        }
-        if (isFocused) {
-            loadCustomerId();
-        }
-    }, [isFocused]);
-    
-    const loadCustomerId = async () => {
+  const loadCustomerId = async () => {
+    try {
+      // Primary: app stores a JSON blob under 'userData'
+      const userDataRaw = await AsyncStorage.getItem("userData");
+      if (userDataRaw) {
         try {
-            // Primary: app stores a JSON blob under 'userData'
-            const userDataRaw = await AsyncStorage.getItem('userData');
-            if (userDataRaw) {
-                try {
-                    const parsed = JSON.parse(userDataRaw);
-                    const idFromUserData = parsed?.custID || parsed?.customerId || parsed?.CustID;
-                    if (idFromUserData) {
-                        const idStr = String(idFromUserData);
-                        setCustomerId(idStr);
-                        await getNotifications(idStr);
-                        return;
-                    }
-                } catch (_) {}
-            }
-
-            // Fallbacks: sometimes stored directly
-            const direct =
-                (await AsyncStorage.getItem('custID')) ||
-                (await AsyncStorage.getItem('customerId')) ||
-                (await AsyncStorage.getItem('CustID'));
-            const idStr = direct ? String(direct) : null;
+          const parsed = JSON.parse(userDataRaw);
+          const idFromUserData =
+            parsed?.custID || parsed?.customerId || parsed?.CustID;
+          if (idFromUserData) {
+            const idStr = String(idFromUserData);
             setCustomerId(idStr);
-            if (idStr) { await getNotifications(idStr); }
-        } catch (e) {
-            console.log('Failed to load customerId from storage:', e?.message || e);
-            setCustomerId(null);
-        }
-    };
+            await getNotifications(idStr);
+            return;
+          }
+        } catch (_) {}
+      }
 
-    const getNotifications = async (id) => {
-        try {
-            setLoading(true);
-            const userId = id || customerId;
-            if (!userId) return;
-            const response = await axios.get(`${API_URL}Bookings/notifications?userId=${userId}&&userRole=customer`);
-            const data = Array.isArray(response.data?.data) ? response.data.data : (Array.isArray(response.data) ? response.data : []);
-            console.log(data, 'notifications data');
-            setNotifications(data);
-        } catch (e) {
-            console.log('Failed to load notifications:', e?.message || e);
-        }
-        finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
-    
-    
-    
+      // Fallbacks: sometimes stored directly
+      const direct =
+        (await AsyncStorage.getItem("custID")) ||
+        (await AsyncStorage.getItem("customerId")) ||
+        (await AsyncStorage.getItem("CustID"));
+      const idStr = direct ? String(direct) : null;
+      setCustomerId(idStr);
+      if (idStr) {
+        await getNotifications(idStr);
+      }
+    } catch (e) {
+      console.log("Failed to load customerId from storage:", e?.message || e);
+      setCustomerId(null);
+    }
+  };
 
-    const onRefresh = async () => {
-        setRefreshing(true);
-        await getNotifications();
-    };
+  const getNotifications = async (id) => {
+    try {
+      setLoading(true);
+      const userId = id || customerId;
+      if (!userId) return;
+      const response = await axios.get(
+        `${API_URL}Bookings/notifications?userId=${userId}&&userRole=customer`
+      );
+      const data = Array.isArray(response.data?.data)
+        ? response.data.data
+        : Array.isArray(response.data)
+        ? response.data
+        : [];
+      console.log(data, "notifications data");
+      setNotifications(data);
+    } catch (e) {
+      console.log("Failed to load notifications:", e?.message || e);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
-    const actionIconFor = (actionType) => {
-        const key = String(actionType || '').toLowerCase();
-        if (key.includes('completed') || key.includes('ended')) return 'check-circle';
-        if (key.includes('service') || key.includes('started')) return 'build';
-        if (key.includes('payment')) return 'payment';
-        if (key.includes('booking')) return 'event';
-        return 'notifications';
-    };
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await getNotifications();
+  };
 
-    const handleMarkRead = async (id) => {
-        try {
-            alert(id);
-            await axios.put(`${API_URL}Bookings/notifications/${id}`);
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-            setNotifications((prev) => prev.filter((n) => String(n.id) !== String(id)));
-            await getNotifications();
-        } catch (e) {
-            console.log('Failed to mark read:', e?.message || e);
-        }
-    };
+  const actionIconFor = (actionType) => {
+    const key = String(actionType || "").toLowerCase();
+    if (key.includes("completed") || key.includes("ended"))
+      return "check-circle";
+    if (key.includes("service") || key.includes("started")) return "build";
+    if (key.includes("payment")) return "payment";
+    if (key.includes("booking")) return "event";
+    return "notifications";
+  };
 
-    const renderItem = ({ item }) => (
-        <View style={styles.card}>
-            <View style={styles.row}>
-                <View style={styles.iconWrap}>
-                    <MaterialIcons name={actionIconFor(item.actionType)} size={20} color={color.primary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                    <CustomText style={[globalStyles.f14Bold, { color: '#222' }]}>
-                        {item.title || 'Notification'}
-                    </CustomText>
-                    <CustomText style={[globalStyles.f12Regular, { color: '#555', marginTop: 2 }]}>
-                        {item.message || ''}
-                    </CustomText>
-                </View>
-                <TouchableOpacity onPress={() => handleMarkRead(item.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                    <MaterialIcons name="close" size={18} color="#999" />
-                </TouchableOpacity>
-            </View>
-            {!item.isRead && <View style={styles.unreadBar} />}
-        </View>
+  const handleMarkRead = async (id) => {
+    try {
+      const uid = customerId;
+      if (!uid) return;
+      await axios.put(`${API_URL}Bookings/notifications/${id}/read`, null, {
+        params: { userId: uid, userRole: "customer" },
+      });
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setNotifications((prev) =>
+        prev.filter((n) => String(n.id) !== String(id))
+      );
+      await getNotifications();
+    } catch (e) {
+      console.log("Failed to mark read:", e?.message || e);
+    }
+  };
+
+  const handleAllNotfications = () => {
+    try {
+      //   const uid = customerId;
+      if (!customerId) return;
+      axios.put(
+        `${API_URL}Bookings/notifications/All?userId=${customerId}&&userRole=customer`
+      );
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setNotifications([]);
+      getNotifications();
+    } catch (e) {
+      console.log("Failed to mark all read:", e?.message || e);
+    }
+  };
+
+  const handleNavigate = async (item) => {
+    try {
+      // Mark as read first (best effort)
+      await handleMarkRead(item.id);
+    } catch (_) {}
+
+    const action = String(item.actionType || '').toLowerCase();
+    const shouldGoToBooking = (
+      action.includes('startjourney') ||
+      action.includes('reached') ||
+      action.includes('servicestarted') ||
+      action.includes('serviceended') ||
+      action.includes('booking') ||
+      action.includes('service')
     );
 
-    if (loading) {
-        return (
-            <View style={{ flex: 1, backgroundColor: '#F5F5F5' }}>
-                <View style={styles.headerRow}>
-                    <CustomText style={[globalStyles.f14Bold, { color: '#222' }]}>Notifications</CustomText>
-                </View>
-                <View style={{ padding: 16 }}>
-                    {[...Array(6)].map((_, idx) => (
-                        <View key={idx} style={styles.skeletonCard}>
-                            <View style={styles.skeletonIcon} />
-                            <View style={{ flex: 1 }}>
-                                <View style={styles.skeletonLineWide} />
-                                <View style={styles.skeletonLine} />
-                            </View>
-                        </View>
-                    ))}
-                </View>
-            </View>
-        );
+    if (shouldGoToBooking && item.relatedId) {
+      navigation.navigate('BookingsInnerPage', { bookingId: item.relatedId });
+      return;
     }
 
-    const handleClearAll = async () => {
-        try {
-            // Mark all as read sequentially (simple implementation). Backend can add bulk endpoint later.
-            const ids = notifications.map(n => n.id);
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-            await Promise.all(ids.map(id => axios.put(`${API_URL}Bookings/notifications/${id}/read`).catch(() => {})));
-            setNotifications([]);
-            await getNotifications();
-        } catch (e) {
-            console.log('Failed to clear all:', e?.message || e);
-        }
-    };
+    // Fallbacks
+    if (item.relatedId) {
+      navigation.navigate('BookingsInnerPage', { bookingId: item.relatedId });
+    } else {
+      navigation.navigate('NotificationScreen');
+    }
+  };
 
-    return (
-        <View style={{ flex: 1, backgroundColor: '#F5F5F5' }}>
-            <View style={styles.headerRow}>
-                <CustomText style={[globalStyles.f14Bold, { color: '#222' }]}>Notifications</CustomText>
-                {notifications.length > 0 && (
-                    <TouchableOpacity onPress={handleClearAll}>
-                        <CustomText style={[globalStyles.f12Bold, { color: color.primary }]}>Clear All</CustomText>
-                    </TouchableOpacity>
-                )}
-            </View>
-            <FlatList
-            style={{ flex: 1, backgroundColor: '#F5F5F5' }}
-            contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
-            data={notifications}
-            keyExtractor={(item) => String(item.id)}
-            renderItem={renderItem}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-            ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                    <CustomText style={[globalStyles.f14Bold, { color: '#888' }]}>No notifications yet</CustomText>
-                </View>
-            }
-            />
+  const renderItem = ({ item }) => (
+    <TouchableOpacity activeOpacity={0.85} onPress={() => handleNavigate(item)} style={styles.card}>
+      <View style={styles.row}>
+        <View style={styles.iconWrap}>
+          <MaterialIcons
+            name={actionIconFor(item.actionType)}
+            size={20}
+            color={color.primary}
+          />
         </View>
+        <View style={{ flex: 1 }}>
+          <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>
+            {item.title || "Notification"}
+          </CustomText>
+          <CustomText
+            style={[globalStyles.f12Regular, { color: "#555", marginTop: 2 }]}
+          >
+            {item.message || ""}
+          </CustomText>
+        </View>
+        <TouchableOpacity
+          onPress={() => handleMarkRead(item.id)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <MaterialIcons name="close" size={18} color="#999" />
+        </TouchableOpacity>
+      </View>
+      {!item.isRead && <View style={styles.unreadBar} />}
+    </TouchableOpacity>
+  );
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
+        <View style={styles.headerRow}>
+          <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>
+            Notifications
+          </CustomText>
+        </View>
+        <View style={{ padding: 16 }}>
+          {[...Array(6)].map((_, idx) => (
+            <View key={idx} style={styles.skeletonCard}>
+              <View style={styles.skeletonIcon} />
+              <View style={{ flex: 1 }}>
+                <View style={styles.skeletonLineWide} />
+                <View style={styles.skeletonLine} />
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
     );
+  }
+
+  // const handleClearAll = async () => {
+  //     try {
+  //         // Mark all as read sequentially (simple implementation). Backend can add bulk endpoint later.
+  //         const ids = notifications.map(n => n.id);
+  //         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  //         const uid = customerId;
+  //         await Promise.all(ids.map(id => axios.put(`${API_URL}Bookings/notifications/${id}/read`, null, { params: { userId: uid, userRole: 'customer' } }).catch(() => {})));
+  //         setNotifications([]);
+  //         await getNotifications();
+  //     } catch (e) {
+  //         console.log('Failed to clear all:', e?.message || e);
+  //     }
+  // };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
+      <View style={styles.headerRow}>
+        <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>
+          Notifications
+        </CustomText>
+        {notifications.length > 0 && (
+          <TouchableOpacity onPress={handleAllNotfications}>
+            <CustomText
+              style={[globalStyles.f12Bold, { color: color.primary }]}
+            >
+              Clear All
+            </CustomText>
+          </TouchableOpacity>
+        )}
+      </View>
+      <FlatList
+        style={{ flex: 1, backgroundColor: "#F5F5F5" }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+        data={notifications}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={renderItem}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <CustomText style={[globalStyles.f14Bold, { color: "#888" }]}>
+              No notifications yet
+            </CustomText>
+          </View>
+        }
+      />
+    </View>
+  );
 };
 
 export default NotificationScreen;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.06,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   iconWrap: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(1,127,119,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(1,127,119,0.08)",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 12,
   },
   unreadDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#017F77',
-    alignSelf: 'center',
+    backgroundColor: "#017F77",
+    alignSelf: "center",
   },
   unreadBar: {
     height: 2,
@@ -230,14 +321,14 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F5F5F5',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F5F5F5",
   },
   skeletonCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
@@ -246,31 +337,31 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#e9ecef',
+    backgroundColor: "#e9ecef",
     marginRight: 12,
   },
   skeletonLineWide: {
     height: 12,
-    backgroundColor: '#e9ecef',
+    backgroundColor: "#e9ecef",
     borderRadius: 6,
     marginBottom: 8,
-    width: '70%',
+    width: "70%",
   },
   skeletonLine: {
     height: 10,
-    backgroundColor: '#eef1f3',
+    backgroundColor: "#eef1f3",
     borderRadius: 5,
-    width: '95%',
+    width: "95%",
   },
   emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingTop: 40,
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingTop: 12,
   },
