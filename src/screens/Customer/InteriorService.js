@@ -905,7 +905,7 @@ const InteriorService = () => {
             style={{ marginRight: 6 }}
           />
           <CustomText style={[globalStyles.f12Bold, { color: color.white }]}>
-            View Garage{" "}
+            View Cart{" "}
             <CustomText style={styles.floatingBadgeText}>
               ({cartItems.length})
             </CustomText>
