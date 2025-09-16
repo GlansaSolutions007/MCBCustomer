@@ -78,7 +78,7 @@ export default function HomeScreen() {
         // Ensure response.data is an array
         const categoriesData = Array.isArray(response.data) ? response.data : [];
         console.log("📊 Categories data:", categoriesData);
-        
+
         const activeCategories = categoriesData.filter((cat) => cat.IsActive);
         setCategories(activeCategories);
       }
@@ -92,7 +92,7 @@ export default function HomeScreen() {
   const fetchTodaysBookings = async () => {
     // Prevent multiple simultaneous calls
     if (bookingsLoading) return;
-    
+
     setBookingsLoading(true);
     try {
       const userData = await AsyncStorage.getItem("userData");
@@ -126,7 +126,7 @@ export default function HomeScreen() {
         // Ensure response.data is an array
         const bookingsData = Array.isArray(response.data) ? response.data : [];
         console.log("📊 Bookings data:", bookingsData);
-        
+
         const upcoming = bookingsData.filter(
           (booking) =>
             booking.BookingDate >= today &&
@@ -160,7 +160,7 @@ export default function HomeScreen() {
       const timer = setTimeout(() => {
         fetchTodaysBookings();
       }, 100);
-      
+
       return () => clearTimeout(timer);
     }, [])
   );
@@ -1201,125 +1201,6 @@ export default function HomeScreen() {
                           </View>
                         ))}
                       </View>
-
-                      {/* <View style={styles.bookingServices}>
-                        <CustomText
-                          style={[
-                            globalStyles.f10Regular,
-                            globalStyles.mb2,
-                            { color: color.primary },
-                          ]}
-                        >
-                          Services Booked:
-                        </CustomText>
-                        {(booking.Packages || []).map((pkg, index) => (
-                          <View
-                            key={pkg.PackageID}
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                              justifyContent:
-                                index === booking.Packages.length - 1
-                                  ? "space-between"
-                                  : "flex-start",
-                              marginVertical: 4,
-                            }}
-                          >
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                              }}
-                            >
-                              <FontAwesome5
-                                name="tools"
-                                size={16}
-                                color={color.primary}
-                                style={{ marginRight: 6 }}
-                              />
-                              <CustomText
-                                style={[
-                                  globalStyles.f12Bold,
-                                  { color: "#333", maxWidth: 180 },
-                                ]}
-                                numberOfLines={1}
-                                ellipsizeMode="marquee"
-                              >
-                                {pkg.PackageName}
-                              </CustomText>
-                            </View>
-                          </View>
-                        ))}
-                      </View> */}
-                      {booking.BookingStatus?.toLowerCase() === "pending" &&
-                        (!booking.Payments ||
-                          booking.Payments.length === 0) && (
-                          <View style={styles.resumeCard}>
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                flex: 1,
-                              }}
-                            >
-                              <View style={styles.resumeIconWrap}>
-                                <Ionicons
-                                  name="warning"
-                                  size={16}
-                                  color={color.yellow}
-                                />
-                              </View>
-                              <View style={{ flex: 1, marginLeft: 8 }}>
-                                <CustomText
-                                  style={[
-                                    globalStyles.f12Bold,
-                                    { color: "#222" },
-                                  ]}
-                                >
-                                  Payment Pending
-                                </CustomText>
-                                <CustomText
-                                  style={[
-                                    globalStyles.f10Light,
-                                    { color: "#666", marginTop: 2 },
-                                  ]}
-                                >
-                                  To Pay: ₹{(() => {
-                                    const total = Number(booking?.TotalPrice || 0);
-                                    const gst = Number(booking?.GSTAmount || 0);
-                                    const discount = Number(booking?.CouponAmount || 0);
-                                    const computed = Math.max(total - discount + gst, 0);
-                                    return computed || total || 0;
-                                  })()}
-                                </CustomText>
-                              </View>
-                            </View>
-                            <TouchableOpacity
-                              onPress={() =>
-                                navigation.navigate("Cart", {
-                                  resumeBookingId: booking.BookingID,
-                                })
-                              }
-                              style={styles.resumeBtn}
-                              activeOpacity={0.9}
-                            >
-                              <Ionicons
-                                name="refresh-outline"
-                                size={16}
-                                color={color.black}
-                                style={{ marginRight: 6 }}
-                              />
-                              <CustomText
-                                style={[
-                                  globalStyles.f12Bold,
-                                  { color: color.black },
-                                ]}
-                              >
-                                Pay Now
-                              </CustomText>
-                            </TouchableOpacity>
-                          </View>
-                        )}
                     </View>
                   </Pressable>
                 ))
