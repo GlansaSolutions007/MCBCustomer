@@ -188,7 +188,7 @@ const ServiceInnerPage = () => {
                 {hasPrimaryVehicle ? (
                     <TouchableOpacity
                         style={{
-                            backgroundColor: color.primary,
+                            backgroundColor: isInCart ? color.yellow : color.primary,
                             paddingVertical: 14,
                             borderRadius: 12,
                             alignItems: 'center',
