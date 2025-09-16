@@ -10,6 +10,7 @@ import {
   LayoutAnimation,
   UIManager,
   Platform,
+  StatusBar,
 } from "react-native";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -55,7 +56,7 @@ const NotificationScreen = () => {
             await getNotifications(idStr);
             return;
           }
-        } catch (_) {}
+        } catch (_) { }
       }
 
       // Fallbacks: sometimes stored directly
@@ -85,8 +86,8 @@ const NotificationScreen = () => {
       const data = Array.isArray(response.data?.data)
         ? response.data.data
         : Array.isArray(response.data)
-        ? response.data
-        : [];
+          ? response.data
+          : [];
       console.log(data, "notifications data");
       setNotifications(data);
     } catch (e) {
@@ -145,31 +146,46 @@ const NotificationScreen = () => {
   };
 
   const handleNavigate = async (item) => {
-    try {
-      // Mark as read first (best effort)
-      await handleMarkRead(item.id);
-    } catch (_) {}
+    // Do NOT mark as read on tap; only on Clear All or X
+    // Determine potential booking track id fields
+    const trackId =
+      item?.bookingTrackId ||
+      item?.BookingTrackID ||
+      item?.relatedId ||
+      item?.bookingId ||
+      item?.BookingID || null;
 
-    const action = String(item.actionType || '').toLowerCase();
-    const shouldGoToBooking = (
-      action.includes('startjourney') ||
-      action.includes('reached') ||
-      action.includes('servicestarted') ||
-      action.includes('serviceended') ||
-      action.includes('booking') ||
-      action.includes('service')
-    );
-
-    if (shouldGoToBooking && item.relatedId) {
-      navigation.navigate('BookingsInnerPage', { bookingId: item.relatedId });
+    if (!trackId) {
       return;
     }
 
-    // Fallbacks
-    if (item.relatedId) {
-      navigation.navigate('BookingsInnerPage', { bookingId: item.relatedId });
-    } else {
-      navigation.navigate('NotificationScreen');
+    try {
+      // Fetch customer's bookings and find the one by BookingTrackID or BookingID
+      const userDataRaw = await AsyncStorage.getItem('userData');
+      const parsed = userDataRaw ? JSON.parse(userDataRaw) : null;
+      const custID = parsed?.custID;
+      if (!custID) return;
+
+      const res = await axios.get(`${API_URL}Bookings/${custID}`);
+      const list = Array.isArray(res.data) ? res.data : [];
+
+      const match = list.find(
+        (b) => String(b.BookingTrackID) === String(trackId) || String(b.BookingID) === String(trackId)
+      );
+
+      if (match) {
+        // Navigate through CustomerTabs → Home → BookingsInnerPage with full booking object
+        // Use a frame delay to make the transition smoother from a separate stack
+        requestAnimationFrame(() => {
+          navigation.navigate('CustomerTabs', {
+            screen: 'Home',
+            params: { screen: 'BookingsInnerPage', params: { booking: match } },
+          });
+        });
+        return;
+      }
+    } catch (e) {
+      console.log('Failed navigating to booking from notification:', e?.message || e);
     }
   };
 
@@ -208,9 +224,9 @@ const NotificationScreen = () => {
     return (
       <View style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
         <View style={styles.headerRow}>
-          <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>
+          {/* <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>
             Notifications
-          </CustomText>
+          </CustomText> */}
         </View>
         <View style={{ padding: 16 }}>
           {[...Array(6)].map((_, idx) => (
@@ -243,10 +259,14 @@ const NotificationScreen = () => {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
+      <StatusBar
+        backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
+        barStyle="dark-content"
+      />
       <View style={styles.headerRow}>
-        <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>
+        {/* <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>
           Notifications
-        </CustomText>
+        </CustomText> */}
         {notifications.length > 0 && (
           <TouchableOpacity onPress={handleAllNotfications}>
             <CustomText

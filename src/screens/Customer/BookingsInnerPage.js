@@ -197,14 +197,22 @@ export default function BookingsInnerPage() {
       },
     ];
 
-    // Handle cancelled status
+    // Handle cancelled status: only show Created -> Cancelled
     if (status === "cancelled") {
-      return steps.map((step, index) => ({
-        ...step,
-        isCompleted: index === 0, // Only booking created is completed
-        isActive: false,
-        time: index === 0 ? formatDate(booking.BookingDate) : "Cancelled",
-      }));
+      return [
+        steps[0],
+        {
+          id: "booking-cancelled",
+          title: "Cancelled",
+          description: booking.Reason || "Your booking was cancelled",
+          icon: "cancel",
+          isCompleted: true,
+          isActive: false,
+          time: "Cancelled",
+          iconColor: (color.alertError || "#FF3B30"),
+          iconBgColor: (color.alertError ? color.alertError + "20" : "#FFECEC"),
+        },
+      ];
     }
 
     return steps;
@@ -637,13 +645,11 @@ export default function BookingsInnerPage() {
                     style={[
                       styles.timelineIcon,
                       {
-                        backgroundColor: step.isCompleted
-                          ? step.isActive
-                            ? color.primary
-                            : "#34C759"
-                          : step.isActive
-                          ? color.primary + "20"
-                          : "#f0f0f0",
+                        backgroundColor: step.iconBgColor
+                          ? step.iconBgColor
+                          : step.isCompleted
+                          ? (step.isActive ? color.primary : "#34C759")
+                          : (step.isActive ? color.primary + "20" : "#f0f0f0"),
                         transform: [
                           {
                             scale: step.isActive ? 1.1 : 1,
@@ -656,7 +662,9 @@ export default function BookingsInnerPage() {
                       name={step.icon}
                       size={20}
                       color={
-                        step.isCompleted
+                        step.iconColor
+                          ? step.iconColor
+                          : step.isCompleted
                           ? "#fff"
                           : step.isActive
                           ? color.primary
