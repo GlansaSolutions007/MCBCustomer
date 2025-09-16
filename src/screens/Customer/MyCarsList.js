@@ -26,10 +26,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import carAddIcon from "../../../assets/icons/caddAddIcon.png";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 import { Ionicons } from "@expo/vector-icons";
+import { useCart } from "../../contexts/CartContext";
+import CustomAlert from "../../components/CustomAlert";
 
 export const MyCarsList = () => {
 
   const navigation = useNavigation();
+  const { cartItems, clearCart } = useCart();
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertStatus, setAlertStatus] = useState("info");
 
   const [cars, setCars] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -130,6 +137,20 @@ export const MyCarsList = () => {
           },
         }
       );
+
+      // Clear cart if the primary car actually changes
+      const previousPrimaryId = cars.find((car) => car.isPrimary)?.id;
+      if (previousPrimaryId && previousPrimaryId !== vehicleId) {
+        if (Array.isArray(cartItems) && cartItems.length > 0) {
+          clearCart();
+          setAlertTitle("Cart Cleared");
+          setAlertMessage(
+            "Cart was cleared due to primary car change. Please add services for the new car."
+          );
+          setAlertStatus("info");
+          setAlertVisible(true);
+        }
+      }
 
       // Option 2 (optional): Also update locally while waiting for API
       const updatedCars = cars.map((car) => ({
@@ -380,6 +401,14 @@ export const MyCarsList = () => {
           <CustomText style={styles.bookServiceText}>Book a Service</CustomText>
         </TouchableOpacity>
       </View>
+
+      <CustomAlert
+        visible={alertVisible}
+        onClose={() => setAlertVisible(false)}
+        title={alertTitle}
+        message={alertMessage}
+        status={alertStatus}
+      />
     </View>
   );
 };
