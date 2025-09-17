@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Platform, ScrollView, StatusBar, StyleSheet, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import CustomText from "../../components/CustomText";
 import globalStyles from "../../styles/globalStyles";
@@ -9,6 +9,10 @@ export default function PrivacyPolicyScreen() {
 
   return (
     <View style={styles.container}>
+       <StatusBar
+          backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
+          barStyle="dark-content"
+        />
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <CustomText style={[globalStyles.f14Bold, styles.title]}>
           Cancellation & Refund Policy

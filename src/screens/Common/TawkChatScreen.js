@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
-import { ActivityIndicator, BackHandler, Platform, SafeAreaView, View } from "react-native";
+import { ActivityIndicator, BackHandler, Platform, SafeAreaView, StatusBar, View } from "react-native";
 import { WebView } from "react-native-webview";
 
 // Tawk.to direct chat URL built from the provided embed snippet
@@ -30,6 +30,10 @@ export default function TawkChatScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+       <StatusBar
+          backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
+          barStyle="dark-content"
+        />
       <WebView
         ref={webviewRef}
         source={{ uri: TAWK_DIRECT_CHAT_URL }}

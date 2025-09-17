@@ -12,6 +12,7 @@ import {
   ImageBackground,
   Text,
   ActivityIndicator,
+  StatusBar,
 } from "react-native";
 import CustomText from "../../components/CustomText";
 import { color } from "../../styles/theme";
@@ -162,6 +163,10 @@ export const ProfileRegister = () => {
         style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 80}
       >
+        <StatusBar
+          backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
+          barStyle="dark-content"
+        />
         <ScrollView
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}

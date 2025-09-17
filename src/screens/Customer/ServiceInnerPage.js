@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Image, ImageBackground, Platform, ScrollView, StatusBar, TouchableOpacity, View } from 'react-native'
+import { Image, ImageBackground, Platform, Pressable, ScrollView, StatusBar, TouchableOpacity, View, Text } from 'react-native'
 import CustomText from '../../components/CustomText'
 import globalStyles from '../../styles/globalStyles'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -12,6 +12,7 @@ import { color } from '../../styles/theme'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { API_URL, API_IMAGE_URL } from "@env";
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import axios from 'axios'
 
 
 const ServiceInnerPage = () => {
@@ -21,6 +22,8 @@ const ServiceInnerPage = () => {
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
     const [hasPrimaryVehicle, setHasPrimaryVehicle] = useState(false);
+    const [notificationCount, setNotificationCount] = useState(0);
+
 
     useEffect(() => {
         const checkPrimaryVehicle = async () => {
@@ -55,6 +58,45 @@ const ServiceInnerPage = () => {
         navigation.navigate('My Cars', { screen: 'SelectCarBrand' });
     };
 
+    const fetchNotifications = async () => {
+        try {
+            const userData = await AsyncStorage.getItem("userData");
+            if (!userData) {
+                setNotificationCount(0);
+                return;
+            }
+            const parsedData = JSON.parse(userData);
+            const customerId = parsedData?.custID;
+            if (!customerId) {
+                setNotificationCount(0);
+                return;
+            }
+
+            const response = await axios.get(
+                `${API_URL}Bookings/notifications?userId=${customerId}&userRole=customer`
+            );
+
+            // Top-level response
+            const result = response?.data;
+
+            // Your notifications are inside result.data
+            const notifications = result?.data || [];
+
+            // Count them
+            const count = Array.isArray(notifications) ? notifications.length : 0;
+
+            setNotificationCount(count);
+            console.log("Notification Count:", count);
+        } catch (error) {
+            console.error("Failed to fetch notifications:", error);
+            setNotificationCount(0);
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+    }, []);
+
     const DetailRow = ({ label, value, icon }) => (
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -85,14 +127,47 @@ const ServiceInnerPage = () => {
                                 <Ionicons name="arrow-back" size={24} color="black" />
                             </TouchableOpacity>
 
-                            <TouchableOpacity onPress={() => navigation.navigate("Cart")} style={styles.iconWrapper}>
-                                <Image source={Garage} style={styles.garageIcon} />
-                                {cartItems.length > 0 && (
-                                    <View style={styles.badge}>
-                                        <CustomText style={styles.badgeText}>{cartItems.length}</CustomText>
+                            <View style={[styles.rightIcons]}>
+                                <Pressable
+                                    onPress={() =>
+                                        navigation.navigate("NotificationScreen")
+                                    }
+                                >
+                                    <View style={{ paddingRight: 15 }}>
+                                        <Ionicons
+                                            name="notifications"
+                                            size={24}
+                                            style={globalStyles.textWhite}
+                                        />
+
+                                        {/* Badge */}
+
+                                        {notificationCount >= 0 && (
+                                            <View style={styles.badge}>
+                                                <Text style={styles.badgeText}>
+                                                    {notificationCount > 99
+                                                        ? "99+"
+                                                        : notificationCount}
+                                                </Text>
+                                            </View>
+                                        )}
                                     </View>
-                                )}
-                            </TouchableOpacity>
+                                </Pressable>
+                                <View style={styles.iconWrapper}>
+                                    <TouchableOpacity
+                                        onPress={() => navigation.navigate("Cart")}
+                                    >
+                                        <Image source={Garage} style={styles.garageIcon} />
+                                        {cartItems.length > 0 && (
+                                            <View style={styles.cartBadge}>
+                                                <CustomText style={styles.badgeText}>
+                                                    {cartItems.length}
+                                                </CustomText>
+                                            </View>
+                                        )}
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                         </View>
                         <View style={styles.imageTextWrapper}>
                             <CustomText style={styles.serviceTitle}>{pkg.title}</CustomText>
@@ -249,19 +324,39 @@ const styles = {
         alignItems: 'center',
         marginTop: 20
     },
+    rightIcons: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "flex-end",
+        gap: 12,
+        alignItems: "center",
+    },
     iconWrapper: {
         position: 'relative',
     },
     badge: {
-        position: 'absolute',
-        top: -6,
-        right: -6,
-        backgroundColor: 'yellow',
-        borderRadius: 8,
-        paddingHorizontal: 4,
+        position: "absolute",
+        right: 6,
+        top: -4,
+        backgroundColor: color.yellow,
+        borderRadius: 80,
         minWidth: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
+        height: 16,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 2,
+    },
+    cartBadge: {
+        position: "absolute",
+        right: -4,
+        top: -4,
+        backgroundColor: color.yellow,
+        borderRadius: 80,
+        minWidth: 16,
+        height: 16,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 2,
     },
     badgeText: {
         color: '#000',

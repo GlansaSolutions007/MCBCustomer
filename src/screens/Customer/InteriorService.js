@@ -96,10 +96,11 @@ const InteriorService = () => {
     if (!imageUri) return;
     flyImageUri.current = imageUri;
     flyStart.current = { x: startX, y: startY };
-    flyEnd.current = { x: 24, y: 24 }; // will be updated after measuring cart icon
-    if (cartIconRef.current) {
-      cartIconRef.current.measure((fx, fy, width, height, px, py) => {
-        flyEnd.current = { x: px, y: py };
+    flyEnd.current = { x: 24, y: 24 }; // fallback; updated after measuring cart icon
+    if (cartIconRef.current && cartIconRef.current.measureInWindow) {
+      cartIconRef.current.measureInWindow((x, y, width, height) => {
+        // Aim for the center of the cart icon
+        flyEnd.current = { x: x + width / 2, y: y + height / 2 };
         setIsFlying(true);
         flyAnim.setValue(0);
         flyOpacity.setValue(1);
@@ -678,7 +679,7 @@ const InteriorService = () => {
                         navigation.navigate("NotificationScreen")
                       }
                     >
-                      <View style={{ paddingRight: 10 }}>
+                      <View style={{ paddingRight: 15 }}>
                         <Ionicons
                           name="notifications"
                           size={24}
@@ -698,13 +699,13 @@ const InteriorService = () => {
                         )}
                       </View>
                     </Pressable>
-                    <View style={styles.iconWrapper}>
+                    <View ref={cartIconRef} collapsable={false} style={styles.iconWrapper}>
                       <TouchableOpacity
-                        onPress={() => navigationTo.navigate("Cart")}
+                        onPress={() => navigation.navigate("Cart")}
                       >
                         <Image source={Garage} style={styles.garageIcon} />
                         {cartItems.length > 0 && (
-                          <View style={styles.badge}>
+                          <View style={styles.cartBadge}>
                             <CustomText style={styles.badgeText}>
                               {cartItems.length}
                             </CustomText>
@@ -911,7 +912,7 @@ const InteriorService = () => {
       edges={["bottom"]}
     >
       {isFlying && (
-        <Animated.Image
+      <Animated.Image
           source={{ uri: flyImageUri.current || "" }}
           style={{
             position: "absolute",
@@ -922,13 +923,13 @@ const InteriorService = () => {
               {
                 translateX: flyAnim.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [flyStart.current.x, flyEnd.current.x],
+                outputRange: [flyStart.current.x, flyEnd.current.x],
                 }),
               },
               {
                 translateY: flyAnim.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [flyStart.current.y, flyEnd.current.y],
+                outputRange: [flyStart.current.y, flyEnd.current.y],
                 }),
               },
               {
@@ -940,7 +941,7 @@ const InteriorService = () => {
             ],
             opacity: flyOpacity,
             zIndex: 999,
-            elevation: 10,
+          elevation: 1000,
           }}
           pointerEvents="none"
         />
@@ -1184,7 +1185,19 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: "absolute",
-    right: -2,
+    right: 6,
+    top: -4,
+    backgroundColor: color.yellow,
+    borderRadius: 80,
+    minWidth: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 2,
+  },
+  cartBadge: {
+    position: "absolute",
+    right: -4,
     top: -4,
     backgroundColor: color.yellow,
     borderRadius: 80,
