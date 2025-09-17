@@ -493,6 +493,134 @@ export default function BookingsInnerPage() {
           backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
           barStyle="dark-content"
         />
+          <Animated.View
+          style={[styles.summaryCard, { opacity: summaryOpacity }]}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={[
+                styles.statusChip,
+                { backgroundColor: getStatusColor() + "20" },
+              ]}
+            >
+              <View
+                style={[
+                  styles.statusDot,
+                  { backgroundColor: getStatusColor() },
+                ]}
+              />
+              <CustomText
+                style={[styles.statusChipText, { color: getStatusColor() }]}
+              >
+                {statusText}
+              </CustomText>
+            </View>
+            <CustomText style={[globalStyles.f12Bold, { color: "#000" }]}>
+              BID: {booking.BookingTrackID}
+            </CustomText>
+          </View>
+
+          {/* Debug: Show Technician ID for testing */}
+          {/* <View style={{ marginTop: 6, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <CustomText style={[globalStyles.f10Bold, { color: "#666" }]}>TechID:</CustomText>
+            <CustomText style={[globalStyles.f10Bold, { color: "#333" }]}>
+              {booking?.TechID != null ? String(booking.TechID) : "N/A"}
+            </CustomText>
+          </View> */}
+          {/* {technicianLocation && (
+            <View style={{ marginTop: 4, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <CustomText style={[globalStyles.f10Bold, { color: "#666" }]}>Tech Coords:</CustomText>
+              <CustomText style={[globalStyles.f10Bold, { color: "#333" }]}>
+                {technicianLocation.latitude.toFixed(5)}, {technicianLocation.longitude.toFixed(5)}
+              </CustomText>
+            </View>
+          )} */}
+
+          <View style={[styles.dividerLine, { marginVertical: 12 }]} />
+
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Image
+              source={{ uri: `${API_IMAGE_URL}${booking.VehicleImage}` }}
+              style={styles.summaryVehicleImage}
+            />
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>
+                {booking.BrandName} {booking.ModelName}
+              </CustomText>
+              <CustomText
+                style={[
+                  globalStyles.f12Regular,
+                  { color: "#666", marginTop: 2 },
+                ]}
+              >
+                {booking.VehicleNumber} • {booking.FuelTypeName}
+              </CustomText>
+            </View>
+          </View>
+
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginTop: 12,
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Icon
+                name="event"
+                size={16}
+                color={color.primary}
+                style={{ marginRight: 6 }}
+              />
+              <CustomText style={[globalStyles.f12Bold]}>
+                {formatDate(booking.BookingDate)}
+              </CustomText>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Icon
+                name="schedule"
+                size={16}
+                color={color.primary}
+                style={{ marginRight: 6 }}
+              />
+              <View
+                style={{
+                  flexWrap: "wrap",
+                  flexDirection: "row",
+                  maxWidth: 180,
+                }}
+              >
+                {(booking.TimeSlot || "").split(",").map((slot, index) => (
+                  <View
+                    key={index}
+                    style={{
+                      backgroundColor: "#f1f1f1",
+                      paddingHorizontal: 8,
+                      paddingVertical: 4,
+                      borderRadius: 6,
+                      marginRight: 6,
+                      marginBottom: 4,
+                    }}
+                  >
+                    <CustomText
+                      style={[globalStyles.f10Bold, { color: "#333" }]}
+                      numberOfLines={1}
+                    >
+                      {slot.trim()}
+                    </CustomText>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
+        </Animated.View>
+
         {/* Live Map (shown first like Zomato) */}
         {booking.BookingStatus?.toLowerCase() === "startjourney" &&
           booking.TechID && (
@@ -766,134 +894,7 @@ export default function BookingsInnerPage() {
         </Animated.View>
 
         {/* Booking Summary */}
-        <Animated.View
-          style={[styles.summaryCard, { opacity: summaryOpacity }]}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <View
-              style={[
-                styles.statusChip,
-                { backgroundColor: getStatusColor() + "20" },
-              ]}
-            >
-              <View
-                style={[
-                  styles.statusDot,
-                  { backgroundColor: getStatusColor() },
-                ]}
-              />
-              <CustomText
-                style={[styles.statusChipText, { color: getStatusColor() }]}
-              >
-                {statusText}
-              </CustomText>
-            </View>
-            <CustomText style={[globalStyles.f10Bold, { color: "#999" }]}>
-              BID: {booking.BookingTrackID}
-            </CustomText>
-          </View>
-
-          {/* Debug: Show Technician ID for testing */}
-          {/* <View style={{ marginTop: 6, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-            <CustomText style={[globalStyles.f10Bold, { color: "#666" }]}>TechID:</CustomText>
-            <CustomText style={[globalStyles.f10Bold, { color: "#333" }]}>
-              {booking?.TechID != null ? String(booking.TechID) : "N/A"}
-            </CustomText>
-          </View> */}
-          {/* {technicianLocation && (
-            <View style={{ marginTop: 4, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-              <CustomText style={[globalStyles.f10Bold, { color: "#666" }]}>Tech Coords:</CustomText>
-              <CustomText style={[globalStyles.f10Bold, { color: "#333" }]}>
-                {technicianLocation.latitude.toFixed(5)}, {technicianLocation.longitude.toFixed(5)}
-              </CustomText>
-            </View>
-          )} */}
-
-          <View style={[styles.dividerLine, { marginVertical: 12 }]} />
-
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Image
-              source={{ uri: `${API_IMAGE_URL}${booking.VehicleImage}` }}
-              style={styles.summaryVehicleImage}
-            />
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>
-                {booking.BrandName} {booking.ModelName}
-              </CustomText>
-              <CustomText
-                style={[
-                  globalStyles.f12Regular,
-                  { color: "#666", marginTop: 2 },
-                ]}
-              >
-                {booking.VehicleNumber} • {booking.FuelTypeName}
-              </CustomText>
-            </View>
-          </View>
-
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginTop: 12,
-            }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Icon
-                name="event"
-                size={16}
-                color={color.primary}
-                style={{ marginRight: 6 }}
-              />
-              <CustomText style={[globalStyles.f12Bold]}>
-                {formatDate(booking.BookingDate)}
-              </CustomText>
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Icon
-                name="schedule"
-                size={16}
-                color={color.primary}
-                style={{ marginRight: 6 }}
-              />
-              <View
-                style={{
-                  flexWrap: "wrap",
-                  flexDirection: "row",
-                  maxWidth: 180,
-                }}
-              >
-                {(booking.TimeSlot || "").split(",").map((slot, index) => (
-                  <View
-                    key={index}
-                    style={{
-                      backgroundColor: "#f1f1f1",
-                      paddingHorizontal: 8,
-                      paddingVertical: 4,
-                      borderRadius: 6,
-                      marginRight: 6,
-                      marginBottom: 4,
-                    }}
-                  >
-                    <CustomText
-                      style={[globalStyles.f10Bold, { color: "#333" }]}
-                      numberOfLines={1}
-                    >
-                      {slot.trim()}
-                    </CustomText>
-                  </View>
-                ))}
-              </View>
-            </View>
-          </View>
-        </Animated.View>
-
+      
         <CustomText
           style={[styles.sectionTitle, globalStyles.f14Bold, { marginTop: 20 }]}
         >

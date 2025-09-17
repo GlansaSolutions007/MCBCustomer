@@ -12,7 +12,7 @@ import {
   Platform,
   StatusBar,
 } from "react-native";
-import { useIsFocused } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { API_URL, API_IMAGE_URL } from "@env";
@@ -27,6 +27,7 @@ const NotificationScreen = () => {
   const [loading, setLoading] = useState(true);
   const [customerId, setCustomerId] = useState(null);
   const isFocused = useIsFocused();
+  const navigation = useNavigation();
 
   useEffect(() => {
     if (
@@ -220,7 +221,11 @@ const NotificationScreen = () => {
   
 
   const renderItem = ({ item }) => (
-    <View style={styles.card}>
+    <TouchableOpacity 
+      style={styles.card}
+      onPress={() => handleNavigate(item)}
+      activeOpacity={0.7}
+    >
       <View style={styles.row}>
         <View style={styles.iconWrap}>
           <MaterialIcons
@@ -257,7 +262,7 @@ const NotificationScreen = () => {
           {formatNotificationDate(item.createdDate)}
         </CustomText>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   if (loading) {
