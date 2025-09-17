@@ -1,4 +1,4 @@
-import { React, useState, useEffect } from "react";
+import { React, useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
   UIManager,
   Platform,
   StatusBar,
+  Animated,
+  Easing,
 } from "react-native";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -26,6 +28,9 @@ const NotificationScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [customerId, setCustomerId] = useState(null);
+  const animsRef = useRef({}); // id -> { opacity: Animated.Value, translateX: Animated.Value }
+  const isClearingRef = useRef(false);
+  const [reducedShadowIds, setReducedShadowIds] = useState({}); // { [id]: true }
   const isFocused = useIsFocused();
   const navigation = useNavigation();
 
@@ -120,11 +125,37 @@ const NotificationScreen = () => {
       await axios.put(`${API_URL}Bookings/notifications/${id}/read`, null, {
         params: { userId: uid, userRole: "customer" },
       });
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      setNotifications((prev) =>
-        prev.filter((n) => String(n.id) !== String(id))
-      );
-      await getNotifications();
+
+      const key = String(id);
+      const anims = animsRef.current[key];
+      if (anims) {
+        // Instantly reduce shadow for this card
+        setReducedShadowIds((prev) => ({ ...prev, [key]: true }));
+        Animated.parallel([
+          Animated.timing(anims.opacity, {
+            toValue: 0,
+            duration: 180,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(anims.translateX, {
+            toValue: 40,
+            duration: 180,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+        ]).start(() => {
+          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+          setNotifications((prev) =>
+            prev.filter((n) => String(n.id) !== key)
+          );
+        });
+      } else {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setNotifications((prev) =>
+          prev.filter((n) => String(n.id) !== key)
+        );
+      }
     } catch (e) {
       console.log("Failed to mark read:", e?.message || e);
     }
@@ -134,14 +165,65 @@ const NotificationScreen = () => {
     try {
       //   const uid = customerId;
       if (!customerId) return;
-      axios.put(
-        `${API_URL}Bookings/notifications/All?userId=${customerId}&&userRole=customer`
-      );
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      setNotifications([]);
-      getNotifications();
+      if (isClearingRef.current) return;
+      isClearingRef.current = true;
+
+      // Build staggered animations: fade out and slide to the right
+      const items = [...notifications];
+      const perItemAnimations = items.map((n, idx) => {
+        const id = String(n.id);
+        if (!animsRef.current[id]) {
+          animsRef.current[id] = {
+            opacity: new Animated.Value(1),
+            translateX: new Animated.Value(0),
+          };
+        }
+        const { opacity, translateX } = animsRef.current[id];
+        // Reduce shadow immediately for smoother fade
+        if (!reducedShadowIds[id]) {
+          setReducedShadowIds((prev) => ({ ...prev, [id]: true }));
+        }
+        return Animated.parallel([
+          Animated.timing(opacity, {
+            toValue: 0,
+            duration: 180,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(translateX, {
+            toValue: 40,
+            duration: 180,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+        ]);
+      });
+
+      Animated.stagger(80, perItemAnimations).start(async () => {
+        try {
+          await axios.put(
+            `${API_URL}Bookings/notifications/All?userId=${customerId}&&userRole=customer`
+          );
+        } catch (_) {}
+
+        // Smoothly remove all after animations complete
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setNotifications([]);
+
+        // Reset animated values for potential next load
+        Object.values(animsRef.current).forEach((vals) => {
+          vals.opacity.setValue(1);
+          vals.translateX.setValue(0);
+        });
+        setReducedShadowIds({});
+
+        // Refresh list (optional)
+        getNotifications();
+        isClearingRef.current = false;
+      });
     } catch (e) {
       console.log("Failed to mark all read:", e?.message || e);
+      isClearingRef.current = false;
     }
   };
 
@@ -220,50 +302,66 @@ const NotificationScreen = () => {
   };
 
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => handleNavigate(item)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.row}>
-        <View style={styles.iconWrap}>
-          <MaterialIcons
-            name={actionIconFor(item.actionType)}
-            size={20}
-            color={color.primary}
-          />
-        </View>
-        <View style={{ flex: 1 }}>
-          <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>
-            {item.title || "Notification"}
-          </CustomText>
-          <CustomText
-            style={[globalStyles.f10Regular, { color: "#555", marginTop: 2 }]}
-          >
-            {item.message || ""}
-          </CustomText>
-        </View>
+  const renderItem = ({ item }) => {
+    const id = String(item.id);
+    if (!animsRef.current[id]) {
+      animsRef.current[id] = {
+        opacity: new Animated.Value(1),
+        translateX: new Animated.Value(0),
+      };
+    }
+    const { opacity, translateX } = animsRef.current[id];
+    const lowShadow = reducedShadowIds[id];
+    return (
+      <Animated.View style={{ opacity, transform: [{ translateX }] }}>
         <TouchableOpacity
-          onPress={() => handleMarkRead(item.id)}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          style={[
+            styles.card,
+            lowShadow ? { shadowOpacity: 0.02, shadowRadius: 2, elevation: 0 } : null,
+          ]}
+          onPress={() => handleNavigate(item)}
+          activeOpacity={0.7}
         >
-          <MaterialIcons name="close" style={{ backgroundColor: color.primary + "20", borderRadius: 100, padding: 4 }} size={15} color="#999" />
+          <View style={styles.row}>
+            <View style={styles.iconWrap}>
+              <MaterialIcons
+                name={actionIconFor(item.actionType)}
+                size={20}
+                color={color.primary}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>
+                {item.title || "Notification"}
+              </CustomText>
+              <CustomText
+                style={[globalStyles.f10Regular, { color: "#555", marginTop: 2 }]}
+              >
+                {item.message || ""}
+              </CustomText>
+            </View>
+            <TouchableOpacity
+              onPress={() => handleMarkRead(item.id)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <MaterialIcons name="close" style={{ backgroundColor: color.primary + "20", borderRadius: 100, padding: 4 }} size={15} color="#999" />
+            </TouchableOpacity>
+          </View>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              marginTop: 2,
+            }}
+          >
+            <CustomText style={[globalStyles.f8Regular, { color: "#555" }]}>
+              {formatNotificationDate(item.createdDate)}
+            </CustomText>
+          </View>
         </TouchableOpacity>
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          marginTop: 2,
-        }}
-      >
-        <CustomText style={[globalStyles.f8Regular, { color: "#555" }]}>
-          {formatNotificationDate(item.createdDate)}
-        </CustomText>
-      </View>
-    </TouchableOpacity>
-  );
+      </Animated.View>
+    );
+  };
 
   if (loading) {
     return (
