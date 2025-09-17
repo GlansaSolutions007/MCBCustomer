@@ -297,7 +297,7 @@ export default function CustomHeader({ navigation }) {
             <Pressable
               onPress={() => navigationTo.navigate("NotificationScreen")}
             >
-              <View style={{ paddingRight: 10 }}>
+              <View style={{ paddingRight: 15 }}>
                 <Ionicons
                   name="notifications"
                   size={24}
@@ -320,7 +320,7 @@ export default function CustomHeader({ navigation }) {
                 
                 <Image source={Garage} style={styles.garageIcon} />
                 {cartItems.length > 0 && (
-                  <View style={styles.badge}>
+                  <View style={styles.cartBadge}>
                     <CustomText style={styles.badgeText}>
                       {cartItems.length}
                     </CustomText>
@@ -538,7 +538,19 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: "absolute",
-    right: -2,
+    right: 6,
+    top: -4,
+    backgroundColor: color.yellow,
+    borderRadius: 80,
+    minWidth: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 2,
+  },
+  cartBadge: {
+    position: "absolute",
+    right: -4,
     top: -4,
     backgroundColor: color.yellow,
     borderRadius: 80,

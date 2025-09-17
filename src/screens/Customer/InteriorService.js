@@ -675,7 +675,7 @@ const InteriorService = () => {
                   <View style={[styles.rightIcons]}>
                     <Pressable
                       onPress={() =>
-                        navigationTo.navigate("NotificationScreen")
+                        navigation.navigate("NotificationScreen")
                       }
                     >
                       <View style={{ paddingRight: 10 }}>

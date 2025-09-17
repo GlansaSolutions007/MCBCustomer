@@ -13,6 +13,7 @@ import {
   StatusBar,
   Platform,
   ImageBackground,
+  Linking,
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { useRoute, useNavigation } from "@react-navigation/native";
@@ -386,8 +387,7 @@ export default function BookingsInnerPage() {
       const origin = `${techLoc.latitude},${techLoc.longitude}`;
       const destination = `${custLoc.latitude},${custLoc.longitude}`;
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${
-          process.env.GOOGLE_MAPS_APIKEY || ""
+        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${process.env.GOOGLE_MAPS_APIKEY || ""
         }&avoid=tolls&units=metric`
       );
       if (!response.ok) return;
@@ -429,7 +429,7 @@ export default function BookingsInnerPage() {
           }
         );
         hasFittedOnceRef.current = true;
-      } catch (_) {}
+      } catch (_) { }
     }
   }, [isMapReady, technicianLocation, customerLocation]);
 
@@ -452,6 +452,16 @@ export default function BookingsInnerPage() {
         animated: true,
       });
     }
+  };
+
+  const handleCallTechnician = () => {
+    try {
+      const rawPhone = String(booking?.TechPhoneNumber || "").trim();
+      if (!rawPhone) return;
+      const phone = rawPhone.replace(/\s+/g, "");
+      const url = `tel:${phone}`;
+      Linking.openURL(url).catch(() => { });
+    } catch (_) { }
   };
 
   const handleCancelBooking = async (reason) => {
@@ -493,7 +503,7 @@ export default function BookingsInnerPage() {
           backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
           barStyle="dark-content"
         />
-          <Animated.View
+        <Animated.View
           style={[styles.summaryCard, { opacity: summaryOpacity }]}
         >
           <View
@@ -648,11 +658,11 @@ export default function BookingsInnerPage() {
                   initialRegion={
                     customerLocation
                       ? {
-                          latitude: customerLocation.latitude,
-                          longitude: customerLocation.longitude,
-                          latitudeDelta: 0.05,
-                          longitudeDelta: 0.05,
-                        }
+                        latitude: customerLocation.latitude,
+                        longitude: customerLocation.longitude,
+                        latitudeDelta: 0.05,
+                        longitudeDelta: 0.05,
+                      }
                       : undefined
                   }
                   showsUserLocation={false}
@@ -776,8 +786,8 @@ export default function BookingsInnerPage() {
                         backgroundColor: step.iconBgColor
                           ? step.iconBgColor
                           : step.isCompleted
-                          ? (step.isActive ? color.primary : "#34C759")
-                          : (step.isActive ? color.primary + "20" : "#f0f0f0"),
+                            ? (step.isActive ? color.primary : "#34C759")
+                            : (step.isActive ? color.primary + "20" : "#f0f0f0"),
                         transform: [
                           {
                             scale: step.isActive ? 1.1 : 1,
@@ -793,10 +803,10 @@ export default function BookingsInnerPage() {
                         step.iconColor
                           ? step.iconColor
                           : step.isCompleted
-                          ? "#fff"
-                          : step.isActive
-                          ? color.primary
-                          : "#999"
+                            ? "#fff"
+                            : step.isActive
+                              ? color.primary
+                              : "#999"
                       }
                     />
                   </Animated.View>
@@ -809,8 +819,8 @@ export default function BookingsInnerPage() {
                           color: step.isActive
                             ? color.primary
                             : step.isCompleted
-                            ? "#333"
-                            : "#999",
+                              ? "#333"
+                              : "#999",
                         },
                       ]}
                     >
@@ -893,17 +903,81 @@ export default function BookingsInnerPage() {
           </View>
         </Animated.View>
 
-        {/* Booking Summary */}
-      
-        <CustomText
-          style={[styles.sectionTitle, globalStyles.f14Bold, { marginTop: 20 }]}
+        {/* Technician Card */}
+        <View
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: 12,
+            padding: 16,
+            width: "100%",
+            elevation: 3,
+            marginBottom: 12,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 6,
+          }}
         >
-          Packages
-        </CustomText>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 24,
+                backgroundColor: color.primary + "15",
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: 12,
+              }}
+            >
+              <Ionicons name="person" size={22} color={color.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>
+                {booking?.TechID == null ? "Technician" : booking?.TechFullName || "Technician"}
+              </CustomText>
+              <CustomText style={[globalStyles.f12Regular, { color: "#666", marginTop: 2 }]}>
+                {booking?.TechID == null
+                  ? "Not Assigned Yet"
+                  : (booking?.TechPhoneNumber ? `${booking.TechPhoneNumber}` : "Phone not available")}
+              </CustomText>
+            </View>
+            {booking?.TechID != null && !!booking?.TechPhoneNumber && (
+              <TouchableOpacity
+                onPress={handleCallTechnician}
+                activeOpacity={0.85}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  backgroundColor: color.primary,
+                  paddingHorizontal: 18,
+                  paddingVertical: 10,
+                  borderRadius: 10,
+                }}
+              >
+                <Ionicons name="call" size={15} color="#fff" style={{ marginRight: 4 }} />
+                <CustomText style={[globalStyles.f12Bold, { color: "#fff" }]}>Call</CustomText>
+              </TouchableOpacity>
+            )}
+          </View>
+          {booking?.TechID != null && (
+            <View style={{ marginTop: 12, flexDirection: "row", alignItems: "center" }}>
+              <Icon name="verified" size={16} color={color.primary} style={{ marginRight: 6 }} />
+              <CustomText style={[globalStyles.f10Bold, { color: color.primary }]}>Assigned</CustomText>
+            </View>
+          )}
+        </View>
+
+        {/* Booking Summary */}
+
+
         {(booking.Packages || []).map((pkg) => {
           const isExpanded = !!expandedPackages[pkg.PackageID];
           return (
             <View key={pkg.PackageID} style={[styles.packageCard]}>
+               <CustomText style={[styles.timelineTitle, globalStyles.f14Bold]}>
+                Packages
+              </CustomText>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => togglePackage(pkg.PackageID)}
@@ -1014,13 +1088,11 @@ export default function BookingsInnerPage() {
           );
         })}
 
-        <CustomText
-          style={[styles.sectionTitle, globalStyles.f14Bold, { marginTop: 8 }]}
-        >
-          Booking Details
-        </CustomText>
         <Animated.View style={[styles.card, { opacity: contentOpacity }]}>
-          <View style={styles.section}>
+        <CustomText style={[styles.timelineTitle, globalStyles.f14Bold]}>
+                Booking Details
+              </CustomText>
+          <View style={[styles.section, { marginTop: 12 }]}>
             <CustomText style={[styles.label, globalStyles.f12Bold]}>
               Date:
             </CustomText>
@@ -1036,66 +1108,7 @@ export default function BookingsInnerPage() {
               {booking.TimeSlot}
             </CustomText>
           </View>
-          <View style={styles.section}>
-            <CustomText style={[styles.label, globalStyles.f12Bold]}>
-              Technician:
-            </CustomText>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                flex: 2,
-                justifyContent: "flex-end",
-              }}
-            >
-              <View>
-                <CustomText
-                  style={[
-                    styles.value,
-                    globalStyles.f12Regular,
-                    {
-                      color: booking.TechID === null ? "#FF9500" : "#333",
-                      fontWeight: booking.TechID === null ? "bold" : "normal",
-                    },
-                  ]}
-                >
-                  {booking.TechID === null
-                    ? "Not Assigned Yet"
-                    : `Assigned (${booking.TechFullName})`}
-                </CustomText>
-                {booking.BookingStatus.toLowerCase() === "startjourney" &&
-                  booking.TechID !== null && (
-                    <View style={{ marginRight: 4 }}>
-                      {/* <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 4,
-                        }}
-                      >
-                        <FontAwesome5
-                          name="map-marker-alt"
-                          size={18}
-                          color={color.yellow}
-                        />
-                        <CustomText
-                          style={[
-                            styles.value,
-                            globalStyles.f12Regular,
-                            {
-                              color: color.yellow || "#007AFF",
-                              fontWeight: "bold",
-                            },
-                          ]}
-                        >
-                          Journey Started
-                        </CustomText>
-                      </View> */}
-                    </View>
-                  )}
-              </View>
-            </View>
-          </View>
+          {/* Technician row moved to dedicated card above */}
           <View style={styles.section}>
             <CustomText style={[styles.label, globalStyles.f12Bold]}>
               Status:
@@ -1537,6 +1550,7 @@ const styles = StyleSheet.create({
   packageHeader: {
     flexDirection: "row",
     alignItems: "center",
+    marginTop: 12,
   },
   durationPill: {
     flexDirection: "row",
