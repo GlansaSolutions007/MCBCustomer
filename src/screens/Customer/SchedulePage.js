@@ -85,7 +85,9 @@ const SchedulePage = () => {
         .filter((slot) => {
           if (currentDate === sDate) {
             const startTime = moment(slot.StartTime, "HH:mm:ss");
-            return startTime.isAfter(currentTime);
+            // Add 2 hours to current time for the minimum start time
+            const twoHoursFromNow = currentTime.clone().add(2, 'hours');
+            return startTime.isAfter(twoHoursFromNow);
           } else {
             return true; // For future dates, include all slots
           }

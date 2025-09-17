@@ -311,17 +311,6 @@ const NotificationScreen = () => {
         {/* <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>
           Notifications
         </CustomText> */}
-        {notifications.length > 0 && (
-          <TouchableOpacity onPress={handleAllNotfications}>
-            <View style={{ display: "flex", flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end", paddingHorizontal: 18, paddingTop: 12 }}>
-              <CustomText
-                style={[globalStyles.f12Bold, { color: color.primary }]}
-              >
-                Clear All
-              </CustomText>
-            </View>
-          </TouchableOpacity>
-        )}
       <FlatList
         style={{ flex: 1, backgroundColor: "#F5F5F5" }}
         contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
@@ -339,6 +328,29 @@ const NotificationScreen = () => {
           </View>
         }
       />
+      
+      {/* Sticky Clear All Button */}
+      {notifications.length > 0 && (
+        <View style={styles.stickyClearAllContainer}>
+          <TouchableOpacity 
+            onPress={handleAllNotfications}
+            style={styles.stickyClearAllButton}
+            activeOpacity={0.8}
+          >
+            <MaterialIcons 
+              name="clear-all" 
+              size={20} 
+              color="#fff" 
+              style={{ marginRight: 6 }}
+            />
+            <CustomText
+              style={[globalStyles.f12Bold, { color: "#fff" }]}
+            >
+              Clear All
+            </CustomText>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
@@ -429,5 +441,31 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingTop: 12,
+  },
+  stickyClearAllContainer: {
+    position: "absolute",
+    bottom: 50,
+    right: 20,
+    zIndex: 1000,
+  },
+  stickyClearAllButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: color.primary,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 25,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: color.primary + "20",
+    minWidth: 120,
+    justifyContent: "center",
   },
 });
