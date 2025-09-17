@@ -187,6 +187,37 @@ const NotificationScreen = () => {
       console.log('Failed navigating to booking from notification:', e?.message || e);
     }
   };
+  const formatNotificationDate = (createdDate) => {
+    if (!createdDate) return "";
+  
+    const date = new Date(createdDate);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = diffMs / (1000 * 60 * 60);
+  
+    // < 24 hours → show only time
+    if (diffHours < 24) {
+      return date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    }
+  
+    // ≥ 24 hours → show dd-mm-yyyy (hh:mm AM/PM)
+    const dd = String(date.getDate()).padStart(2, "0");
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const yyyy = date.getFullYear();
+  
+    const time = date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  
+    return `${dd}-${mm}-${yyyy} (${time})`;
+  };
+  
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
