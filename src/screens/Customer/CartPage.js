@@ -1311,7 +1311,7 @@ const CartPage = () => {
                 onChangeText={setInstructions}
               />
               <CustomText style={styles.textLimit}>
-                {Math.max(0, 100 - (instructions ? instructions.length : 0))}/100
+                {Math.max(0, 200 - (instructions ? instructions.length : 0))}/200
               </CustomText>
             </View>
 
