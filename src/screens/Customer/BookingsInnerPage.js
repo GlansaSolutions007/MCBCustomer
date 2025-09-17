@@ -210,8 +210,8 @@ export default function BookingsInnerPage() {
           isCompleted: true,
           isActive: false,
           time: "Cancelled",
-          iconColor: (color.alertError || "#FF3B30"),
-          iconBgColor: (color.alertError ? color.alertError + "20" : "#FFECEC"),
+          iconColor: color.alertError || "#FF3B30",
+          iconBgColor: color.alertError ? color.alertError + "20" : "#FFECEC",
         },
       ];
     }
@@ -387,7 +387,8 @@ export default function BookingsInnerPage() {
       const origin = `${techLoc.latitude},${techLoc.longitude}`;
       const destination = `${custLoc.latitude},${custLoc.longitude}`;
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${process.env.GOOGLE_MAPS_APIKEY || ""
+        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${
+          process.env.GOOGLE_MAPS_APIKEY || ""
         }&avoid=tolls&units=metric`
       );
       if (!response.ok) return;
@@ -429,7 +430,7 @@ export default function BookingsInnerPage() {
           }
         );
         hasFittedOnceRef.current = true;
-      } catch (_) { }
+      } catch (_) {}
     }
   }, [isMapReady, technicianLocation, customerLocation]);
 
@@ -460,8 +461,8 @@ export default function BookingsInnerPage() {
       if (!rawPhone) return;
       const phone = rawPhone.replace(/\s+/g, "");
       const url = `tel:${phone}`;
-      Linking.openURL(url).catch(() => { });
-    } catch (_) { }
+      Linking.openURL(url).catch(() => {});
+    } catch (_) {}
   };
 
   const handleCancelBooking = async (reason) => {
@@ -503,6 +504,100 @@ export default function BookingsInnerPage() {
           backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
           barStyle="dark-content"
         />
+
+        {/* Live Map (shown first like Zomato) */}
+        {booking.BookingStatus?.toLowerCase() === "startjourney" &&
+          booking.TechID && (
+            <Animated.View
+              style={[styles.mapCard, { opacity: summaryOpacity }]}
+            >
+              <Animated.View
+                style={{
+                  height: mapHeight,
+                  borderRadius: 12,
+                  overflow: "hidden",
+                }}
+              >
+                <View
+                  style={styles.mapDragHandle}
+                  {...panResponder.panHandlers}
+                >
+                  <View style={styles.mapGrabber} />
+                </View>
+                <MapView
+                  ref={mapRef}
+                  provider={PROVIDER_GOOGLE}
+                  style={{ flex: 1 }}
+                  onMapReady={() => setIsMapReady(true)}
+                  initialRegion={
+                    customerLocation
+                      ? {
+                          latitude: customerLocation.latitude,
+                          longitude: customerLocation.longitude,
+                          latitudeDelta: 0.05,
+                          longitudeDelta: 0.05,
+                        }
+                      : undefined
+                  }
+                  showsUserLocation={false}
+                  showsMyLocationButton={false}
+                  zoomEnabled
+                  scrollEnabled
+                >
+                  {technicianLocation && (
+                    <Marker
+                      coordinate={technicianLocation}
+                      title="Technician"
+                      zIndex={999}
+                      image={technMarker}
+                      tracksViewChanges={false}
+                      anchor={{ x: 0.5, y: 0.5 }}
+                    />
+                  )}
+                  {customerLocation && (
+                    <Marker
+                      coordinate={customerLocation}
+                      title="You"
+                      pinColor="red"
+                    />
+                  )}
+                  {routeCoords.length > 0 && (
+                    <Polyline
+                      coordinates={routeCoords}
+                      strokeWidth={7}
+                      strokeColor={color.mapTracking || "#017F77"}
+                    />
+                  )}
+                </MapView>
+                {/* <View style={styles.mapOverlayTop}>
+                  <CustomText style={[globalStyles.f12Bold, { color: "#fff" }]}>
+                    Technician is on the way
+                  </CustomText>
+                  {!!distance && (
+                    <CustomText
+                      style={[globalStyles.f12Medium, { color: "#fff" }]}
+                    >
+                      Approx distance: {distance}
+                    </CustomText>
+                  )}
+                </View> */}
+                <TouchableOpacity
+                  onPress={recenterMap}
+                  style={styles.mapRecenterBtn}
+                >
+                  <Icon name="my-location" size={22} color={color.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={toggleMapExpand}
+                  style={styles.mapExpandBtn}
+                >
+                  <Icon name="open-in-full" size={20} color="#333" />
+                </TouchableOpacity>
+              </Animated.View>
+            </Animated.View>
+          )}
+
+        {/* Booking Summary */}
         <Animated.View
           style={[styles.summaryCard, { opacity: summaryOpacity }]}
         >
@@ -631,98 +726,6 @@ export default function BookingsInnerPage() {
           </View>
         </Animated.View>
 
-        {/* Live Map (shown first like Zomato) */}
-        {booking.BookingStatus?.toLowerCase() === "startjourney" &&
-          booking.TechID && (
-            <Animated.View
-              style={[styles.mapCard, { opacity: summaryOpacity }]}
-            >
-              <Animated.View
-                style={{
-                  height: mapHeight,
-                  borderRadius: 12,
-                  overflow: "hidden",
-                }}
-              >
-                <View
-                  style={styles.mapDragHandle}
-                  {...panResponder.panHandlers}
-                >
-                  <View style={styles.mapGrabber} />
-                </View>
-                <MapView
-                  ref={mapRef}
-                  provider={PROVIDER_GOOGLE}
-                  style={{ flex: 1 }}
-                  onMapReady={() => setIsMapReady(true)}
-                  initialRegion={
-                    customerLocation
-                      ? {
-                        latitude: customerLocation.latitude,
-                        longitude: customerLocation.longitude,
-                        latitudeDelta: 0.05,
-                        longitudeDelta: 0.05,
-                      }
-                      : undefined
-                  }
-                  showsUserLocation={false}
-                  showsMyLocationButton={false}
-                  zoomEnabled
-                  scrollEnabled
-                >
-                  {technicianLocation && (
-                    <Marker
-                      coordinate={technicianLocation}
-                      title="Technician"
-                      zIndex={999}
-                      image={technMarker}
-                      tracksViewChanges={false}
-                      anchor={{ x: 0.5, y: 0.5 }}
-                    />
-                  )}
-                  {customerLocation && (
-                    <Marker
-                      coordinate={customerLocation}
-                      title="You"
-                      pinColor="red"
-                    />
-                  )}
-                  {routeCoords.length > 0 && (
-                    <Polyline
-                      coordinates={routeCoords}
-                      strokeWidth={7}
-                      strokeColor={color.mapTracking || "#017F77"}
-                    />
-                  )}
-                </MapView>
-                {/* <View style={styles.mapOverlayTop}>
-                  <CustomText style={[globalStyles.f12Bold, { color: "#fff" }]}>
-                    Technician is on the way
-                  </CustomText>
-                  {!!distance && (
-                    <CustomText
-                      style={[globalStyles.f12Medium, { color: "#fff" }]}
-                    >
-                      Approx distance: {distance}
-                    </CustomText>
-                  )}
-                </View> */}
-                <TouchableOpacity
-                  onPress={recenterMap}
-                  style={styles.mapRecenterBtn}
-                >
-                  <Icon name="my-location" size={22} color={color.primary} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={toggleMapExpand}
-                  style={styles.mapExpandBtn}
-                >
-                  <Icon name="open-in-full" size={20} color="#333" />
-                </TouchableOpacity>
-              </Animated.View>
-            </Animated.View>
-          )}
-
         {/* Service Timeline */}
         <Animated.View
           style={[
@@ -786,8 +789,12 @@ export default function BookingsInnerPage() {
                         backgroundColor: step.iconBgColor
                           ? step.iconBgColor
                           : step.isCompleted
-                            ? (step.isActive ? color.primary : "#34C759")
-                            : (step.isActive ? color.primary + "20" : "#f0f0f0"),
+                          ? step.isActive
+                            ? color.primary
+                            : "#34C759"
+                          : step.isActive
+                          ? color.primary + "20"
+                          : "#f0f0f0",
                         transform: [
                           {
                             scale: step.isActive ? 1.1 : 1,
@@ -803,10 +810,10 @@ export default function BookingsInnerPage() {
                         step.iconColor
                           ? step.iconColor
                           : step.isCompleted
-                            ? "#fff"
-                            : step.isActive
-                              ? color.primary
-                              : "#999"
+                          ? "#fff"
+                          : step.isActive
+                          ? color.primary
+                          : "#999"
                       }
                     />
                   </Animated.View>
@@ -819,8 +826,8 @@ export default function BookingsInnerPage() {
                           color: step.isActive
                             ? color.primary
                             : step.isCompleted
-                              ? "#333"
-                              : "#999",
+                            ? "#333"
+                            : "#999",
                         },
                       ]}
                     >
@@ -934,12 +941,21 @@ export default function BookingsInnerPage() {
             </View>
             <View style={{ flex: 1 }}>
               <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>
-                {booking?.TechID == null ? "Technician" : booking?.TechFullName || "Technician"}
+                {booking?.TechID == null
+                  ? "Technician"
+                  : booking?.TechFullName || "Technician"}
               </CustomText>
-              <CustomText style={[globalStyles.f12Regular, { color: "#666", marginTop: 2 }]}>
+              <CustomText
+                style={[
+                  globalStyles.f12Regular,
+                  { color: "#666", marginTop: 2 },
+                ]}
+              >
                 {booking?.TechID == null
                   ? "Not Assigned Yet"
-                  : (booking?.TechPhoneNumber ? `${booking.TechPhoneNumber}` : "Phone not available")}
+                  : booking?.TechPhoneNumber
+                  ? `${booking.TechPhoneNumber}`
+                  : "Phone not available"}
               </CustomText>
             </View>
             {booking?.TechID != null && !!booking?.TechPhoneNumber && (
@@ -955,27 +971,48 @@ export default function BookingsInnerPage() {
                   borderRadius: 10,
                 }}
               >
-                <Ionicons name="call" size={15} color="#fff" style={{ marginRight: 4 }} />
-                <CustomText style={[globalStyles.f12Bold, { color: "#fff" }]}>Call</CustomText>
+                <Ionicons
+                  name="call"
+                  size={15}
+                  color="#fff"
+                  style={{ marginRight: 4 }}
+                />
+                <CustomText style={[globalStyles.f12Bold, { color: "#fff" }]}>
+                  Call
+                </CustomText>
               </TouchableOpacity>
             )}
           </View>
           {booking?.TechID != null && (
-            <View style={{ marginTop: 12, flexDirection: "row", alignItems: "center" }}>
-              <Icon name="verified" size={16} color={color.primary} style={{ marginRight: 6 }} />
-              <CustomText style={[globalStyles.f10Bold, { color: color.primary }]}>Assigned</CustomText>
+            <View
+              style={{
+                marginTop: 12,
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <Icon
+                name="verified"
+                size={16}
+                color={color.primary}
+                style={{ marginRight: 6 }}
+              />
+              <CustomText
+                style={[globalStyles.f10Bold, { color: color.primary }]}
+              >
+                Assigned
+              </CustomText>
             </View>
           )}
         </View>
 
         {/* Booking Summary */}
 
-
         {(booking.Packages || []).map((pkg) => {
           const isExpanded = !!expandedPackages[pkg.PackageID];
           return (
             <View key={pkg.PackageID} style={[styles.packageCard]}>
-               <CustomText style={[styles.timelineTitle, globalStyles.f14Bold]}>
+              <CustomText style={[styles.timelineTitle, globalStyles.f14Bold]}>
                 Packages
               </CustomText>
               <TouchableOpacity
@@ -1089,9 +1126,9 @@ export default function BookingsInnerPage() {
         })}
 
         <Animated.View style={[styles.card, { opacity: contentOpacity }]}>
-        <CustomText style={[styles.timelineTitle, globalStyles.f14Bold]}>
-                Booking Details
-              </CustomText>
+          <CustomText style={[styles.timelineTitle, globalStyles.f14Bold]}>
+            Booking Details
+          </CustomText>
           <View style={[styles.section, { marginTop: 12 }]}>
             <CustomText style={[styles.label, globalStyles.f12Bold]}>
               Date:
