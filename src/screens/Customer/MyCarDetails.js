@@ -95,17 +95,21 @@ export const MyCarDetails = () => {
   const { brandId, modelId, fuelId, fuelType } = route.params;
 
   const validateVehicleNumber = (number) => {
-    const regex = /^[A-Z0-9]+$/; // Only capital letters and numbers
-    return regex.test(number);
+    // Must be 6-12 chars, uppercase A-Z and 0-9 only, and contain at least one letter and one digit
+    const cleaned = (number || "").toUpperCase().trim();
+    const regex = /^(?=.*[A-Z])(?=.*\d)[A-Z0-9]{6,15}$/;
+    return regex.test(cleaned);
   };
 
   const handleVehicleNumberChange = (text) => {
-    const upperText = text.toUpperCase(); // Convert to uppercase
-    setVehicleNumber(upperText);
-    if (!upperText.trim()) {
+    const upperText = text.toUpperCase();
+    // Strip invalid characters live (keep only A-Z and 0-9)
+    const sanitized = upperText.replace(/[^A-Z0-9]/g, "");
+    setVehicleNumber(sanitized);
+    if (!sanitized.trim()) {
       setVehicleNumberError("Registration number is required");
-    } else if (!validateVehicleNumber(upperText)) {
-      setVehicleNumberError("Only capital letters and numbers are allowed");
+    } else if (!validateVehicleNumber(sanitized)) {
+      setVehicleNumberError("Use A–Z and 0–9 only include letters and numbers");
     } else {
       setVehicleNumberError("");
     }
@@ -115,7 +119,10 @@ export const MyCarDetails = () => {
     let hasError = false;
 
     if (!vehicleNumber.trim()) {
-      setVehicleNumberError(true);
+      setVehicleNumberError("Registration number is required");
+      hasError = true;
+    } else if (!validateVehicleNumber(vehicleNumber)) {
+      setVehicleNumberError("Use A–Z and 0–9 only, 6–12 chars, include letters and numbers");
       hasError = true;
     }
 

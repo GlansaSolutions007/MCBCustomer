@@ -937,7 +937,14 @@ export default function BookingsInnerPage() {
                 marginRight: 12,
               }}
             >
-              <Ionicons name="person" size={22} color={color.primary} />
+              {booking?.TechnicianProfileImage ? (
+                <Image
+                  source={{ uri: `${API_IMAGE_URL}${booking.TechnicianProfileImage}` }}
+                  style={{ width: 48, height: 48, borderRadius: 24, resizeMode: "cover" }}
+                />
+              ) : (
+                <Ionicons name="person" size={22} color={color.primary} />
+              )}
             </View>
             <View style={{ flex: 1 }}>
               <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>

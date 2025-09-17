@@ -393,9 +393,7 @@ export default function CustomHeader({ navigation }) {
                   }}
                   onPress={() => {
                     setShowModal(false);
-                    navigationTo.navigate("Services", {
-                      screen: "ConfirmAddressPage",
-                    });
+                    navigationTo.navigate("ConfirmAddressPage");
                   }}
                 >
                   <View

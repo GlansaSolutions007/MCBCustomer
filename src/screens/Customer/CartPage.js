@@ -1310,7 +1310,9 @@ const CartPage = () => {
                 value={instructions}
                 onChangeText={setInstructions}
               />
-              <CustomText style={styles.textLimit}>100/100</CustomText>
+              <CustomText style={styles.textLimit}>
+                {Math.max(0, 100 - (instructions ? instructions.length : 0))}/100
+              </CustomText>
             </View>
 
             {/* Price Summary */}
