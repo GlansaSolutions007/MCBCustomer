@@ -688,7 +688,7 @@ const InteriorService = () => {
 
                         {/* Badge */}
 
-                        {notificationCount >= 0 && (
+                        {notificationCount > 0 && (
                           <View style={styles.badge}>
                             <Text style={styles.badgeText}>
                               {notificationCount > 99
