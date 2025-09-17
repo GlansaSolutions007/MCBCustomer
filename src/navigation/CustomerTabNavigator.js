@@ -160,7 +160,11 @@ export default function CustomerTabNavigator() {
         component={ServicesStack}
         
       />
-      <Tab.Screen name="My Bookings" component={BookingsStack} />
+      <Tab.Screen name="My Bookings" component={BookingsStack} options={{ headerShown: false }} listeners={({ navigation }) => ({
+          tabPress: () => {
+            navigation.navigate('My Bookings', { screen: 'MyBookingsList' });
+          },
+        })} />
       <Tab.Screen name="Profile" component={ProfileStack} options={{ headerShown: false }} listeners={({ navigation }) => ({
           tabPress: () => {
             navigation.navigate('Profile', { screen: 'ProfileScreen' });
