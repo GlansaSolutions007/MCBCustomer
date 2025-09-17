@@ -190,12 +190,12 @@ const NotificationScreen = () => {
   };
   const formatNotificationDate = (createdDate) => {
     if (!createdDate) return "";
-  
+
     const date = new Date(createdDate);
     const now = new Date();
     const diffMs = now - date;
     const diffHours = diffMs / (1000 * 60 * 60);
-  
+
     // < 24 hours → show only time
     if (diffHours < 24) {
       return date.toLocaleTimeString("en-US", {
@@ -204,24 +204,24 @@ const NotificationScreen = () => {
         hour12: true,
       });
     }
-  
+
     // ≥ 24 hours → show dd-mm-yyyy (hh:mm AM/PM)
     const dd = String(date.getDate()).padStart(2, "0");
     const mm = String(date.getMonth() + 1).padStart(2, "0");
     const yyyy = date.getFullYear();
-  
+
     const time = date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
     });
-  
+
     return `${dd}-${mm}-${yyyy} (${time})`;
   };
-  
+
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.card}
       onPress={() => handleNavigate(item)}
       activeOpacity={0.7}
@@ -248,7 +248,7 @@ const NotificationScreen = () => {
           onPress={() => handleMarkRead(item.id)}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <MaterialIcons name="close" style={{backgroundColor: color.primary + "20", borderRadius: 100, padding: 4}} size={15} color="#999" />
+          <MaterialIcons name="close" style={{ backgroundColor: color.primary + "20", borderRadius: 100, padding: 4 }} size={15} color="#999" />
         </TouchableOpacity>
       </View>
       <View
@@ -308,20 +308,20 @@ const NotificationScreen = () => {
         backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
         barStyle="dark-content"
       />
-      <View style={styles.headerRow}>
         {/* <CustomText style={[globalStyles.f14Bold, { color: "#222" }]}>
           Notifications
         </CustomText> */}
         {notifications.length > 0 && (
           <TouchableOpacity onPress={handleAllNotfications}>
-            <CustomText
-              style={[globalStyles.f12Bold, { color: color.primary }]}
-            >
-              Clear All
-            </CustomText>
+            <View style={{ display: "flex", flexDirection: "row", alignItems: "flex-end", justifyContent: "flex-end", paddingHorizontal: 18, paddingTop: 12 }}>
+              <CustomText
+                style={[globalStyles.f12Bold, { color: color.primary }]}
+              >
+                Clear All
+              </CustomText>
+            </View>
           </TouchableOpacity>
         )}
-      </View>
       <FlatList
         style={{ flex: 1, backgroundColor: "#F5F5F5" }}
         contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
