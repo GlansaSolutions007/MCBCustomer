@@ -15,6 +15,7 @@ import {
   Easing,
 } from "react-native";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
+import * as Notifications from "expo-notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { API_URL, API_IMAGE_URL } from "@env";
@@ -33,6 +34,8 @@ const NotificationScreen = () => {
   const [reducedShadowIds, setReducedShadowIds] = useState({}); // { [id]: true }
   const isFocused = useIsFocused();
   const navigation = useNavigation();
+  const pollRef = useRef(null);
+  const NEON_COLOR = '#39FF14';
 
   useEffect(() => {
     if (
@@ -44,6 +47,67 @@ const NotificationScreen = () => {
     if (isFocused) {
       loadCustomerId();
     }
+  }, [isFocused]);
+
+  // Foreground push listener: append new items without full refresh
+  useEffect(() => {
+    if (!isFocused) return;
+    const sub = Notifications.addNotificationReceivedListener((notification) => {
+      try {
+        const content = notification?.request?.content || {};
+        const data = content?.data || {};
+        const nextItem = {
+          id: String(data.id || Date.now()),
+          title: content.title || "Notification",
+          message: content.body || "",
+          actionType: data.actionType,
+          createdDate: data.createdDate || new Date().toISOString(),
+        };
+
+        // Prepare animation refs for fade-in + neon glow
+        if (!animsRef.current[nextItem.id]) {
+          animsRef.current[nextItem.id] = {
+            opacity: new Animated.Value(0),
+            translateX: new Animated.Value(0),
+            glow: new Animated.Value(0),
+          };
+        } else {
+          // Reset for re-use
+          animsRef.current[nextItem.id].opacity.setValue(0);
+          animsRef.current[nextItem.id].translateX.setValue(0);
+          if (!animsRef.current[nextItem.id].glow) {
+            animsRef.current[nextItem.id].glow = new Animated.Value(0);
+          } else {
+            animsRef.current[nextItem.id].glow.setValue(0);
+          }
+        }
+        setNotifications((prev) => [nextItem, ...prev]);
+
+        // Run animations after state update
+        requestAnimationFrame(() => {
+          const refs = animsRef.current[nextItem.id];
+          if (!refs) return;
+          Animated.parallel([
+            Animated.timing(refs.opacity, {
+              toValue: 1,
+              duration: 300,
+            useNativeDriver: false,
+            }),
+            // Neon pulse: 3 pulses
+            Animated.sequence([
+              Animated.loop(
+                Animated.sequence([
+                  Animated.timing(refs.glow, { toValue: 1, duration: 500, useNativeDriver: false }),
+                  Animated.timing(refs.glow, { toValue: 0, duration: 500, useNativeDriver: false }),
+                ]),
+                { iterations: 3 }
+              ),
+            ]),
+          ]).start();
+        });
+      } catch (_) {}
+    });
+    return () => sub.remove();
   }, [isFocused]);
 
   const loadCustomerId = async () => {
@@ -136,13 +200,13 @@ const NotificationScreen = () => {
             toValue: 0,
             duration: 180,
             easing: Easing.out(Easing.quad),
-            useNativeDriver: true,
+            useNativeDriver: false,
           }),
           Animated.timing(anims.translateX, {
             toValue: 40,
             duration: 180,
             easing: Easing.out(Easing.quad),
-            useNativeDriver: true,
+            useNativeDriver: false,
           }),
         ]).start(() => {
           LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -188,13 +252,13 @@ const NotificationScreen = () => {
             toValue: 0,
             duration: 180,
             easing: Easing.out(Easing.quad),
-            useNativeDriver: true,
+            useNativeDriver: false,
           }),
           Animated.timing(translateX, {
             toValue: 40,
             duration: 180,
             easing: Easing.out(Easing.quad),
-            useNativeDriver: true,
+            useNativeDriver: false,
           }),
         ]);
       });
@@ -308,12 +372,25 @@ const NotificationScreen = () => {
       animsRef.current[id] = {
         opacity: new Animated.Value(1),
         translateX: new Animated.Value(0),
+        glow: new Animated.Value(0),
       };
     }
-    const { opacity, translateX } = animsRef.current[id];
+    const { opacity, translateX, glow } = animsRef.current[id];
     const lowShadow = reducedShadowIds[id];
+    const borderColor = glow.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['rgba(0,0,0,0)', NEON_COLOR],
+    });
     return (
-      <Animated.View style={{ opacity, transform: [{ translateX }] }}>
+      <Animated.View
+        style={{
+          opacity,
+          transform: [{ translateX }],
+          borderWidth: 2,
+          borderRadius: 12,
+          borderColor,
+        }}
+      >
         <TouchableOpacity
           style={[
             styles.card,
@@ -460,7 +537,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 12,
     padding: 14,
-    marginBottom: 12,
+    // marginBottom: 12,
     shadowColor: "#000",
     shadowOpacity: 0.06,
     shadowRadius: 6,

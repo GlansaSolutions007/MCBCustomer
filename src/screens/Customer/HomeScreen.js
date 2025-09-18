@@ -9,8 +9,10 @@ import {
   RefreshControl,
   Alert,
   Pressable,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import globalStyles from "../../styles/globalStyles";
 import CTAbannerhome from "../../../assets/images/CTAbannerhome.png";
 import exteriorservice from "../../../assets/images/exteriorservice.png";
@@ -24,6 +26,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as Device from "expo-device";
 import * as Location from "expo-location";
 import { useCallback, useContext, useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LocationContext } from "../../contexts/LocationContext";
 import axios from "axios";
 // import { API_BASE_URL } from "@env";
@@ -33,7 +36,7 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { API_URL, API_IMAGE_URL, RAZORPAY_KEY } from "@env";
 import { getToken } from "../../utils/token";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+// import AsyncStorage from "@react-native-async-storage/async-storage";
 // import { monitorBookingsForNotifications } from "../../utils/notificationService";
 
 const formatDate = (dateString) => {
@@ -59,6 +62,32 @@ export default function HomeScreen() {
   const [categories, setCategories] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [upcomingBookings, setUpcomingBookings] = useState([]);
+  const [latestNotification, setLatestNotification] = useState(null);
+
+  const actionIconFor = (actionType) => {
+    const key = String(actionType || "").toLowerCase();
+    if (key.includes("completed") || key.includes("ended")) return "check-circle";
+    if (key.includes("service") || key.includes("started")) return "build";
+    if (key.includes("payment")) return "payment";
+    if (key.includes("booking")) return "event";
+    return "notifications";
+  };
+
+  const formatNotificationDate = (createdDate) => {
+    if (!createdDate) return "";
+    const date = new Date(createdDate);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = diffMs / (1000 * 60 * 60);
+    if (diffHours < 24) {
+      return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+    }
+    const dd = String(date.getDate()).padStart(2, "0");
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const yyyy = date.getFullYear();
+    const time = date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+    return `${dd}-${mm}-${yyyy} (${time})`;
+  };
 
   const [loading, setLoading] = useState(true);
   const [bookingsLoading, setBookingsLoading] = useState(false);
@@ -77,7 +106,7 @@ export default function HomeScreen() {
       if (response.data) {
         // Ensure response.data is an array
         const categoriesData = Array.isArray(response.data) ? response.data : [];
-        console.log("📊 Categories data:", categoriesData);
+        // console.log("📊 Categories data:", categoriesData);
 
         const activeCategories = categoriesData.filter((cat) => cat.IsActive);
         setCategories(activeCategories);
@@ -125,7 +154,7 @@ export default function HomeScreen() {
       if (response.data) {
         // Ensure response.data is an array
         const bookingsData = Array.isArray(response.data) ? response.data : [];
-        console.log("📊 Bookings data:", bookingsData);
+        // console.log("📊 Bookings data:", bookingsData);
 
         const upcoming = bookingsData.filter(
           (booking) =>
@@ -151,6 +180,15 @@ export default function HomeScreen() {
   useEffect(() => {
     fetchCategories();
     fetchTodaysBookings();
+    // Load latest notification from AsyncStorage
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem("latestNotification");
+        setLatestNotification(raw ? JSON.parse(raw) : null);
+      } catch (_) {
+        setLatestNotification(null);
+      }
+    })();
   }, []);
 
   useFocusEffect(
@@ -600,13 +638,73 @@ export default function HomeScreen() {
         <SkeletonLoader />
       ) : (
         <>
-          <View style={[styles.banner, globalStyles.mb35]}>
+          <View style={[styles.banner, { marginBottom: 30 }]}>
             <View style={styles.bannerHeader}>
-              <Image source={logo} style={styles.logo} resizeMode="contain" />
+              {/* <Image source={logo} style={styles.logo} resizeMode="contain" /> */}
               {/* <CustomText style={styles.bannerTagline}>
                 Professional Car Care Services
               </CustomText> */}
+              <View style={styles.searchBar}>
+                <Ionicons
+                  name="search"
+                  size={16}
+                  color={"#999"}
+                  style={{ marginRight: 6 }}
+                />
+                <TextInput
+                  // value={searchQuery}
+                  // onChangeText={(t) => {
+                  //   LayoutAnimation.configureNext(
+                  //     LayoutAnimation.Presets.easeInEaseOut
+                  //   );
+                  //   setSearchQuery(t);
+                  // }}
+                  placeholder="Search services…"
+                  placeholderTextColor="#999"
+                  style={styles.searchInput}
+                />
+              </View>
             </View>
+            {/* Inline Latest Notification */}
+            {latestNotification && (
+              <TouchableOpacity
+                style={styles.latestNotificationCard}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('NotificationScreen')}
+              >
+                <View style={styles.latestRow}>
+                  <View style={styles.iconWrap}>
+                    <MaterialIcons
+                      name={actionIconFor(latestNotification.actionType)}
+                      size={20}
+                      color={color.primary}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <CustomText style={[globalStyles.f14Bold, { color: "#222" }]} numberOfLines={1} ellipsizeMode="tail">
+                        {latestNotification.title || 'Notification'}
+                      </CustomText>
+                      <CustomText style={[globalStyles.f10Bold, { color: "#555" }]}>
+                        {formatNotificationDate(latestNotification.createdDate)}
+                      </CustomText>
+                    </View>
+                    {!!latestNotification.message && (
+                      <CustomText style={[globalStyles.f10Regular, { color: "#555", marginTop: 2 }]} numberOfLines={2} ellipsizeMode="tail">
+                        {latestNotification.message}
+                      </CustomText>
+                    )}
+
+                  </View>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 2 }}>
+
+                  <TouchableOpacity onPress={() => navigation.navigate('NotificationScreen')}>
+                    <CustomText style={[globalStyles.f10Bold, { color: color.primary }]}>View all</CustomText>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            )}
             <View style={styles.bannerContent}>
               <Image
                 source={bluecar}
@@ -1215,14 +1313,38 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   banner: {
     backgroundColor: color.primary,
-    padding: 24,
+    padding: 12,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    minHeight: 200,
+    minHeight: 260,
   },
   bannerHeader: {
     alignItems: "center",
     marginBottom: 20,
+  },
+  latestNotificationCard: {
+    backgroundColor: color.white,
+    borderRadius: 12,
+    padding: 12,
+    // shadowColor: '#000',
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowOpacity: 0.08,
+    // shadowRadius: 6,
+    // elevation: 2,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+  },
+  latestRow: {
+    flexDirection: 'row',
+  },
+  iconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    // backgroundColor: 'rgba(1,127,119,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
   logo: {
     width: 200,
@@ -1240,6 +1362,8 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     justifyContent: "space-between",
     height: 120,
+    marginTop: 20,
+    marginBottom: 20,
   },
   carImagePositioned: {
     width: "50%",
@@ -1625,5 +1749,26 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 2,
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.4)",
+    height: 55,
+    marginVertical: 10,
+  },
+  searchInput: {
+    flex: 1,
+    color: "#333",
   },
 });

@@ -631,22 +631,6 @@ export default function BookingsInnerPage() {
             </CustomText>
           </View>
 
-          {/* Debug: Show Technician ID for testing */}
-          {/* <View style={{ marginTop: 6, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-            <CustomText style={[globalStyles.f10Bold, { color: "#666" }]}>TechID:</CustomText>
-            <CustomText style={[globalStyles.f10Bold, { color: "#333" }]}>
-              {booking?.TechID != null ? String(booking.TechID) : "N/A"}
-            </CustomText>
-          </View> */}
-          {/* {technicianLocation && (
-            <View style={{ marginTop: 4, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-              <CustomText style={[globalStyles.f10Bold, { color: "#666" }]}>Tech Coords:</CustomText>
-              <CustomText style={[globalStyles.f10Bold, { color: "#333" }]}>
-                {technicianLocation.latitude.toFixed(5)}, {technicianLocation.longitude.toFixed(5)}
-              </CustomText>
-            </View>
-          )} */}
-
           <View style={[styles.dividerLine, { marginVertical: 12 }]} />
 
           <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -723,6 +707,14 @@ export default function BookingsInnerPage() {
                 ))}
               </View>
             </View>
+          </View>
+           <View style={{ flexDirection: "column", alignItems: "start" }}>
+           <CustomText style={[globalStyles.f12Bold, { marginTop: 8 }]}>
+             Booking Address:
+            </CustomText>
+            <CustomText style={[globalStyles.f10Bold, { color: "#666" }]}>
+              {booking.FullAddress}
+            </CustomText>
           </View>
         </Animated.View>
 

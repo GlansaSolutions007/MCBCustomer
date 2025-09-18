@@ -6,6 +6,8 @@ export const color = {
   secondary: '#25878F',
   yellow: '#F7AE21',
   orange: '#F57C00',
+  lightSecondary: '#00f5e92a',
+
 
 
   // Backgrounds

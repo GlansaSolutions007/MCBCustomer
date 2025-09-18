@@ -144,7 +144,7 @@ export default function ServiceList() {
     useCallback(() => {
       console.log("Screen focused, fetching bookings...");
       fetchBookings();
-      return () => {};
+      return () => { };
     }, [fetchBookings])
   );
 
@@ -181,7 +181,7 @@ export default function ServiceList() {
       }
     });
     return () => {
-      try { sub && Notifications.removeNotificationSubscription(sub); } catch {}
+      try { sub && Notifications.removeNotificationSubscription(sub); } catch { }
     };
   }, []);
 
@@ -247,11 +247,11 @@ export default function ServiceList() {
   };
 
   // const openRazorpayForBooking = async (booking) => {
-    
+
   //   try {
   //     const amount = getPayableAmount(booking);
   //     const token = await getToken();
-  
+
   //     let orderId = null;
   //     try {
   //       const payload = {
@@ -265,7 +265,7 @@ export default function ServiceList() {
   //         GSTAmount: booking.GSTAmount,
   //         TotalAmount: booking.TotalPrice,
   //       };
-  
+
   //       const res = await axios.put(
   //         `${API_URL}Bookings/update-booking`,
   //         payload,
@@ -276,7 +276,7 @@ export default function ServiceList() {
   //           },
   //         }
   //       );
-  
+
   //       orderId =
   // res?.data?.orderID ||
   // res?.data?.razorpay?.orderID ||
@@ -289,7 +289,7 @@ export default function ServiceList() {
   //         e?.response?.data || e?.message
   //       );
   //     }
-  
+
   //     const options = {
   //       description: "MyCarBuddy Service Payment",
   //       image: "https://mycarsbuddy.com/logo2.png",
@@ -301,7 +301,7 @@ export default function ServiceList() {
   //       prefill: {},
   //       theme: { color: color.primary },
   //     };
-  
+
   //     RazorpayCheckout.open(options)
   //       .then(async (data) => {
   //         try {
@@ -313,7 +313,7 @@ export default function ServiceList() {
   //             razorpaySignature: data?.razorpay_signature,
   //             paymentMode: "Razorpay",
   //           };
-  
+
   //           await axios.post(
   //             `${API_URL}Bookings/confirm-Payment`,
   //             confirmPayload,
@@ -324,7 +324,7 @@ export default function ServiceList() {
   //               },
   //             }
   //           );
-  
+
   //           // Refresh list
   //           fetchBookings();
   //         } catch (err) {
@@ -352,7 +352,7 @@ export default function ServiceList() {
   //     );
   //   }
   // };
-  
+
 
   const counts = {
     Bookings: (bookings || []).filter((b) => {
@@ -664,7 +664,7 @@ export default function ServiceList() {
         formData.append("CouponAmount", repayBooking.CouponAmount);
         formData.append("GSTAmount", repayBooking.GSTAmount);
         formData.append("TotalAmount", repayBooking.TotalPrice);
-  
+
         const res = await axios.put(
           `${API_URL}Bookings/update-booking`,
           formData,
@@ -675,7 +675,7 @@ export default function ServiceList() {
             },
           }
         );
-    
+
 
         console.log('Repay schedule response:', res.data);
 
@@ -711,7 +711,7 @@ export default function ServiceList() {
         formData.append("CouponAmount", booking.CouponAmount);
         formData.append("GSTAmount", booking.GSTAmount);
         formData.append("TotalAmount", booking.TotalPrice);
-  
+
         const res = await axios.put(
           `${API_URL}Bookings/update-booking`,
           formData,
@@ -722,7 +722,7 @@ export default function ServiceList() {
             },
           }
         );
-  
+
         orderId = res?.data?.orderID || res?.data?.razorpay?.orderID || null;
       } catch (e) {
         console.log(
@@ -730,7 +730,7 @@ export default function ServiceList() {
           e?.response?.data || e?.message
         );
       }
-      
+
       const options = {
         description: "MyCarBuddy Service Repay Payment",
         image: "https://mycarsbuddy.com/logo2.png",
@@ -1348,13 +1348,13 @@ export default function ServiceList() {
                       onPress={() => {
                         const bookingDate = moment(booking.BookingDate);
                         const today = moment().startOf("day");
-                        
+
                         // if (bookingDate.isSame(today, "day")) {
                         //   // Same day - proceed with immediate payment
                         //   openRazorpayForBooking(booking);
                         // } else {
                         //   // After booking date - show repay schedule modal
-                          handleRepaySchedule(booking);
+                        handleRepaySchedule(booking);
                         // }
                       }}
                       style={styles.resumeBtn}
@@ -1374,27 +1374,30 @@ export default function ServiceList() {
                 )}
 
                 {/* Reschedule Button - Show for pending and confirmed bookings */}
-                {(booking.BookingStatus?.toLowerCase() === 'confirmed') && (
-                  <View style={styles.rescheduleCard}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                      <View style={styles.rescheduleIconWrap}>
-                        <Ionicons name="calendar-outline" size={16} color={color.primary} />
+                {((
+                  booking.BookingStatus?.toLowerCase() === "confirmed" ||
+                  booking.BookingStatus?.toLowerCase() === "pending"
+                )) && (
+                    <View style={styles.rescheduleCard}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                        <View style={styles.rescheduleIconWrap}>
+                          <Ionicons name="calendar-outline" size={16} color={color.primary} />
+                        </View>
+                        <View style={{ flex: 1, marginLeft: 8 }}>
+                          <CustomText style={[globalStyles.f12Bold, { color: '#222' }]}>Need to reschedule?</CustomText>
+                          <CustomText style={[globalStyles.f10Light, { color: '#666', marginTop: 2 }]}>Change your service date</CustomText>
+                        </View>
                       </View>
-                      <View style={{ flex: 1, marginLeft: 8 }}>
-                        <CustomText style={[globalStyles.f12Bold, { color: '#222' }]}>Need to reschedule?</CustomText>
-                        <CustomText style={[globalStyles.f10Light, { color: '#666', marginTop: 2 }]}>Change your service date</CustomText>
-                      </View>
+                      <TouchableOpacity
+                        onPress={() => handleReschedule(booking)}
+                        style={styles.rescheduleBtn}
+                        activeOpacity={0.9}
+                      >
+                        <Ionicons name="calendar" size={16} color={color.white} style={{ marginRight: 6 }} />
+                        <CustomText style={[globalStyles.f12Bold, { color: color.white }]}>Reschedule</CustomText>
+                      </TouchableOpacity>
                     </View>
-                    <TouchableOpacity
-                      onPress={() => handleReschedule(booking)}
-                      style={styles.rescheduleBtn}
-                      activeOpacity={0.9}
-                    >
-                      <Ionicons name="calendar" size={16} color={color.white} style={{ marginRight: 6 }} />
-                      <CustomText style={[globalStyles.f12Bold, { color: color.white }]}>Reschedule</CustomText>
-                    </TouchableOpacity>
-                  </View>
-                )}
+                  )}
                 {booking.BookingStatus?.toLowerCase() === "completed" && (
                   <>
                     <View style={styles.divider} />
@@ -1703,7 +1706,7 @@ export default function ServiceList() {
               <CustomText style={[globalStyles.f12Bold, { color: color.black, marginBottom: 12 }]}>
                 Select Payment Method
               </CustomText>
-              
+
               <TouchableOpacity
                 style={[
                   styles.paymentMethodOption,
@@ -1712,14 +1715,14 @@ export default function ServiceList() {
                 onPress={() => setSelectedPaymentMethod('cash')}
               >
                 <View style={styles.paymentMethodContent}>
-                  <Ionicons 
-                    name="cash-outline" 
-                    size={24} 
-                    color={selectedPaymentMethod === 'cash' ? color.primary : color.muted} 
+                  <Ionicons
+                    name="cash-outline"
+                    size={24}
+                    color={selectedPaymentMethod === 'cash' ? color.primary : color.muted}
                   />
                   <View style={styles.paymentMethodText}>
                     <CustomText style={[
-                      globalStyles.f12Bold, 
+                      globalStyles.f12Bold,
                       { color: selectedPaymentMethod === 'cash' ? color.primary : color.black }
                     ]}>
                       Cash on Service
@@ -1742,14 +1745,14 @@ export default function ServiceList() {
                 onPress={() => setSelectedPaymentMethod('online')}
               >
                 <View style={styles.paymentMethodContent}>
-                  <Ionicons 
-                    name="card-outline" 
-                    size={24} 
-                    color={selectedPaymentMethod === 'online' ? color.primary : color.muted} 
+                  <Ionicons
+                    name="card-outline"
+                    size={24}
+                    color={selectedPaymentMethod === 'online' ? color.primary : color.muted}
                   />
                   <View style={styles.paymentMethodText}>
                     <CustomText style={[
-                      globalStyles.f12Bold, 
+                      globalStyles.f12Bold,
                       { color: selectedPaymentMethod === 'online' ? color.primary : color.black }
                     ]}>
                       Online Payment
@@ -1916,7 +1919,7 @@ export default function ServiceList() {
               <TouchableOpacity
                 onPress={submitRepaySchedule}
                 style={[
-                  styles.modalButton, 
+                  styles.modalButton,
                   selectedPaymentMethod === 'cash' ? styles.cosButton : styles.submitButton
                 ]}
                 disabled={repayLoading || !selectedPaymentMethod || !repayTimeSlot}
@@ -1925,11 +1928,11 @@ export default function ServiceList() {
                   <ActivityIndicator size="small" color={color.white} />
                 ) : (
                   <>
-                    <Ionicons 
-                      name={selectedPaymentMethod === 'cash' ? "cash" : "card"} 
-                      size={16} 
-                      color={color.white} 
-                      style={{ marginRight: 6 }} 
+                    <Ionicons
+                      name={selectedPaymentMethod === 'cash' ? "cash" : "card"}
+                      size={16}
+                      color={color.white}
+                      style={{ marginRight: 6 }}
                     />
                     <CustomText style={[globalStyles.f12Bold, { color: color.white }]}>
                       {selectedPaymentMethod === 'cash' ? 'Proceed Cash' : 'Proceed Online'}
