@@ -129,7 +129,7 @@ const SchedulePage = () => {
       <ScrollView
         contentContainerStyle={{
           backgroundColor: "#fff",
-          paddingBottom: insets.bottom + 20,
+          paddingBottom: 100, // Add padding to account for sticky button
         }}
       >
         <View
@@ -434,64 +434,59 @@ const SchedulePage = () => {
               </View>
             </View>
           ))}
-
-          <TouchableOpacity
-            style={{
-              backgroundColor: "#000",
-              paddingVertical: 14,
-              borderRadius: 12,
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "center",
-              marginTop: 50,
-            }}
-            onPress={async () => {
-              if (selectedTimes.length === 0) {
-                setTimeError("Please select an available time slot.");
-                return;
-              } else {
-                setTimeError("");
-              }
-
-              const selectedSlot = timeSlots.find(
-                (t) => t.TsID === selectedTime
-              );
-
-              try {
-                await AsyncStorage.setItem(
-                  "selectedDate",
-                  selectedDate.format("YYYY-MM-DD")
-                );
-                await AsyncStorage.setItem(
-                  "selectedTimeSlotId",
-                  selectedTime.toString()
-                );
-                await AsyncStorage.setItem(
-                  "selectedTimeSlotLabel",
-                  // selectedSlot.label
-                  JSON.stringify(
-                    selectedTimes.map(id => timeSlots.find(t => t.TsID === id)?.label)
-                  )
-                );
-
-                navigation.goBack();
-              } catch (e) {
-                console.error("Failed to save schedule:", e);
-              }
-            }}
-          >
-            <Ionicons
-              name="calendar"
-              size={26}
-              color="#fff"
-              style={{ marginRight: 8 }}
-            />
-            <CustomText style={[globalStyles.f14Bold, { color: "#fff" }]}>
-              Mark as scheduled
-            </CustomText>
-          </TouchableOpacity>
         </View>
       </ScrollView>
+      
+      {/* Sticky Button */}
+      <View style={styles.stickyButtonContainer}>
+        <TouchableOpacity
+          style={styles.stickyButton}
+          onPress={async () => {
+            if (selectedTimes.length === 0) {
+              setTimeError("Please select an available time slot.");
+              return;
+            } else {
+              setTimeError("");
+            }
+
+            const selectedSlot = timeSlots.find(
+              (t) => t.TsID === selectedTime
+            );
+
+            try {
+              await AsyncStorage.setItem(
+                "selectedDate",
+                selectedDate.format("YYYY-MM-DD")
+              );
+              await AsyncStorage.setItem(
+                "selectedTimeSlotId",
+                selectedTime.toString()
+              );
+              await AsyncStorage.setItem(
+                "selectedTimeSlotLabel",
+                // selectedSlot.label
+                JSON.stringify(
+                  selectedTimes.map(id => timeSlots.find(t => t.TsID === id)?.label)
+                )
+              );
+
+              navigation.goBack();
+            } catch (e) {
+              console.error("Failed to save schedule:", e);
+            }
+          }}
+        >
+          <Ionicons
+            name="calendar"
+            size={26}
+            color="#fff"
+            style={{ marginRight: 8 }}
+          />
+          <CustomText style={[globalStyles.f14Bold, { color: "#fff" }]}>
+            Mark as scheduled
+          </CustomText>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -583,6 +578,34 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   plusIcon: { position: "absolute", top: -3, right: 12 },
+  stickyButtonContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingBottom: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  stickyButton: {
+    backgroundColor: "#000",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+  },
 });
 
 export default SchedulePage;

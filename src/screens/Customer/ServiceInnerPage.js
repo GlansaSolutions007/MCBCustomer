@@ -23,6 +23,11 @@ const ServiceInnerPage = () => {
     const insets = useSafeAreaInsets();
     const [hasPrimaryVehicle, setHasPrimaryVehicle] = useState(false);
     const [notificationCount, setNotificationCount] = useState(0);
+    const [descExpanded, setDescExpanded] = useState(false);
+    const [descLineCount, setDescLineCount] = useState(0);
+    const descriptionText = (pkg?.description && typeof pkg.description === 'string' && pkg.description.trim().length > 0)
+        ? pkg.description
+        : 'My car buddys Regular AC service keeps  cars cooling system efficient and long-lasting.It ensures fresh air circulation, removes dust and bacteria, and prevents unexpected breakdowns.Timely AC maintenance guarantees comfort and smooth drives in every season..';
 
 
     useEffect(() => {
@@ -109,76 +114,78 @@ const ServiceInnerPage = () => {
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['bottom']}>
-            <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={{ paddingBottom: 100 }}>
-                <ImageBackground
-                    source={{ uri: `${API_IMAGE_URL}${pkg.image}` }}
-                    style={styles.imageBackground}
+            {/* Sticky header */}
+            <ImageBackground
+                source={{ uri: `${API_IMAGE_URL}${pkg.image}` }}
+                style={styles.imageBackground}
+            >
+                <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+                <LinearGradient
+                    colors={['rgba(34, 34, 34, 0.6)', 'rgba(19,109,110,0.1)', 'rgba(0,0,0,1)']}
+                    locations={[0.13, 0.52, 0.91]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={styles.overlay}
                 >
-                    <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-                    <LinearGradient
-                        colors={['rgba(19,109,110,0.6)', 'rgba(19,109,110,0.1)', 'rgba(0,0,0,1)']}
-                        locations={[0.13, 0.52, 0.91]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 0, y: 1 }}
-                        style={styles.overlay}
-                    >
-                        <View style={styles.topRow}>
-                            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backIcon}>
-                                <Ionicons name="arrow-back" size={24} color="black" />
-                            </TouchableOpacity>
+                    <View style={styles.topRow}>
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backIcon}>
+                            <Ionicons name="arrow-back" size={24} color="black" />
+                        </TouchableOpacity>
 
-                            <View style={[styles.rightIcons]}>
-                                <Pressable
-                                    onPress={() =>
-                                        navigation.navigate("NotificationScreen")
-                                    }
-                                >
-                                    <View style={{ paddingRight: 15 }}>
-                                        <Ionicons
-                                            name="notifications"
-                                            size={24}
-                                            style={globalStyles.textWhite}
-                                        />
+                        <View style={[styles.rightIcons]}>
+                            <Pressable
+                                onPress={() =>
+                                    navigation.navigate("NotificationScreen")
+                                }
+                            >
+                                <View style={{ paddingRight: 15 }}>
+                                    <Ionicons
+                                        name="notifications"
+                                        size={24}
+                                        style={globalStyles.textWhite}
+                                    />
 
-                                        {/* Badge */}
+                                    {/* Badge */}
 
-                                        {notificationCount > 0 && (
-                                            <View style={styles.badge}>
-                                                <Text style={styles.badgeText}>
-                                                    {notificationCount > 99
-                                                        ? "99+"
-                                                        : notificationCount}
-                                                </Text>
-                                            </View>
-                                        )}
-                                    </View>
-                                </Pressable>
-                                <View style={styles.iconWrapper}>
-                                    <TouchableOpacity
-                                        onPress={() => navigation.navigate("Cart")}
-                                    >
-                                        <Image source={Garage} style={styles.garageIcon} />
-                                        {cartItems.length > 0 && (
-                                            <View style={styles.cartBadge}>
-                                                <CustomText style={styles.badgeText}>
-                                                    {cartItems.length}
-                                                </CustomText>
-                                            </View>
-                                        )}
-                                    </TouchableOpacity>
+                                    {notificationCount > 0 && (
+                                        <View style={styles.badge}>
+                                            <Text style={styles.badgeText}>
+                                                {notificationCount > 99
+                                                    ? "99+"
+                                                    : notificationCount}
+                                            </Text>
+                                        </View>
+                                    )}
                                 </View>
+                            </Pressable>
+                            <View style={styles.iconWrapper}>
+                                <TouchableOpacity
+                                    onPress={() => navigation.navigate("Cart")}
+                                >
+                                    <Image source={Garage} style={styles.garageIcon} />
+                                    {cartItems.length > 0 && (
+                                        <View style={styles.cartBadge}>
+                                            <CustomText style={styles.badgeText}>
+                                                {cartItems.length}
+                                            </CustomText>
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
                             </View>
                         </View>
-                        <View style={styles.imageTextWrapper}>
-                            <CustomText style={styles.serviceTitle}>{pkg.title}</CustomText>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                                <Ionicons name="star" size={16} color="#F4C150" />
-                                <CustomText style={styles.ratingText}>4.9 (146 ratings)</CustomText>
-                            </View>
+                    </View>
+                    <View style={styles.imageTextWrapper}>
+                        <CustomText style={styles.serviceTitle}>{pkg.title}</CustomText>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                            <Ionicons name="star" size={16} color="#F4C150" />
+                            <CustomText style={styles.ratingText}>4.9 (146 ratings)</CustomText>
                         </View>
-                    </LinearGradient>
-                </ImageBackground>
+                    </View>
+                </LinearGradient>
+            </ImageBackground>
 
+            {/* Scrollable content */}
+            <ScrollView style={{ backgroundColor: '#fff' }} contentContainerStyle={{ paddingBottom: 100 }}>
                 <View style={{ padding: 16 }}>
 
 
@@ -197,9 +204,41 @@ const ServiceInnerPage = () => {
                     <View style={styles.separator} />
                     {/* Description */}
                     <CustomText style={[globalStyles.f16Bold, globalStyles.primary]}>Description</CustomText>
-                    <CustomText style={[{ color: '#333', marginTop: 6, lineHeight: 20 }, globalStyles.f12Medium]}>
-                        {pkg.description || 'No description provided.'}
-                    </CustomText>
+                    {/* Hidden measurer to compute total lines */}
+                    <Text
+                        onTextLayout={(e) => {
+                            const lines = e?.nativeEvent?.lines || [];
+                            if (lines.length !== descLineCount) {
+                                setDescLineCount(lines.length);
+                            }
+                        }}
+                        style={[{ position: 'absolute', opacity: 0, left: -9999 }, globalStyles.f12Medium]}
+                    >
+                        {descriptionText}
+                    </Text>
+                    {/* Visible collapsible text */}
+                    <Text
+                        numberOfLines={descExpanded ? undefined : 4}
+                        style={[{ color: '#333', marginTop: 6, lineHeight: 20 }, globalStyles.f12Medium]}
+                    >
+                        {descriptionText}
+                    </Text>
+                    {descLineCount > 4 && (
+                        <TouchableOpacity
+                            onPress={() => setDescExpanded(!descExpanded)}
+                            style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6,justifyContent: 'flex-end' }}
+                        >
+                            <CustomText style={[globalStyles.f12Bold, { color: color.primary }]}>
+                                {descExpanded ? 'less' : 'more'}
+                            </CustomText>
+                            <Ionicons
+                                name={descExpanded ? 'chevron-up' : 'chevron-down'}
+                                size={16}
+                                color={color.primary}
+                                style={{ marginLeft: 4 }}
+                            />
+                        </TouchableOpacity>
+                    )}
                     <View style={styles.separator} />
                     {/* Details */}
                     <CustomText style={[globalStyles.f16Bold, globalStyles.primary]}>Details</CustomText>
@@ -210,53 +249,7 @@ const ServiceInnerPage = () => {
                         <DetailRow label="Amount" value={`₹${pkg.price}`} icon="cash-outline" />
                     </View>
                 </View>
-                {/* Reviews */}
-                <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
-                    {/* <CustomText style={[globalStyles.f16Bold, globalStyles.primary, { marginBottom: 10 }]}>
-                        Reviews
-                    </CustomText>
-
-                    <View style={{ backgroundColor: '#f9f9f9', borderRadius: 12, padding: 12, marginBottom: 16 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-                            <Image
-                                source={interior}
-                                style={{ width: 40, height: 40, borderRadius: 20, marginRight: 10 }}
-                            />
-                            <View>
-                                <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack]}>Sri Wedari Soekarno</CustomText>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-                                    <Ionicons name="star" size={14} color="#F4C150" />
-                                    <Ionicons name="star" size={14} color="#F4C150" />
-                                    <Ionicons name="star" size={14} color="#F4C150" />
-                                    <Ionicons name="star" size={14} color="#F4C150" />
-                                    <Ionicons name="star-outline" size={14} color="#F4C150" />
-                                    <CustomText style={[globalStyles.f10Regular, { marginLeft: 6, color: '#666' }]}>15 minutes ago</CustomText>
-                                </View>
-                            </View>
-                        </View>
-                        <CustomText style={[globalStyles.f12Regular, { color: '#333', lineHeight: 18 }]}>
-                            This garage is a local asset, the staff are brilliant, polite and helpful, excellent customer service. Will continue to use and recommend. Great job as always by the Oxted crew.
-                        </CustomText>
-                    </View> */}
-
-                    {/* <TouchableOpacity
-                        style={{
-                            backgroundColor: '#000',
-                            paddingVertical: 14,
-                            borderRadius: 12,
-                            alignItems: 'center',
-                            flexDirection: 'row',
-                            justifyContent: 'center',
-                            marginBottom: 20,
-                        }}
-                        onPress={() => {
-                            // your hotline action
-                        }}
-                    >
-                        <Ionicons name="call-outline" size={18} color={color.secondary} style={{ marginRight: 8 }} />
-                        <CustomText style={[globalStyles.f14Bold, { color: '#fff' }]}>Call help line</CustomText>
-                    </TouchableOpacity> */}
-                </View>
+                
 
             </ScrollView>
             <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', padding: 16, paddingBottom: 16 + insets.bottom, borderTopWidth: 1, borderColor: '#eee' }}>
@@ -296,7 +289,7 @@ export default ServiceInnerPage
 
 const styles = {
     imageBackground: {
-        height: 350,
+        height: 230,
         resizeMode: 'cover',
         borderBottomLeftRadius: 20,
         borderBottomRightRadius: 20,

@@ -718,7 +718,7 @@ const InteriorService = () => {
                 <View style={styles.searchContainer}>
                   <View style={styles.textContainer}>
                     <CustomText
-                      style={[globalStyles.textWhite, globalStyles.f28Bold]}
+                      style={[globalStyles.textWhite, globalStyles.f20Bold]}
                     >
                       {categoryName}
                     </CustomText>
@@ -789,8 +789,8 @@ const InteriorService = () => {
         );
       case "subcategories":
         return (
-          <View style={styles.section}>
-            <View style={styles.searchBar}>
+          <View style={[styles.section, styles.stickyHeader]}>
+            {/* <View style={styles.searchBar}>
               <Ionicons
                 name="search"
                 size={16}
@@ -809,7 +809,7 @@ const InteriorService = () => {
                 placeholderTextColor="#999"
                 style={styles.searchInput}
               />
-            </View>
+            </View> */}
             <View style={styles.sectionHeader}>
               <Ionicons
                 name="arrow-forward-circle"
@@ -946,18 +946,199 @@ const InteriorService = () => {
           pointerEvents="none"
         />
       )}
-      <FlatList
-        data={renderData}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        contentContainerStyle={[
-          styles.container,
-          { paddingBottom: cartItems.length > 0 ? 110 : 20 },
-        ]}
-      />
+      <View style={{ flex: 1 }}>
+        {/* Sticky header: ImageBackground section */}
+        <View>
+          <ImageBackground source={interior} style={styles.imageBackground}>
+            <LinearGradient
+              colors={[
+                "rgba(0,0,0,0.0)",
+                "rgba(0,0,0,0.35)",
+                "rgba(0,0,0,0.85)",
+              ]}
+              locations={[0.0, 0.45, 0.95]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={styles.overlay}
+            >
+              <View style={styles.topRow}>
+                <TouchableOpacity
+                  onPress={() => navigation.goBack()}
+                  style={styles.backIcon}
+                >
+                  <Ionicons name="arrow-back" size={24} color="black" />
+                </TouchableOpacity>
+                <View style={[styles.rightIcons]}>
+                  <Pressable onPress={() => navigation.navigate("NotificationScreen")}>
+                    <View style={{ paddingRight: 15 }}>
+                      <Ionicons
+                        name="notifications"
+                        size={24}
+                        style={globalStyles.textWhite}
+                      />
+                      {notificationCount > 0 && (
+                        <View style={styles.badge}>
+                          <Text style={styles.badgeText}>
+                            {notificationCount > 99 ? "99+" : notificationCount}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </Pressable>
+                  <View ref={cartIconRef} collapsable={false} style={styles.iconWrapper}>
+                    <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
+                      <Image source={Garage} style={styles.garageIcon} />
+                      {cartItems.length > 0 && (
+                        <View style={styles.cartBadge}>
+                          <CustomText style={styles.badgeText}>
+                            {cartItems.length}
+                          </CustomText>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.searchContainer}>
+                <View style={styles.textContainer}>
+                  <CustomText
+                    style={[globalStyles.textWhite, globalStyles.f28Bold]}
+                  >
+                    {categoryName}
+                  </CustomText>
+                  <CustomText
+                    style={[globalStyles.textWhite, globalStyles.f12Regular]}
+                  >
+                    Find the best care for your car.
+                  </CustomText>
+                </View>
+                <View style={styles.chooseCarRow}>
+                  {cars.length > 0 && (
+                    <Pressable
+                      style={styles.chooseCarButton}
+                      onPress={() => setShowCarModal(true)}
+                    >
+                      <View style={styles.selectedCarCard}>
+                        {selectedCar?.image?.uri && (
+                          <Image
+                            source={{ uri: selectedCar.image.uri }}
+                            style={styles.selectedCarImageLarge}
+                          />
+                        )}
+                        <View style={{ flex: 1, marginLeft: 12 }}>
+                          <CustomText
+                            style={[globalStyles.textWhite, globalStyles.f14Bold]}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
+                            {selectedCar?.manufacturer} {selectedCar?.model}
+                          </CustomText>
+                          <CustomText
+                            style={[globalStyles.textWhite, globalStyles.f10Regular]}
+                          >
+                            {selectedCar?.fuel ? `${selectedCar.fuel}` : ""}
+                            {selectedCar?.vehicleNumber ? ` • ${selectedCar.vehicleNumber}` : ""}
+                          </CustomText>
+                          {cars.length > 1 && (
+                            <CustomText
+                              style={[globalStyles.textWhite, globalStyles.f10Bold, { marginTop: 4 }]}
+                            >
+                              Change
+                            </CustomText>
+                          )}
+                        </View>
+                      </View>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
+            </LinearGradient>
+          </ImageBackground>
+        </View>
+
+        {/* Sticky subcategories/search header */}
+        <View style={[styles.section, styles.stickyHeader]}>
+          {/* <View style={styles.searchBar}>
+            <Ionicons name="search" size={16} color={"#999"} style={{ marginRight: 6 }} />
+            <TextInput
+              value={searchQuery}
+              onChangeText={(t) => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setSearchQuery(t);
+              }}
+              placeholder="Search services…"
+              placeholderTextColor="#999"
+              style={styles.searchInput}
+            />
+          </View> */}
+          <View style={styles.sectionHeader}>
+            <Ionicons
+              name="arrow-forward-circle"
+              size={20}
+              color={color.primary}
+              style={styles.scrollHintIcon}
+            />
+          </View>
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={subCategories}
+            keyExtractor={(item) => item.SubCategoryID.toString()}
+            initialNumToRender={5}
+            contentContainerStyle={styles.flatListContainer}
+            renderItem={({ item }) => {
+              const isSelected = selectedServiceId === item.SubCategoryID;
+              return (
+                <TouchableOpacity
+                  style={styles.popularItem}
+                  onPress={() => {
+                    setSelectedServiceId(item.SubCategoryID);
+                    handleTabPress(item);
+                  }}
+                >
+                  <View style={[styles.imageWrapper, isSelected && styles.selectedImageWrapper]}>
+                    <Image
+                      source={{ uri: `${API_IMAGE_URL}${item.ThumbnailImage}` }}
+                      style={styles.popularImage}
+                    />
+                  </View>
+                  <CustomText
+                    style={[globalStyles.f10Bold, styles.popularText, globalStyles.textBlack, isSelected && styles.selectedText]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {item.SubCategoryName}
+                  </CustomText>
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </View>
+
+        {/* Scrollable packages only */}
+        {loading ? (
+          <View style={{ padding: 10, marginTop: 10 }}>
+            <SkeletonLoader />
+            <SkeletonLoader />
+            <SkeletonLoader />
+          </View>
+        ) : filteredPackages.length === 0 ? (
+          <View style={{ padding: 20, marginTop: 10 }}>
+            <CustomText style={{ textAlign: "center", marginTop: 20, color: color.black }}>
+              No Packages Available
+            </CustomText>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredPackages}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item, index }) => <PackageCard item={item} index={index} />}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            style={{ marginTop: 10 }}
+            contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: cartItems.length > 0 ? 110 : 20 }}
+          />
+        )}
+      </View>
       {cartItems.length > 0 && (
         <Pressable
           onPress={() => navigation.navigate("Cart")}
@@ -1113,7 +1294,7 @@ const styles = StyleSheet.create({
   },
 
   imageBackground: {
-    height: 350,
+    height: 280,
     resizeMode: "cover",
   },
   overlay: {
@@ -1289,7 +1470,6 @@ const styles = StyleSheet.create({
     color: color.white,
     ...globalStyles.f10Bold,
     textAlign: "center",
-    // marginTop:-15
   },
   sectionHeader: {
     flexDirection: "row",
@@ -1305,6 +1485,10 @@ const styles = StyleSheet.create({
     borderTopEndRadius: 30,
     borderTopLeftRadius: 30,
     borderTopStartRadius: 30,
+  },
+  stickyHeader: {
+    backgroundColor: "#fff",
+    zIndex: 10,
   },
   flatListContainer: {
     paddingHorizontal: 10,
