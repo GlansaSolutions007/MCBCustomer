@@ -534,6 +534,7 @@ const CartPage = () => {
         CouponCode: couponCode,
         CouponAmount: discountAmount,
         GSTAmount: gst,
+        CityName: primaryAddress.CityName,
         BookingFrom: "app",
         PaymentMethod: paymentMethod,
         Notes: instructions || "",
