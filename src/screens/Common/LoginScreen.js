@@ -811,7 +811,7 @@ const styles = StyleSheet.create({
   },
   disabledInput: {
     backgroundColor: "rgba(242, 242, 242, 0.3)",
-    color: "#888",
+    color: "rgb(53, 53, 53)",
     opacity: 0.6,
   },
   button: {
