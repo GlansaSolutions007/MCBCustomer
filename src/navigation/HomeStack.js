@@ -7,6 +7,7 @@ import MyCars from "../screens/Customer/MyCars";
 import { MyCarDetails } from "../screens/Customer/MyCarDetails";
 import InteriorService from "../screens/Customer/InteriorService";
 import ServiceInnerPage from "../screens/Customer/ServiceInnerPage";
+import GlobalSearch from "../screens/Customer/GlobalSearch";
 // Schedule and Coupons are independent in RootNavigator
 import BookingsInnerPage from "../screens/Customer/BookingsInnerPage";
 import LiveTracking from "../screens/Customer/WhereCustomer";
@@ -58,6 +59,15 @@ export default function HomeStack() {
         name="ServiceInnerPage"
         component={ServiceInnerPage}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="GlobalSearch"
+        component={GlobalSearch}
+        options={{
+          title: "Search",
+          animation: "slide_from_right",
+          headerShown: false,
+        }}
       />
       {null /* Schedule & Coupons moved to RootNavigator */}
       <Stack.Screen

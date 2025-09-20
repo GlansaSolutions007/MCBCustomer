@@ -442,6 +442,28 @@ export default function ProfileScreen() {
                   Support
                 </CustomText>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={() => navigation.navigate("OCRScreen")}
+              >
+                <View style={styles.quickActionIcon}>
+                  <Ionicons
+                    name="scan"
+                    size={24}
+                    color={color.primary}
+                  />
+                </View>
+                <CustomText
+                  style={[
+                    globalStyles.f12SemiBold,
+                    globalStyles.textac,
+                    { color: "#333" },
+                  ]}
+                >
+                  RC Scanner
+                </CustomText>
+              </TouchableOpacity>
             </View>
 
             {/* Profile Management Section */}
@@ -541,6 +563,32 @@ export default function ProfileScreen() {
                       ]}
                     >
                       Invoice List
+                    </CustomText>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#C4C4C4" />
+                </TouchableOpacity>
+
+                <View style={styles.menuDivider} />
+
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => navigation.navigate("OCRScreen")}
+                >
+                  <View style={styles.menuItemLeft}>
+                    <View style={styles.menuIconContainer}>
+                      <Ionicons
+                        name="scan"
+                        size={20}
+                        color={color.primary}
+                      />
+                    </View>
+                    <CustomText
+                      style={[
+                        globalStyles.f16Medium,
+                        { color: "#333", flex: 1 },
+                      ]}
+                    >
+                      RC Scanner
                     </CustomText>
                   </View>
                   <Ionicons name="chevron-forward" size={20} color="#C4C4C4" />

@@ -9,7 +9,12 @@ import {
   RefreshControl,
   Alert,
   Pressable,
+  Modal,
   TextInput,
+  LayoutAnimation,
+  ActivityIndicator,
+  Animated,
+  Easing,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -25,7 +30,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Device from "expo-device";
 import * as Location from "expo-location";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LocationContext } from "../../contexts/LocationContext";
 import axios from "axios";
@@ -63,10 +68,121 @@ export default function HomeScreen() {
   const [bookings, setBookings] = useState([]);
   const [upcomingBookings, setUpcomingBookings] = useState([]);
   const [latestNotification, setLatestNotification] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const searchBarRef = useRef(null);
+  const [panelTop, setPanelTop] = useState(160);
+  const panelTranslateY = useState(new Animated.Value(20))[0];
+  const panelOpacity = useState(new Animated.Value(0))[0];
+  const [openTimer, setOpenTimer] = useState(null);
+  const panelSearchInputRef = useRef(null);
+
+  const handleChange = (t) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setSearchQuery(t);
+
+    // Debounce opening the panel for smoother feel
+    if (openTimer) clearTimeout(openTimer);
+    if (t.length > 1) {
+      const timer = setTimeout(() => setModalVisible(true), 150);
+      setOpenTimer(timer);
+    } else {
+      setModalVisible(false);
+    }
+  };
+
+  // Helper to build full image URL safely
+  const buildImageUrl = (path) => {
+    if (!path) return null;
+    if (String(path).startsWith("http")) return path;
+    // Some APIs return paths without leading slash
+    const normalized = String(path).startsWith("/") ? path.slice(1) : path;
+    return `${API_IMAGE_URL}/${normalized}`;
+  };
+
+  // Debounced global search for services
+  useEffect(() => {
+    const term = (searchQuery || "").trim();
+    if (term.length < 2) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      setSearchError("");
+      return;
+    }
+
+    setSearchLoading(true);
+    setSearchError("");
+
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const url = `${API_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?searchTerm=${encodeURIComponent(
+          term
+        )}`;
+        const resp = await axios.get(url, { signal: controller.signal });
+        const data = Array.isArray(resp.data) ? resp.data : [];
+        setSearchResults(data);
+      } catch (err) {
+        if (err?.name !== "CanceledError") {
+          setSearchError("Failed to fetch results");
+        }
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchQuery]);
+
+  // Measure search bar position to anchor panel top
+  const updatePanelTop = () => {
+    try {
+      // measure(x, y, w, h, px, py) => screen coords
+      searchBarRef?.measure?.((x, y, w, h, px, py) => {
+        if (h && py >= 0) setPanelTop(py + h);
+      });
+    } catch (_) {}
+  };
+
+  useEffect(() => {
+    if (modalVisible) {
+      setTimeout(updatePanelTop, 0);
+      Animated.parallel([
+        Animated.timing(panelTranslateY, {
+          toValue: 0,
+          duration: 200,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(panelOpacity, {
+          toValue: 1,
+          duration: 200,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start();
+      // Focus the panel search input so typing continues seamlessly
+      setTimeout(() => {
+        panelSearchInputRef.current?.focus?.();
+      }, 50);
+    } else {
+      panelTranslateY.setValue(20);
+      panelOpacity.setValue(0);
+    }
+  }, [modalVisible]);
 
   const actionIconFor = (actionType) => {
     const key = String(actionType || "").toLowerCase();
-    if (key.includes("completed") || key.includes("ended")) return "check-circle";
+    if (key.includes("completed") || key.includes("ended"))
+      return "check-circle";
     if (key.includes("service") || key.includes("started")) return "build";
     if (key.includes("payment")) return "payment";
     if (key.includes("booking")) return "event";
@@ -80,17 +196,75 @@ export default function HomeScreen() {
     const diffMs = now - date;
     const diffHours = diffMs / (1000 * 60 * 60);
     if (diffHours < 24) {
-      return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+      return date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
     }
     const dd = String(date.getDate()).padStart(2, "0");
     const mm = String(date.getMonth() + 1).padStart(2, "0");
     const yyyy = date.getFullYear();
-    const time = date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+    const time = date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
     return `${dd}-${mm}-${yyyy} (${time})`;
   };
 
-  const [loading, setLoading] = useState(true);
-  const [bookingsLoading, setBookingsLoading] = useState(false);
+  const isRecentNotification = (createdDate) => {
+    if (!createdDate) return false;
+    const date = new Date(createdDate);
+    const now = new Date();
+    const diffHours = (now - date) / (1000 * 60 * 60);
+    return diffHours < 24;
+  };
+
+  const fetchLatestNotification = async () => {
+    try {
+      const userDataRaw = await AsyncStorage.getItem("userData");
+      const userData = userDataRaw ? JSON.parse(userDataRaw) : null;
+      const custID = userData?.custID;
+      if (!custID) {
+        setLatestNotification(null);
+        return;
+      }
+
+      const response = await axios.get(
+        `${API_URL}Bookings/notifications?userId=${custID}&&userRole=customer`
+      );
+
+      const list = Array.isArray(response.data?.data)
+        ? response.data.data
+        : Array.isArray(response.data)
+        ? response.data
+        : [];
+
+      const latest = list?.[0] || null;
+      setLatestNotification(latest);
+
+      // Optional: cache for offline or next launch
+      try {
+        if (latest) {
+          await AsyncStorage.setItem(
+            "latestNotification",
+            JSON.stringify(latest)
+          );
+        } else {
+          await AsyncStorage.removeItem("latestNotification");
+        }
+      } catch (_) {}
+    } catch (_) {
+      // Fallback to cached value if network fails
+      try {
+        const raw = await AsyncStorage.getItem("latestNotification");
+        setLatestNotification(raw ? JSON.parse(raw) : null);
+      } catch (_) {
+        setLatestNotification(null);
+      }
+    }
+  };
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -105,7 +279,9 @@ export default function HomeScreen() {
 
       if (response.data) {
         // Ensure response.data is an array
-        const categoriesData = Array.isArray(response.data) ? response.data : [];
+        const categoriesData = Array.isArray(response.data)
+          ? response.data
+          : [];
         // console.log("📊 Categories data:", categoriesData);
 
         const activeCategories = categoriesData.filter((cat) => cat.IsActive);
@@ -128,7 +304,9 @@ export default function HomeScreen() {
 
       // Check if userData exists
       if (!userData) {
-        console.warn("No userData found in AsyncStorage - this might be a timing issue");
+        console.warn(
+          "No userData found in AsyncStorage - this might be a timing issue"
+        );
         console.log("Retrying in 500ms...");
         setTimeout(() => {
           fetchTodaysBookings();
@@ -180,15 +358,8 @@ export default function HomeScreen() {
   useEffect(() => {
     fetchCategories();
     fetchTodaysBookings();
-    // Load latest notification from AsyncStorage
-    (async () => {
-      try {
-        const raw = await AsyncStorage.getItem("latestNotification");
-        setLatestNotification(raw ? JSON.parse(raw) : null);
-      } catch (_) {
-        setLatestNotification(null);
-      }
-    })();
+    // Load latest notification from API (with cache fallback)
+    fetchLatestNotification();
   }, []);
 
   useFocusEffect(
@@ -197,6 +368,7 @@ export default function HomeScreen() {
       // Add a small delay to prevent immediate refetch after initial load
       const timer = setTimeout(() => {
         fetchTodaysBookings();
+        fetchLatestNotification();
       }, 100);
 
       return () => clearTimeout(timer);
@@ -294,7 +466,12 @@ export default function HomeScreen() {
       {/* Banner Skeleton */}
       <View style={[styles.banner, globalStyles.mb35]}>
         <View style={styles.bannerHeader}>
-          <View style={[styles.logo, { backgroundColor: "rgba(78, 200, 202, 0.18)", borderRadius: 10 }]} />
+          <View
+            style={[
+              styles.logo,
+              { backgroundColor: "rgba(78, 200, 202, 0.18)", borderRadius: 10 },
+            ]}
+          />
         </View>
         <View style={styles.bannerContent}>
           <View
@@ -644,7 +821,13 @@ export default function HomeScreen() {
               {/* <CustomText style={styles.bannerTagline}>
                 Professional Car Care Services
               </CustomText> */}
-              <View style={styles.searchBar}>
+              <View
+                style={styles.searchBar}
+                ref={(ref) => {
+                  searchBarRef.current = ref;
+                }}
+                onLayout={updatePanelTop}
+              >
                 <Ionicons
                   name="search"
                   size={16}
@@ -652,57 +835,120 @@ export default function HomeScreen() {
                   style={{ marginRight: 6 }}
                 />
                 <TextInput
-                  // value={searchQuery}
-                  // onChangeText={(t) => {
-                  //   LayoutAnimation.configureNext(
-                  //     LayoutAnimation.Presets.easeInEaseOut
-                  //   );
-                  //   setSearchQuery(t);
-                  // }}
+                  value={searchQuery}
+                  onChangeText={handleChange}
                   placeholder="Search services…"
                   placeholderTextColor="#999"
                   style={styles.searchInput}
+                  returnKeyType="search"
+                  onSubmitEditing={() => navigation.navigate("GlobalSearch")}
+                  onFocus={() => navigation.navigate("GlobalSearch")}
                 />
               </View>
             </View>
             {/* Inline Latest Notification */}
             {latestNotification && (
               <TouchableOpacity
-                style={styles.latestNotificationCard}
-                activeOpacity={0.7}
-                onPress={() => navigation.navigate('NotificationScreen')}
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate("NotificationScreen")}
               >
-                <View style={styles.latestRow}>
-                  <View style={styles.iconWrap}>
-                    <MaterialIcons
-                      name={actionIconFor(latestNotification.actionType)}
-                      size={20}
-                      color={color.primary}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <CustomText style={[globalStyles.f14Bold, { color: "#222" }]} numberOfLines={1} ellipsizeMode="tail">
-                        {latestNotification.title || 'Notification'}
-                      </CustomText>
-                      <CustomText style={[globalStyles.f10Bold, { color: "#555" }]}>
-                        {formatNotificationDate(latestNotification.createdDate)}
-                      </CustomText>
+                <LinearGradient
+                  colors={[
+                    "rgba(1,127,119,0.25)",
+                    "rgba(1,127,119,0.08)",
+                    "rgba(1,127,119,0)",
+                  ]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.latestNotificationCardContainer}
+                >
+                  <View style={styles.latestNotificationCardInner}>
+                    <View style={styles.latestRow}>
+                      <View style={styles.iconWrap}>
+                        <MaterialIcons
+                          name={actionIconFor(latestNotification.actionType)}
+                          size={20}
+                          color={color.primary}
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <CustomText
+                            style={[globalStyles.f14Bold, { color: "#1f2937" }]}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
+                            {latestNotification.title || "Notification"}
+                          </CustomText>
+                          <View style={styles.timeBadge}>
+                            <CustomText
+                              style={[
+                                globalStyles.f10Bold,
+                                { color: color.primary },
+                              ]}
+                            >
+                              {formatNotificationDate(
+                                latestNotification.createdDate
+                              )}
+                            </CustomText>
+                          </View>
+                        </View>
+                        {!!latestNotification.message && (
+                          <CustomText
+                            style={[
+                              globalStyles.f10Regular,
+                              { color: "#4b5563", marginTop: 4 },
+                            ]}
+                            numberOfLines={2}
+                            ellipsizeMode="tail"
+                          >
+                            {latestNotification.message}
+                          </CustomText>
+                        )}
+                      </View>
+                      <MaterialIcons
+                        name="chevron-right"
+                        size={20}
+                        color="#9CA3AF"
+                        style={styles.chevron}
+                      />
                     </View>
-                    {!!latestNotification.message && (
-                      <CustomText style={[globalStyles.f10Regular, { color: "#555", marginTop: 2 }]} numberOfLines={2} ellipsizeMode="tail">
-                        {latestNotification.message}
-                      </CustomText>
+                    {isRecentNotification(latestNotification.createdDate) && (
+                      <View style={styles.footerRow}>
+                        <View style={styles.newDot} />
+                        <CustomText
+                          style={[
+                            globalStyles.f10Bold,
+                            { color: color.primary },
+                          ]}
+                        >
+                          New
+                        </CustomText>
+                        <View style={{ flex: 1 }} />
+                        <TouchableOpacity
+                          onPress={() =>
+                            navigation.navigate("NotificationScreen")
+                          }
+                        >
+                          <CustomText
+                            style={[
+                              globalStyles.f10Bold,
+                              { color: color.primary },
+                            ]}
+                          >
+                            View all
+                          </CustomText>
+                        </TouchableOpacity>
+                      </View>
                     )}
-
                   </View>
-                </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 2 }}>
-
-                  <TouchableOpacity onPress={() => navigation.navigate('NotificationScreen')}>
-                    <CustomText style={[globalStyles.f10Bold, { color: color.primary }]}>View all</CustomText>
-                  </TouchableOpacity>
-                </View>
+                </LinearGradient>
               </TouchableOpacity>
             )}
             <View style={styles.bannerContent}>
@@ -803,7 +1049,6 @@ export default function HomeScreen() {
                             name="arrow-forward"
                             size={16}
                             color={color.white}
-
                           />
                         </View>
                       </View>
@@ -834,7 +1079,7 @@ export default function HomeScreen() {
                           style={styles.categoryCardImage}
                         />
                         <LinearGradient
-                          colors={['#136D6E', 'transparent']}
+                          colors={["#136D6E", "transparent"]}
                           start={{ x: 0.5, y: 1 }}
                           end={{ x: 0.5, y: 0 }}
                           style={styles.gradientOverlay}
@@ -1086,7 +1331,7 @@ export default function HomeScreen() {
                               ]}
                             >
                               {(booking.BookingStatus || "").toLowerCase() ===
-                                "startjourney"
+                              "startjourney"
                                 ? "Started Journey"
                                 : booking.BookingStatus}
                             </CustomText>
@@ -1095,33 +1340,33 @@ export default function HomeScreen() {
 
                         {booking.BookingStatus?.toLowerCase() !==
                           "cancelled" && (
-                            <View
-                              style={[
-                                globalStyles.flexrow,
-                                globalStyles.alineItemscenter,
-                              ]}
-                            >
-                              {booking.TechID === null ? (
-                                <CustomText
-                                  style={[
-                                    styles.techStatus,
-                                    { color: color.primary },
-                                  ]}
-                                >
-                                  {booking.TechID === null
-                                    ? " "
-                                    : "Tech Assigned"}
-                                </CustomText>
-                              ) : (
-                                <Ionicons
-                                  name="person"
-                                  size={20}
-                                  color={color.primary}
-                                  style={{ marginRight: 6 }}
-                                />
-                              )}
-                            </View>
-                          )}
+                          <View
+                            style={[
+                              globalStyles.flexrow,
+                              globalStyles.alineItemscenter,
+                            ]}
+                          >
+                            {booking.TechID === null ? (
+                              <CustomText
+                                style={[
+                                  styles.techStatus,
+                                  { color: color.primary },
+                                ]}
+                              >
+                                {booking.TechID === null
+                                  ? " "
+                                  : "Tech Assigned"}
+                              </CustomText>
+                            ) : (
+                              <Ionicons
+                                name="person"
+                                size={20}
+                                color={color.primary}
+                                style={{ marginRight: 6 }}
+                              />
+                            )}
+                          </View>
+                        )}
                       </View>
                       {(booking.BookingStatus || "").toLowerCase() ===
                         "startjourney" &&
@@ -1170,8 +1415,8 @@ export default function HomeScreen() {
                             {booking.FuelTypeName === "Petrol"
                               ? "P"
                               : booking.FuelTypeName === "Diesel"
-                                ? "D"
-                                : "E"}
+                              ? "D"
+                              : "E"}
                             )
                           </CustomText>
                           <CustomText style={styles.subText}>
@@ -1262,7 +1507,12 @@ export default function HomeScreen() {
                             }}
                           >
                             {/* Left: icon + package name */}
-                            <View style={{ flexDirection: "row", alignItems: "center" }}>
+                            <View
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                              }}
+                            >
                               <FontAwesome5
                                 name="tools"
                                 size={16}
@@ -1270,7 +1520,10 @@ export default function HomeScreen() {
                                 style={{ marginRight: 6 }}
                               />
                               <CustomText
-                                style={[globalStyles.f12Bold, { color: "#333", maxWidth: 180 }]}
+                                style={[
+                                  globalStyles.f12Bold,
+                                  { color: "#333", maxWidth: 180 },
+                                ]}
                                 numberOfLines={1}
                                 ellipsizeMode="tail"
                               >
@@ -1282,7 +1535,9 @@ export default function HomeScreen() {
                             {index === booking.Packages.length - 1 && (
                               <TouchableOpacity
                                 onPress={() =>
-                                  navigation.navigate("BookingsInnerPage", { booking })
+                                  navigation.navigate("BookingsInnerPage", {
+                                    booking,
+                                  })
                                 }
                                 style={{
                                   backgroundColor: color.primary,
@@ -1291,7 +1546,12 @@ export default function HomeScreen() {
                                   borderRadius: 6,
                                 }}
                               >
-                                <CustomText style={[globalStyles.f10Bold, { color: "#fff" }]}>
+                                <CustomText
+                                  style={[
+                                    globalStyles.f10Bold,
+                                    { color: "#fff" },
+                                  ]}
+                                >
                                   View Details
                                 </CustomText>
                               </TouchableOpacity>
@@ -1304,6 +1564,119 @@ export default function HomeScreen() {
                 ))
               )}
             </View>
+            {/* Modal for Booking Details */}
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={modalVisible}
+              onRequestClose={() => setModalVisible(false)}
+            >
+              <View style={styles.modalOverlay}>
+                <Animated.View
+                  style={[
+                    styles.panel,
+                    { top: panelTop, opacity: panelOpacity, transform: [{ translateY: panelTranslateY }] },
+                  ]}
+                >
+                  <View style={{ marginBottom: 10 }}>
+                    <View style={[styles.searchBar, { height: 48, shadowOpacity: 0.04 }]}> 
+                      <Ionicons
+                        name="search"
+                        size={16}
+                        color={"#999"}
+                        style={{ marginRight: 6 }}
+                      />
+                      <TextInput
+                        ref={panelSearchInputRef}
+                        value={searchQuery}
+                        onChangeText={handleChange}
+                        placeholder="Search services…"
+                        placeholderTextColor="#999"
+                        style={styles.searchInput}
+                        returnKeyType="search"
+                        autoFocus={true}
+                      />
+                    </View>
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "600",
+                      marginBottom: 8,
+                    }}
+                  >
+                    Search results for: {searchQuery?.trim()}
+                  </Text>
+
+                  {searchLoading ? (
+                    <View style={{ paddingVertical: 20, alignItems: "center" }}>
+                      <ActivityIndicator size="small" color={color.primary} />
+                      <Text style={{ marginTop: 10, color: "#666" }}>
+                        Searching…
+                      </Text>
+                    </View>
+                  ) : searchError ? (
+                    <Text style={{ color: "#D00", marginVertical: 10 }}>
+                      {searchError}
+                    </Text>
+                  ) : (searchResults || []).length === 0 ? (
+                    <Text style={{ color: "#666", marginVertical: 10 }}>
+                      No services found. Try a different term.
+                    </Text>
+                  ) : (
+                    <ScrollView style={{ maxHeight: 380 }} keyboardShouldPersistTaps="handled">
+                      {(searchResults || []).map((item) => {
+                        const img = buildImageUrl(item.PackageImage || item.BannerImage);
+                        return (
+                          <View
+                            key={String(item.PackageID)}
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              paddingVertical: 10,
+                              borderBottomWidth: 1,
+                              borderBottomColor: "#eee",
+                            }}
+                          >
+                            {img ? (
+                              <Image
+                                source={{ uri: img }}
+                                style={{ width: 54, height: 54, borderRadius: 8, backgroundColor: "#f2f2f2" }}
+                                resizeMode="cover"
+                              />
+                            ) : (
+                              <View
+                                style={{ width: 54, height: 54, borderRadius: 8, backgroundColor: "#f2f2f2" }}
+                              />
+                            )}
+                            <View style={{ flex: 1, marginLeft: 12 }}>
+                              <Text style={{ fontSize: 14, fontWeight: "600", color: "#111" }} numberOfLines={1}>
+                                {item.PackageName}
+                              </Text>
+                              <Text style={{ fontSize: 12, color: "#666", marginTop: 2 }} numberOfLines={1}>
+                                {item.CategoryName} • {item.SubCategoryName}
+                              </Text>
+                               <Text style={{ fontSize: 12, color: color.primary, marginTop: 2 }}>
+                                 ₹ {item.Serv_Off_Price ?? item.Serv_Reg_Price}
+                              </Text>
+                            </View>
+                          </View>
+                        );
+                      })}
+                    </ScrollView>
+                  )}
+
+                  <TouchableOpacity
+                    style={styles.closeBtn}
+                    onPress={() => setModalVisible(false)}
+                  >
+                    <Text style={{ color: "#fff", fontWeight: "600" }}>
+                      Close
+                    </Text>
+                  </TouchableOpacity>
+                </Animated.View>
+              </View>
+            </Modal>
           </View>
         </>
       )}
@@ -1332,19 +1705,53 @@ const styles = StyleSheet.create({
     // shadowRadius: 6,
     // elevation: 2,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: "#f0f0f0",
+  },
+  latestNotificationCardContainer: {
+    borderRadius: 14,
+    padding: 1,
+  },
+  latestNotificationCardInner: {
+    backgroundColor: color.white,
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#eef4f4",
   },
   latestRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   iconWrap: {
     width: 36,
     height: 36,
     borderRadius: 18,
     // backgroundColor: 'rgba(1,127,119,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 12,
+  },
+  timeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    backgroundColor: "rgba(1,127,119,0.08)",
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  chevron: {
+    marginLeft: 8,
+    alignSelf: "center",
+  },
+  footerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  newDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: color.primary,
+    marginRight: 6,
   },
   logo: {
     width: 200,
@@ -1770,5 +2177,39 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     color: "#333",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.3)",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  panel: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 16,
+    // Shadow/elevation for floating feel
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  closeBtn: {
+    marginTop: 20,
+    backgroundColor: "#007AFF",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
   },
 });

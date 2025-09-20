@@ -369,16 +369,24 @@ export const MyCarsList = () => {
                 }}
               />
             </View>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("SelectCarBrand")}
-              style={styles.addIconWrapper}
-            >
-              {/* <MaterialCommunityIcons name="car-info" size={28} color="white" /> */}
-              <Image
-                source={carAddIcon}
-                style={{ width: 30, height: 30, resizeMode: "contain" }}
-              />
-            </TouchableOpacity>
+            <View style={styles.headerButtons}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("OCRScreen")}
+                style={[styles.addIconWrapper, styles.ocrButton]}
+              >
+                <Ionicons name="scan" size={24} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("SelectCarBrand")}
+                style={styles.addIconWrapper}
+              >
+                {/* <MaterialCommunityIcons name="car-info" size={28} color="white" /> */}
+                <Image
+                  source={carAddIcon}
+                  style={{ width: 30, height: 30, resizeMode: "contain" }}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Car List */}
@@ -420,12 +428,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 16,
   },
+  headerButtons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   addIconWrapper: {
-    marginLeft: 10,
     padding: 6,
     backgroundColor: color.secondary,
     borderRadius: 8,
     marginTop: 8
+  },
+  ocrButton: {
+    backgroundColor: color.primary,
   },
   numberText: {
     borderWidth: 2,

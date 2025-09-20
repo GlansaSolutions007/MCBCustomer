@@ -17,6 +17,7 @@ import SchedulePage from "../screens/Customer/SchedulePage";
 import ConfirmAddressPage from "../screens/Customer/ConfirmAddressPage";
 import CouponsList from "../screens/Customer/Coupons";
 import TawkChatScreen from "../screens/Common/TawkChatScreen";
+import OCRScreen from "../screens/Customer/OCRScreen";
 // import PreLoader from "../components/PreLoader"; 
 const Stack = createNativeStackNavigator();
 
@@ -117,6 +118,11 @@ export default function RootNavigator() {
             name="Coupons"
             component={CouponsList}
             options={{ headerShown: true, title: "Coupon List" }}
+          />
+          <Stack.Screen
+            name="OCRScreen"
+            component={OCRScreen}
+            options={{ headerShown: false }}
           />
         </Stack.Navigator>
       </CartProvider>

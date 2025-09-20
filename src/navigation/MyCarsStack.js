@@ -4,6 +4,7 @@ import { MyCarsList } from "../screens/Customer/MyCarsList";
 import MyCars from "../screens/Customer/MyCars";
 import CarModels from "../screens/Customer/CarModels";
 import { MyCarDetails } from "../screens/Customer/MyCarDetails";
+import OCRScreen from "../screens/Customer/OCRScreen";
 import CustomHeader from "../components/CustomHeader";
 
 const Stack = createNativeStackNavigator();
@@ -37,6 +38,11 @@ export default function MyCarsStack() {
         options={{
           title: "My Car Details",
         }}
+      />
+      <Stack.Screen
+        name="OCRScreen"
+        component={OCRScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

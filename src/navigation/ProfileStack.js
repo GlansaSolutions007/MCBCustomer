@@ -9,7 +9,8 @@ import RefundPolicyScreen from "../screens/Common/RefundPolicyScreen";
 import TermsConditionsScreen from "../screens/Common/TermsConditionsScreen";
 import CustomHeader from "../components/CustomHeader";
 import AddressListScreen from "@src/screens/Customer/AddressList";
-import InvoiceListScreen from "@src/screens/Customer/InvoiceListScreen";
+import OCRScreen from "../screens/Customer/OCRScreen";
+import InvoiceListScreen from "../screens/Customer/InvoiceListScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -63,6 +64,11 @@ export default function ProfileStack() {
                 name="InvoiceList"
                 component={InvoiceListScreen}
                 options={{ title: "Your Invoices" }}
+            />
+            <Stack.Screen
+                name="OCRScreen"
+                component={OCRScreen}
+                options={{ headerShown: false }}
             />
         </Stack.Navigator>
     );
