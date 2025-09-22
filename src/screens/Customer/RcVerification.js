@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -17,19 +17,127 @@ import globalStyles from "../../styles/globalStyles";
 import { color } from "../../styles/theme";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
+import { API_URL, RC_CHECK_URL, RC_CHECK_TOKEN } from "@env";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getToken } from "../../utils/token";
+import CustomAlert from "../../components/CustomAlert";
 
 const RcVerification = () => {
   const navigation = useNavigation();
   const [rcNumber, setRcNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [verificationResult, setVerificationResult] = useState(null);
+  const [fuelTypes, setFuelTypes] = useState([]);
   const [error, setError] = useState("");
+  const [carModels, setCarModels] = useState([]);
+  const [carFuelType, setCarFuelType] = useState("");
 
   // const validateRcNumber = (rc) => {
   //   // Basic validation for Indian RC number format
   //   const rcPattern = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
   //   return rcPattern.test(rc.toUpperCase());
   // };
+
+  const mockData = {
+    valid: true,
+    status: "ACTIVE",
+    registered: "04-11-2024",
+    owner: "ERUMALLA PRADEEP",
+    masked: null,
+    ownerNumber: "1",
+    father: null,
+    currentAddress:
+      "H NO:2-104,KATTALINGAMPETA,MALLIAL,VEMULAWADA,RAJANNA,CHANDURTHY,505307",
+    permanentAddress:
+      "H NO:2-104,KATTALINGAMPETA,MALLIAL,VEMULAWADA,RAJANNA,CHANDURTHY,505307",
+    mobile: null,
+    category: "LMV",
+    categoryDescription: "Motor Car(LMV)",
+    chassisNumber: "MBHZCDESKRH169194",
+    engineNumber: "Z12EP1069172",
+    makerDescription: "MARUTI SUZUKI INDIA LTD",
+    makerModel: "MARUTI SWIFT VXI 1.2L ISS 5MT",
+    makerVariant: null,
+    bodyType: "30",
+    fuelType: "PETROL",
+    colorType: "LUSTER BLUE",
+    normsType: "Not Available",
+    fitnessUpto: "03-11-2039",
+    financed: true,
+    lender: "ICICI BANK LTD",
+    insuranceProvider: "LIBERTY GENERAL INSURANCE LIMITED",
+    insurancePolicyNumber: "201150010124850229800000",
+    insuranceUpto: "25-10-2027",
+    manufactured: "08/2024",
+    rto: "RTA RAJANNA, TELANGANA",
+    cubicCapacity: "1197.00",
+    grossWeight: "1355",
+    wheelBase: "2450",
+    unladenWeight: "760",
+    cylinders: "3",
+    seatingCapacity: "5",
+    sleepingCapacity: "0",
+    standingCapacity: "0",
+    pollutionCertificateNumber: null,
+    pollutionCertificateUpto: null,
+    permitNumber: null,
+    permitIssued: "NA",
+    permitFrom: "NA",
+    permitUpto: "NA",
+    permitType: null,
+    taxUpto: "LTT",
+    taxPaidUpto: "LTT",
+    nationalPermitNumber: null,
+    nationalPermitIssued: null,
+    nationalPermitFrom: null,
+    nationalPermitUpto: null,
+    blacklistStatus: null,
+    nocDetails: null,
+    challanDetails: null,
+    nationalPermitIssuedBy: null,
+    commercial: false,
+    exShowroomPrice: null,
+    nonUseStatus: null,
+    nonUseFrom: null,
+    nonUseTo: null,
+    blacklistDetails: null,
+  };
+
+  // setCarFuelType(mockData.fuelType);
+  // setCarModels(mockData.makerModel);
+  
+  // console.log("Mock Data:", mockData.makerModel); // PETROL
+  
+
+  const fetchFuelTypes = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_URL}FuelTypes/GetFuelTypes`);
+      const json = response.data;
+
+      if (json.status && Array.isArray(json.data)) {
+        const activeFuelTypes = json.data.filter((f) => f.IsActive);
+        const fuelList = activeFuelTypes.map((f) => ({
+          id: f.FuelTypeID,
+          name: f.FuelTypeName,
+        }));
+        
+        console.log("Fuel List:", fuelList);
+        setFuelTypes(activeFuelTypes);
+        console.log("Fuel Types:", activeFuelTypes);
+      } else {
+        console.warn("Failed to load fuel types.");
+      }
+    } catch (error) {
+      console.error("Error fetching fuel types:", error);
+    } finally {
+      setLoading(false); // Set loading to false
+    }
+  };
+
+  useEffect(() => {
+    fetchFuelTypes();
+  }, []);
 
   const handleVerifyRc = async () => {
     if (!rcNumber.trim()) {
@@ -48,15 +156,14 @@ const RcVerification = () => {
 
     try {
       const response = await axios.post(
-        "https://api.attestr.com/api/v2/public/checkx/rc",
+        RC_CHECK_URL,
         {
           reg: rcNumber.toUpperCase(),
         },
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization:
-              "Basic T1gwUzZJLWpyRUliT0FzU0phLjViNDU0MTE4YTkwYzJmMDhlNTcxNzFiYmUzZmE1ZTUwOmNmYzY4YjkwMDU2OTEyZjRmNTM2M2FkNGZiY2RhNzgwZmU1MmZhNmJjNWNlODIwNQ==",
+            Authorization: RC_CHECK_TOKEN,
           },
         }
       );
@@ -288,7 +395,7 @@ const RcVerification = () => {
               </View>
             )}
 
-            {data.fuel_type && (
+            {data.fuelType && (
               <View style={styles.detailRow}>
                 <CustomText
                   style={[globalStyles.f12Bold, globalStyles.textGray]}
@@ -298,7 +405,7 @@ const RcVerification = () => {
                 <CustomText
                   style={[globalStyles.f12Bold, globalStyles.textBlack]}
                 >
-                  {data.fuel_type}
+                  {data.fuelType}
                 </CustomText>
               </View>
             )}
@@ -511,13 +618,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? 50 : 20,
+    paddingTop: Platform.OS === "android" ? 50 : 20,
     paddingBottom: 15,
     backgroundColor: color.white,
     borderBottomWidth: 1,
     borderBottomColor: color.neutral[100],
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -527,7 +634,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   placeholder: {
     width: 40,
