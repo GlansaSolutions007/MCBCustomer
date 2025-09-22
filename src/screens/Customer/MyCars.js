@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ImageBackground, StatusBar, Alert, Platform } from "react-native";
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ImageBackground, StatusBar, Alert, Platform, Animated } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import SearchBox from "../../components/SearchBox";
@@ -201,12 +201,27 @@ export default function MyCars() {
         setFilteredBrands(filtered);
     };
 
-    const SkeletonLoader = () => (
-        <View style={styles.card}>
-            <View style={[styles.logo, { backgroundColor: '#f1f1f1ff' }]} />
-            <View style={{ backgroundColor: '#f1f1f1ff', height: 15, width: '60%', borderRadius: 4, marginTop: 5, alignSelf: 'center' }} />
-        </View>
-    );
+    const SkeletonLoader = () => {
+        const pulse = React.useRef(new Animated.Value(0.4)).current;
+
+        useEffect(() => {
+            const loop = Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: true }),
+                    Animated.timing(pulse, { toValue: 0.4, duration: 700, useNativeDriver: true }),
+                ])
+            );
+            loop.start();
+            return () => loop.stop();
+        }, [pulse]);
+
+        return (
+            <View style={styles.skeletonCard}>
+                <Animated.View style={[styles.skelLogo, { opacity: pulse }]} />
+                <Animated.View style={[styles.skelText, { opacity: pulse }]} />
+            </View>
+        );
+    };
 
     const renderBrand = ({ item }) => (
         <TouchableOpacity
@@ -330,12 +345,32 @@ const styles = StyleSheet.create({
         marginHorizontal: 2,
         marginVertical: 2
     },
+    skeletonCard: {
+        alignItems: 'center',
+        flex: 1,
+        marginHorizontal: 2,
+        marginVertical: 2,
+        paddingVertical: 6,
+    },
     logo: {
         width: 80,
         height: 80,
         resizeMode: "cover",
         marginBottom: 1,
         overflow: 'hidden',
+    },
+    skelLogo: {
+        width: 80,
+        height: 80,
+        borderRadius: 8,
+        backgroundColor: '#EAEAEA',
+    },
+    skelText: {
+        height: 14,
+        width: '60%',
+        borderRadius: 6,
+        backgroundColor: '#EAEAEA',
+        marginTop: 6,
     },
     addCarOptions: {
         marginBottom: 10,

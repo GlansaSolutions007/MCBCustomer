@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, ImageBackground, Alert } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
+import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, ImageBackground, Alert, Animated } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import carPic from "../../../assets/images/xuv-3xo-exterior-right-front-three-quarter-34.webp"
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -83,12 +83,26 @@ export default function CarModels() {
 
   const { refreshing, onRefresh } = useGlobalRefresh(refreshData);
 
-  const SkeletonLoader = () => (
-    <View style={styles.card}>
-      <View style={[styles.image, { backgroundColor: '#f1f0f0ff' }]} />
-      <View style={{ backgroundColor: '#f1f0f0ff', height: 15, width: '60%', borderRadius: 4, marginTop: 5, alignSelf: 'center' }} />
-    </View>
-  );
+  const SkeletonLoader = () => {
+    const pulse = useRef(new Animated.Value(0.4)).current;
+    useEffect(() => {
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: true }),
+          Animated.timing(pulse, { toValue: 0.4, duration: 700, useNativeDriver: true }),
+        ])
+      );
+      loop.start();
+      return () => loop.stop();
+    }, [pulse]);
+
+    return (
+      <View style={styles.card}>
+        <Animated.View style={[styles.image, { backgroundColor: '#EAEAEA', opacity: pulse }]} />
+        <Animated.View style={{ backgroundColor: '#EAEAEA', height: 15, width: '60%', borderRadius: 6, marginTop: 6, alignSelf: 'center', opacity: pulse }} />
+      </View>
+    );
+  };
 
   const renderModel = ({ item }) => (
     <TouchableOpacity style={styles.card} onPress={() => handleModelPress(item)}>
