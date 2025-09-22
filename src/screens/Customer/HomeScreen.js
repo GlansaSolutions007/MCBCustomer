@@ -149,7 +149,7 @@ export default function HomeScreen() {
       searchBarRef?.measure?.((x, y, w, h, px, py) => {
         if (h && py >= 0) setPanelTop(py + h);
       });
-    } catch (_) {}
+    } catch (_) { }
   };
 
   useEffect(() => {
@@ -238,8 +238,8 @@ export default function HomeScreen() {
       const list = Array.isArray(response.data?.data)
         ? response.data.data
         : Array.isArray(response.data)
-        ? response.data
-        : [];
+          ? response.data
+          : [];
 
       const latest = list?.[0] || null;
       setLatestNotification(latest);
@@ -254,7 +254,7 @@ export default function HomeScreen() {
         } else {
           await AsyncStorage.removeItem("latestNotification");
         }
-      } catch (_) {}
+      } catch (_) { }
     } catch (_) {
       // Fallback to cached value if network fails
       try {
@@ -975,7 +975,7 @@ export default function HomeScreen() {
                 globalStyles.mb3,
               ]}
             >
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 0.7 }}>
                 <CustomText
                   style={[
                     globalStyles.f16Bold,
@@ -992,26 +992,30 @@ export default function HomeScreen() {
                 </CustomText>
               </View>
               {categories.length > 2 && (
-                <View
-                  style={[
-                    globalStyles.p2,
-                    {
-                      backgroundColor: "rgba(1, 127, 119, 0.1)",
-                      borderRadius: 20,
-                      marginLeft: 12,
-                    },
-                  ]}
+                <View style={{ flex: 0.3, alignItems: "flex-end" }}>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: color.yellow,
+                    borderRadius: 6,
+                    paddingVertical: 8,
+                    paddingHorizontal: 16,
+                    marginLeft: 12,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onPress={() =>
+                    navigation.navigate("Services", {
+                      screen: "BookServiceScreen",
+                    })
+                  }
+                  activeOpacity={0.7}
                 >
-                  <Ionicons
-                    name="arrow-forward-circle"
-                    size={24}
-                    color={color.primary}
-                    onPress={() =>
-                      navigation.navigate("Services", {
-                        screen: "BookServiceScreen",
-                      })
-                    }
-                  />
+                  <Ionicons name="calendar" size={16} color="#fff" style={{ marginRight: 6 }} />
+                  <CustomText style={[{ color: "#fff"}, globalStyles.f12Bold]}>
+                    Book Now
+                  </CustomText>
+                </TouchableOpacity>
                 </View>
               )}
             </View>
@@ -1331,7 +1335,7 @@ export default function HomeScreen() {
                               ]}
                             >
                               {(booking.BookingStatus || "").toLowerCase() ===
-                              "startjourney"
+                                "startjourney"
                                 ? "Started Journey"
                                 : booking.BookingStatus}
                             </CustomText>
@@ -1340,33 +1344,33 @@ export default function HomeScreen() {
 
                         {booking.BookingStatus?.toLowerCase() !==
                           "cancelled" && (
-                          <View
-                            style={[
-                              globalStyles.flexrow,
-                              globalStyles.alineItemscenter,
-                            ]}
-                          >
-                            {booking.TechID === null ? (
-                              <CustomText
-                                style={[
-                                  styles.techStatus,
-                                  { color: color.primary },
-                                ]}
-                              >
-                                {booking.TechID === null
-                                  ? " "
-                                  : "Tech Assigned"}
-                              </CustomText>
-                            ) : (
-                              <Ionicons
-                                name="person"
-                                size={20}
-                                color={color.primary}
-                                style={{ marginRight: 6 }}
-                              />
-                            )}
-                          </View>
-                        )}
+                            <View
+                              style={[
+                                globalStyles.flexrow,
+                                globalStyles.alineItemscenter,
+                              ]}
+                            >
+                              {booking.TechID === null ? (
+                                <CustomText
+                                  style={[
+                                    styles.techStatus,
+                                    { color: color.primary },
+                                  ]}
+                                >
+                                  {booking.TechID === null
+                                    ? " "
+                                    : "Tech Assigned"}
+                                </CustomText>
+                              ) : (
+                                <Ionicons
+                                  name="person"
+                                  size={20}
+                                  color={color.primary}
+                                  style={{ marginRight: 6 }}
+                                />
+                              )}
+                            </View>
+                          )}
                       </View>
                       {(booking.BookingStatus || "").toLowerCase() ===
                         "startjourney" &&
@@ -1415,8 +1419,8 @@ export default function HomeScreen() {
                             {booking.FuelTypeName === "Petrol"
                               ? "P"
                               : booking.FuelTypeName === "Diesel"
-                              ? "D"
-                              : "E"}
+                                ? "D"
+                                : "E"}
                             )
                           </CustomText>
                           <CustomText style={styles.subText}>
@@ -1579,7 +1583,7 @@ export default function HomeScreen() {
                   ]}
                 >
                   <View style={{ marginBottom: 10 }}>
-                    <View style={[styles.searchBar, { height: 48, shadowOpacity: 0.04 }]}> 
+                    <View style={[styles.searchBar, { height: 48, shadowOpacity: 0.04 }]}>
                       <Ionicons
                         name="search"
                         size={16}
@@ -1656,8 +1660,8 @@ export default function HomeScreen() {
                               <Text style={{ fontSize: 12, color: "#666", marginTop: 2 }} numberOfLines={1}>
                                 {item.CategoryName} • {item.SubCategoryName}
                               </Text>
-                               <Text style={{ fontSize: 12, color: color.primary, marginTop: 2 }}>
-                                 ₹ {item.Serv_Off_Price ?? item.Serv_Reg_Price}
+                              <Text style={{ fontSize: 12, color: color.primary, marginTop: 2 }}>
+                                ₹ {item.Serv_Off_Price ?? item.Serv_Reg_Price}
                               </Text>
                             </View>
                           </View>

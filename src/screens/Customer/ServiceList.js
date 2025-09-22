@@ -824,181 +824,60 @@ export default function ServiceList() {
     setRepayTimeSlots([]);
   };
 
-  const SkeletonLoader = () => (
-    <View style={styles.bookingCard}>
-      <View>
-        <View style={styles.bookingR1}>
-          <View
-            style={{
-              backgroundColor: "#f1f1f1ff",
-              height: 20,
-              width: "40%",
-              borderRadius: 4,
-            }}
-          />
-          <View
-            style={{
-              backgroundColor: "#f1f1f1ff",
-              height: 20,
-              width: "30%",
-              borderRadius: 4,
-            }}
-          />
-        </View>
-        <View style={[styles.divider, { backgroundColor: "#f1f1f1ff" }]} />
-        <View style={styles.bookingR1}>
-          <View style={styles.bookingCarImage}>
-            <View
-              style={{
-                backgroundColor: "#f1f1f1ff",
-                width: "60%",
-                height: 60,
-                borderRadius: 8,
-              }}
-            />
-            <View
-              style={{
-                backgroundColor: "#f1f1f1ff",
-                height: 20,
-                width: "80%",
-                borderRadius: 4,
-                marginTop: 5,
-              }}
-            />
-            <View
-              style={{
-                backgroundColor: "#f1f1f1ff",
-                height: 15,
-                width: "60%",
-                borderRadius: 4,
-                marginTop: 5,
-              }}
-            />
+  const SkeletonLoader = () => {
+    const pulse = React.useRef(new Animated.Value(0.4)).current;
+    useEffect(() => {
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: true }),
+          Animated.timing(pulse, { toValue: 0.4, duration: 700, useNativeDriver: true }),
+        ])
+      );
+      loop.start();
+      return () => loop.stop();
+    }, [pulse]);
+
+    const Block = ({ style }) => (
+      <Animated.View style={[{ backgroundColor: '#EAEAEA', opacity: pulse }, style]} />
+    );
+
+    return (
+      <View style={styles.bookingCard}>
+        <View>
+          <View style={styles.bookingR1}>
+            <Block style={{ height: 20, width: '40%', borderRadius: 6 }} />
+            <Block style={{ height: 20, width: '30%', borderRadius: 6 }} />
           </View>
-          <View style={styles.bookingDetails}>
-            <View style={styles.bookingDate}>
-              <View
-                style={{
-                  backgroundColor: "#f1f1f1ff",
-                  height: 15,
-                  width: "70%",
-                  borderRadius: 4,
-                }}
-              />
-              <View
-                style={{
-                  backgroundColor: "#f1f1f1ff",
-                  height: 15,
-                  width: "50%",
-                  borderRadius: 4,
-                  marginTop: 5,
-                }}
-              />
+          <View style={[styles.divider, { backgroundColor: '#f1f1f1ff' }]} />
+          <View style={styles.bookingR1}>
+            <View style={styles.bookingCarImage}>
+              <Block style={{ width: '60%', height: 60, borderRadius: 8 }} />
+              <Block style={{ height: 20, width: '80%', borderRadius: 6, marginTop: 6 }} />
+              <Block style={{ height: 15, width: '60%', borderRadius: 6, marginTop: 6 }} />
             </View>
-            <View style={styles.bookingDate}>
-              <View
-                style={{
-                  backgroundColor: "#f1f1f1ff",
-                  height: 15,
-                  width: "70%",
-                  borderRadius: 4,
-                }}
-              />
-              <View
-                style={{
-                  backgroundColor: "#f1f1f1ff",
-                  height: 15,
-                  width: "50%",
-                  borderRadius: 4,
-                  marginTop: 5,
-                }}
-              />
-            </View>
-            <View style={styles.bookingDate}>
-              <View
-                style={{
-                  backgroundColor: "#f1f1f1ff",
-                  height: 15,
-                  width: "70%",
-                  borderRadius: 4,
-                }}
-              />
-              <View
-                style={{
-                  backgroundColor: "#f1f1f1ff",
-                  height: 15,
-                  width: "50%",
-                  borderRadius: 4,
-                  marginTop: 5,
-                }}
-              />
+            <View style={styles.bookingDetails}>
+              {[1,2,3].map((i) => (
+                <View key={i} style={styles.bookingDate}>
+                  <Block style={{ height: 15, width: '70%', borderRadius: 6 }} />
+                  <Block style={{ height: 15, width: '50%', borderRadius: 6, marginTop: 6 }} />
+                </View>
+              ))}
             </View>
           </View>
-        </View>
-        <View style={[styles.divider, { backgroundColor: "#f1f1f1ff" }]} />
-        <View style={styles.bookingServices}>
-          <View
-            style={{
-              backgroundColor: "#f1f1f1ff",
-              height: 15,
-              width: "60%",
-              borderRadius: 4,
-            }}
-          />
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginVertical: 4,
-            }}
-          >
-            <View
-              style={{
-                backgroundColor: "#f1f1f1ff",
-                height: 16,
-                width: 16,
-                borderRadius: 4,
-                marginRight: 6,
-              }}
-            />
-            <View
-              style={{
-                backgroundColor: "#f1f1f1ff",
-                height: 15,
-                width: "80%",
-                borderRadius: 4,
-              }}
-            />
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginVertical: 4,
-            }}
-          >
-            <View
-              style={{
-                backgroundColor: "#f1f1f1ff",
-                height: 16,
-                width: 16,
-                borderRadius: 4,
-                marginRight: 6,
-              }}
-            />
-            <View
-              style={{
-                backgroundColor: "#f1f1f1ff",
-                height: 15,
-                width: "80%",
-                borderRadius: 4,
-              }}
-            />
+          <View style={[styles.divider, { backgroundColor: '#f1f1f1ff' }]} />
+          <View style={styles.bookingServices}>
+            <Block style={{ height: 15, width: '60%', borderRadius: 6 }} />
+            {[1,2].map((i) => (
+              <View key={i} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 4 }}>
+                <Block style={{ height: 16, width: 16, borderRadius: 4, marginRight: 6 }} />
+                <Block style={{ height: 15, width: '80%', borderRadius: 6 }} />
+              </View>
+            ))}
           </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
