@@ -30,6 +30,7 @@ export default function OCRScreen({ navigation }) {
   const [selectedImageSize, setSelectedImageSize] = useState({ width: 0, height: 0 });
   const [extractedData, setExtractedData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState(0);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCropModal, setShowCropModal] = useState(false);
   const [imageViewSize, setImageViewSize] = useState({ width: 0, height: 0 });
@@ -40,40 +41,9 @@ export default function OCRScreen({ navigation }) {
   const [alertMessage, setAlertMessage] = useState('');
   const [alertType, setAlertType] = useState('success');
 
-  // RC data structure - Updated to match actual RC format
-  const rcFields = {
-    registrationNumber: '',
-    ownerName: '',
-    address: '',
-    vehicleClass: '',
-    vehicleType: '',
-    manufacturer: '',
-    model: '',
-    fuelType: '',
-    engineNumber: '',
-    chassisNumber: '',
-    registrationDate: '',
-    expiryDate: '',
-    rto: '',
-    color: '',
-    seatingCapacity: '',
-    cubicCapacity: '',
-    unladenWeight: '',
-    grossWeight: '',
-    wheelBase: '',
-    manufacturingDate: '',
-    taxValidUpto: '',
-    hypothecatedTo: '',
-    makerDescription: '',
-    bodyType: '',
-    insuranceValidUpto: '',
-    insuranceCompany: '',
-    pucValidUpto: '',
-    pucNumber: '',
-  };
-
   useEffect(() => {
-    setEditableData(rcFields);
+    // Initialize editable data as empty object - will be populated from OCR
+    setEditableData({});
   }, []);
 
   const requestPermissions = async () => {
@@ -120,6 +90,22 @@ export default function OCRScreen({ navigation }) {
       Alert.alert('Error', 'Failed to open image picker. Please try again.');
     }
   };
+  const getFileExtensionFromAsset = (asset) => {
+    // prefer fileName if provided by ImagePicker
+    const fileName = asset.fileName || (asset.uri && asset.uri.split('/').pop()) || '';
+    if (fileName && fileName.includes('.')) {
+      return fileName.split('.').pop().split('?')[0].toLowerCase();
+    }
+  
+    // fallback: try to parse from uri directly (handles query params)
+    if (asset.uri) {
+      const m = asset.uri.match(/\.([a-zA-Z0-9]+)(?:\?.*)?$/);
+      if (m && m[1]) return m[1].toLowerCase();
+    }
+  
+    // no extension found
+    return null;
+  };
 
   const openCamera = async () => {
     try {
@@ -139,8 +125,12 @@ export default function OCRScreen({ navigation }) {
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setSelectedImage(result.assets[0].uri);
+        const asset = result.assets[0];
+        setSelectedImage(asset.uri);
+        console.log('Camera selected image:', asset.uri);
         setExtractedData(null);
+        const ext = getFileExtensionFromAsset(asset);
+      console.log('Camera selected file extension:', ext); // e.g. "jpg" or null
         Image.getSize(result.assets[0].uri, (w, h) => setSelectedImageSize({ width: w, height: h }), () => {});
       }
     } catch (error) {
@@ -167,8 +157,11 @@ export default function OCRScreen({ navigation }) {
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
         setSelectedImage(result.assets[0].uri);
         setExtractedData(null);
+        const ext = getFileExtensionFromAsset(asset);
+        console.log('Gallery selected file extension:', ext); // e.g. "jpg" or null
         Image.getSize(result.assets[0].uri, (w, h) => setSelectedImageSize({ width: w, height: h }), () => {});
       }
     } catch (error) {
@@ -186,11 +179,12 @@ export default function OCRScreen({ navigation }) {
     }
 
     setLoading(true);
+    setOcrProgress(0);
     try {
       console.log('Starting OCR processing for image:', selectedImage);
       
       // Extract text from image using OCR service
-      const extractedText = await OCRService.extractTextFromImage(selectedImage);
+      const extractedText = await OCRService.extractTextFromImage(selectedImage, setOcrProgress);
       console.log('Extracted text:', extractedText);
       
       // Parse the extracted text to get structured RC data
@@ -209,6 +203,7 @@ export default function OCRScreen({ navigation }) {
       setAlertVisible(true);
     } finally {
       setLoading(false);
+      setOcrProgress(0);
     }
   };
 
@@ -276,7 +271,7 @@ export default function OCRScreen({ navigation }) {
   const resetData = () => {
     setSelectedImage(null);
     setExtractedData(null);
-    setEditableData(rcFields);
+    setEditableData({});
   };
 
   const renderDataField = (label, value, key) => (
@@ -323,7 +318,7 @@ export default function OCRScreen({ navigation }) {
             <View style={styles.section}>
               <CustomText style={styles.sectionTitle}>Select RC Image</CustomText>
               <CustomText style={styles.infoText}>
-                📱 Scan your RC to extract exact vehicle data. Currently using enhanced mock data with real RC format.
+                📱 Scan your RC to extract exact vehicle data using real OCR API with your API key. Requires internet connection.
               </CustomText>
               
               {selectedImage ? (
@@ -372,7 +367,12 @@ export default function OCRScreen({ navigation }) {
                     disabled={loading}
                   >
                     {loading ? (
-                      <ActivityIndicator color={color.white} size="small" />
+                      <View style={{ alignItems: 'center' }}>
+                        <ActivityIndicator color={color.white} size="small" />
+                        <CustomText style={[styles.buttonText, { marginTop: 4 }]}>
+                          Processing... {ocrProgress > 0 ? `${Math.round(ocrProgress)}%` : ''}
+                        </CustomText>
+                      </View>
                     ) : (
                       <>
                         <Ionicons name="scan" size={20} color={color.white} />

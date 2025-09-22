@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ImageBackground, StatusBar, Alert, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 import SearchBox from "../../components/SearchBox";
 import globalStyles from "../../styles/globalStyles";
 import CustomText from "../../components/CustomText";
@@ -19,6 +20,7 @@ export default function MyCars() {
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredBrands, setFilteredBrands] = useState([]);
+    const [showManualFlow, setShowManualFlow] = useState(false);
 
     // const getBrands = async () => {
     //     try {
@@ -249,20 +251,71 @@ export default function MyCars() {
                     <View style={{ marginVertical: 10 }}>
                         <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>Add Your Car</CustomText>
                         <CustomText style={{ ...globalStyles.f10Bold, color: color.secondary }}>
-                            Start From Selecting Your Manufacturer.
+                            Choose how you want to add your vehicle
                         </CustomText>
                     </View>
-                    <FlatList
-                        data={filteredBrands}
-                        renderItem={renderBrand}
-                        keyExtractor={(item) => item.brand}
-                        numColumns={3}
-                        columnWrapperStyle={styles.row}
-                        contentContainerStyle={{ paddingBottom: 20 }}
-                        showsVerticalScrollIndicator={false}
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                    />
+
+                    {/* Add Car Options */}
+                    <View style={styles.addCarOptions}>
+                        <TouchableOpacity
+                            style={styles.optionCard}
+                            onPress={() => navigation.navigate("RcVerification")}
+                        >
+                            <View style={styles.optionIcon}>
+                                <Ionicons name="document-text" size={24} color={color.primary} />
+                            </View>
+                            <View style={styles.optionContent}>
+                                <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack]}>
+                                    Add by RC Number
+                                </CustomText>
+                                <CustomText style={[globalStyles.f10Bold, globalStyles.textGray]}>
+                                    Automatically fetch vehicle details using registration number
+                                </CustomText>
+                            </View>
+                            <Ionicons name="chevron-forward" size={20} color={color.textLight} />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.optionCard}
+                            onPress={() => setShowManualFlow(true)}
+                        >
+                            <View style={styles.optionIcon}>
+                                <Ionicons name="build" size={24} color={color.secondary} />
+                            </View>
+                            <View style={styles.optionContent}>
+                                <CustomText style={[globalStyles.f14Bold, globalStyles.textBlack]}>
+                                    Manual Entry
+                                </CustomText>
+                                <CustomText style={[globalStyles.f10Bold, globalStyles.textGray]}>
+                                    Manually select manufacturer and enter details
+                                </CustomText>
+                            </View>
+                            <Ionicons name="chevron-forward" size={20} color={color.textLight} />
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Manual Flow - Brand Selection */}
+                    {showManualFlow && (
+                        <>
+                            <View style={{ marginVertical: 10 }}>
+                                <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>Select Manufacturer</CustomText>
+                                <CustomText style={{ ...globalStyles.f10Bold, color: color.secondary }}>
+                                    Start From Selecting Your Manufacturer.
+                                </CustomText>
+                            </View>
+                            <FlatList
+                                data={filteredBrands}
+                                renderItem={renderBrand}
+                                keyExtractor={(item) => item.brand}
+                                numColumns={3}
+                                columnWrapperStyle={styles.row}
+                                contentContainerStyle={{ paddingBottom: 20 }}
+                                showsVerticalScrollIndicator={false}
+                                refreshing={refreshing}
+                                onRefresh={onRefresh}
+                            />
+                        </>
+                    )}
                 </>
             )}
         </View>);
@@ -283,5 +336,38 @@ const styles = StyleSheet.create({
         resizeMode: "cover",
         marginBottom: 1,
         overflow: 'hidden',
+    },
+    addCarOptions: {
+        marginBottom: 20,
+    },
+    optionCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: color.white,
+        padding: 15,
+        borderRadius: 12,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: color.neutral[100],
+        shadowColor: color.black,
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    optionIcon: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: color.lightSecondary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 15,
+    },
+    optionContent: {
+        flex: 1,
     },
 });

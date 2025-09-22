@@ -5,6 +5,7 @@ import MyCars from "../screens/Customer/MyCars";
 import CarModels from "../screens/Customer/CarModels";
 import { MyCarDetails } from "../screens/Customer/MyCarDetails";
 import OCRScreen from "../screens/Customer/OCRScreen";
+import RcVerification from "../screens/Customer/RcVerification";
 import CustomHeader from "../components/CustomHeader";
 
 const Stack = createNativeStackNavigator();
@@ -42,6 +43,11 @@ export default function MyCarsStack() {
       <Stack.Screen
         name="OCRScreen"
         component={OCRScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="RcVerification"
+        component={RcVerification}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
