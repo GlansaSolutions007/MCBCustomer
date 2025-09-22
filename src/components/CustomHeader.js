@@ -31,6 +31,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import Garage from "../../assets/icons/garageIcon.png";
 import { useCart } from "../contexts/CartContext";
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 export default function CustomHeader({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -318,7 +319,8 @@ export default function CustomHeader({ navigation }) {
             <View style={styles.iconWrapper}>
               <TouchableOpacity onPress={() => navigationTo.navigate("Cart")}>
                 
-                <Image source={Garage} style={styles.garageIcon} />
+                {/* <Image source={Garage} style={styles.garageIcon} /> */}
+                <MaterialCommunityIcons name="car-wrench" size={30} color="white" />
                 {cartItems.length > 0 && (
                   <View style={styles.cartBadge}>
                     <CustomText style={styles.badgeText}>

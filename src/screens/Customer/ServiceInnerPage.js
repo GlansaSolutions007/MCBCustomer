@@ -13,7 +13,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { API_URL, API_IMAGE_URL } from "@env";
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import axios from 'axios'
-
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const ServiceInnerPage = () => {
     const route = useRoute();
@@ -27,7 +27,7 @@ const ServiceInnerPage = () => {
     const [descLineCount, setDescLineCount] = useState(0);
     const descriptionText = (pkg?.description && typeof pkg.description === 'string' && pkg.description.trim().length > 0)
         ? pkg.description
-        : 'My car buddys Regular AC service keeps  cars cooling system efficient and long-lasting.It ensures fresh air circulation, removes dust and bacteria, and prevents unexpected breakdowns.Timely AC maintenance guarantees comfort and smooth drives in every season..';
+        : 'No description available for this service.';
 
 
     useEffect(() => {
@@ -44,10 +44,6 @@ const ServiceInnerPage = () => {
         };
         checkPrimaryVehicle();
     }, []);
-
-    const serviceDetails = () => {
-        console.log(`Service ID: ${pkg.id}`);
-    }
 
     const isInCart = cartItems.some(item => item.id === pkg.id);
 
@@ -162,7 +158,8 @@ const ServiceInnerPage = () => {
                                 <TouchableOpacity
                                     onPress={() => navigation.navigate("Cart")}
                                 >
-                                    <Image source={Garage} style={styles.garageIcon} />
+                                    <MaterialCommunityIcons name="car-wrench" size={30} color="white" />
+                                    {/* <Image source={Garage} style={styles.garageIcon} /> */}
                                     {cartItems.length > 0 && (
                                         <View style={styles.cartBadge}>
                                             <CustomText style={styles.badgeText}>

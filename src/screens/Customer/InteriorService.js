@@ -38,6 +38,7 @@ import CustomAlert from "../../components/CustomAlert";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useGlobalRefresh from "../../hooks/useGlobalRefresh";
 import CartPage from "./CartPage";
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 // import PackageSkeleton from "../../components/PackageSkeleton";
 
 const debounce = (func, wait) => {
@@ -703,7 +704,8 @@ const InteriorService = () => {
                       <TouchableOpacity
                         onPress={() => navigation.navigate("Cart")}
                       >
-                        <Image source={Garage} style={styles.garageIcon} />
+                        {/* <Image source={Garage} style={styles.garageIcon} /> */}
+                        <MaterialCommunityIcons name="car-wrench" size={24} color="black" />
                         {cartItems.length > 0 && (
                           <View style={styles.cartBadge}>
                             <CustomText style={styles.badgeText}>
@@ -987,7 +989,8 @@ const InteriorService = () => {
                   </Pressable>
                   <View ref={cartIconRef} collapsable={false} style={styles.iconWrapper}>
                     <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
-                      <Image source={Garage} style={styles.garageIcon} />
+                      <MaterialCommunityIcons name="car-wrench" size={30} color="white" />
+                      {/* <Image source={Garage} style={styles.garageIcon} /> */}
                       {cartItems.length > 0 && (
                         <View style={styles.cartBadge}>
                           <CustomText style={styles.badgeText}>

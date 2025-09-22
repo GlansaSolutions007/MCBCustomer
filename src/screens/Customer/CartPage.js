@@ -909,7 +909,8 @@ const CartPage = () => {
               elevation: 4,
             }}
           >
-            <Ionicons name="cart-outline" size={48} color={color.primary} />
+            {/* <Ionicons name="cart-outline" size={48} color={color.primary} /> */}
+            <MaterialCommunityIcons name="car-wrench" size={48} color={color.primary} />
           </View>
 
           {/* Title */}
