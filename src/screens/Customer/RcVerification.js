@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,57 +10,58 @@ import {
   StatusBar,
   Platform,
   ActivityIndicator,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import CustomText from '../../components/CustomText';
-import globalStyles from '../../styles/globalStyles';
-import { color } from '../../styles/theme';
-import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import CustomText from "../../components/CustomText";
+import globalStyles from "../../styles/globalStyles";
+import { color } from "../../styles/theme";
+import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
 
 const RcVerification = () => {
   const navigation = useNavigation();
-  const [rcNumber, setRcNumber] = useState('');
+  const [rcNumber, setRcNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [verificationResult, setVerificationResult] = useState(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  const validateRcNumber = (rc) => {
-    // Basic validation for Indian RC number format
-    const rcPattern = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
-    return rcPattern.test(rc.toUpperCase());
-  };
+  // const validateRcNumber = (rc) => {
+  //   // Basic validation for Indian RC number format
+  //   const rcPattern = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
+  //   return rcPattern.test(rc.toUpperCase());
+  // };
 
   const handleVerifyRc = async () => {
     if (!rcNumber.trim()) {
-      setError('Please enter RC number');
+      setError("Please enter RC number");
       return;
     }
 
-    if (!validateRcNumber(rcNumber)) {
-      setError('Please enter a valid RC number (e.g., TS15FH4090)');
-      return;
-    }
+    // if (!validateRcNumber(rcNumber)) {
+    //   setError("Please enter a valid RC number (e.g., TS15FH4090)");
+    //   return;
+    // }
 
-    setError('');
+    setError("");
     setLoading(true);
     setVerificationResult(null);
 
     try {
       const response = await axios.post(
-        'https://api.attestr.com/api/v2/public/checkx/rc',
+        "https://api.attestr.com/api/v2/public/checkx/rc",
         {
           reg: rcNumber.toUpperCase(),
         },
         {
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Basic T1gwUzZJLWpyRUliT0FzU0phLmU5NzBjYzk5MjQ1ZmMzZTgyYjBlYTY2YzY0OGZiODFkOjg3ZTczYjk0OTNhMDg5MzBlM2ZhMDYxY2JiMDJlNTc2NGYwMjMwYThlMGQzYjQ4ZA==',
+            "Content-Type": "application/json",
+            Authorization:
+              "Basic T1gwUzZJLWpyRUliT0FzU0phLjViNDU0MTE4YTkwYzJmMDhlNTcxNzFiYmUzZmE1ZTUwOmNmYzY4YjkwMDU2OTEyZjRmNTM2M2FkNGZiY2RhNzgwZmU1MmZhNmJjNWNlODIwNQ==",
           },
         }
       );
 
-      console.log('RC Verification Response:', response.data);
+      console.log("RC Verification Response:", response.data);
       if (response.data && response.data.valid) {
         setVerificationResult({
           status: "success",
@@ -73,20 +74,93 @@ const RcVerification = () => {
         });
       }
     } catch (error) {
-      console.error('RC Verification Error:', error);
-      setError('Failed to verify RC number. Please try again.');
+      console.error("RC Verification Error:", error);
+      setError("Failed to verify RC number. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddCar = () => {
-    if (verificationResult && verificationResult.status === 'success') {
-        navigation.navigate('MyCarDetails', {
-          rcData: verificationResult.data,
-          rcNumber: rcNumber.toUpperCase(),
-        });
+  const handleAddCar = async () => {
+    if (verificationResult && verificationResult.status === "success") {
+      navigation.navigate("MyCarDetails", {
+        rcData: verificationResult.data,
+        rcNumber: rcNumber.toUpperCase(),
+      });
+    }
+
+    let hasError = false;
+
+    // if (!rcNumber.trim()) {
+    //   setVehicleNumberError("Registration number is required");
+    //   hasError = true;
+    // } else if (!validateVehicleNumber(vehicleNumber)) {
+    //   setVehicleNumberError("Use A–Z and 0–9 only, 6–12 chars, include letters and numbers");
+    //   hasError = true;
+    // }
+
+    // if (!transmission.trim()) {
+    //   setTransmissionError(true);
+    //   hasError = true;
+    // }
+
+    if (hasError) return;
+
+    try {
+      const storedUserData = await AsyncStorage.getItem("userData");
+      const userData = JSON.parse(storedUserData);
+      const custID = userData?.custID;
+
+      if (!custID) {
+        console.warn("Customer ID not found.");
+        return;
       }
+
+      const payload = {
+        custID: custID,
+        vehicleNumber: rcNumber,
+        yearOfPurchase: data.registered || "",
+        // engineType: engineType,
+        // kilometersDriven: kilometersDriven,
+        // transmissionType: transmission,
+        createdBy: custID,
+        // brandID: brandId,
+        // modelID: modelId,
+        // fuelTypeID: fuelId,
+      };
+
+      const token = await getToken();
+
+      const res = await axios.post(
+        `${API_URL}CustomerVehicles/InsertCustomerVehicle`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Car added:", res.data);
+      if (res.data.status) {
+        // success
+        setAlertTitle("Success");
+        setAlertMessage("Your Car Added Successfully");
+        setAlertStatus("success");
+      } else {
+        // validation / duplicate error
+        setAlertTitle("Validation Error");
+        setAlertMessage(res.data.message || "Something went wrong.");
+        setAlertStatus("error");
+      }
+      setAlertVisible(true);
+    } catch (error) {
+      console.error("Error submitting car:", error);
+      setAlertTitle("Error");
+      setAlertMessage("Failed to add car. Please try again.");
+      setAlertStatus("error");
+      setAlertVisible(true);
+    }
   };
 
   const renderVerificationResult = () => {
@@ -98,93 +172,209 @@ const RcVerification = () => {
       <View style={styles.resultCard}>
         <View style={styles.resultHeader}>
           <Ionicons
-            name={status === 'success' ? 'checkmark-circle' : 'close-circle'}
+            name={status === "success" ? "checkmark-circle" : "close-circle"}
             size={24}
-            color={status === 'success' ? color.alertSuccess : color.alertError}
+            color={status === "success" ? color.alertSuccess : color.alertError}
           />
-          <CustomText style={[globalStyles.f14Bold, { color: status === 'success' ? color.alertSuccess : color.alertError }]}>
-            {status === 'success' ? 'RC Verified Successfully' : 'Verification Failed'}
+          <CustomText
+            style={[
+              globalStyles.f14Bold,
+              {
+                color:
+                  status === "success" ? color.alertSuccess : color.alertError,
+              },
+            ]}
+          >
+            {status === "success"
+              ? "RC Verified Successfully"
+              : "Verification Failed"}
           </CustomText>
         </View>
 
-        {status === 'success' && data ? (
+        {status === "success" && data ? (
           <View style={styles.vehicleDetails}>
-            <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack, styles.sectionTitle]}>
+            <CustomText
+              style={[
+                globalStyles.f12Bold,
+                globalStyles.textBlack,
+                styles.sectionTitle,
+              ]}
+            >
               Vehicle Details
             </CustomText>
-            
-            <View style={styles.detailRow}>
-              <CustomText style={[globalStyles.f12Bold, globalStyles.textGray]}>Registration Number:</CustomText>
-              <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>{data.reg_no || rcNumber}</CustomText>
-            </View>
 
-            {data.owner && (
+            <View style={styles.detailRow}>
+              <CustomText style={[globalStyles.f12Bold, globalStyles.textGray]}>
+                Registration Number:
+              </CustomText>
+              <CustomText
+                style={[globalStyles.f12Bold, globalStyles.textBlack]}
+              >
+                {data.reg_no || rcNumber}
+              </CustomText>
+            </View>
+            {data.registered && (
               <View style={styles.detailRow}>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textGray]}>Owner Name:</CustomText>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>{data.owner}</CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textGray]}
+                >
+                  Year of Registration:
+                </CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textBlack]}
+                >
+                  {data.registered}
+                </CustomText>
               </View>
             )}
 
-            {data.engineNumber && (
+            {data.owner && (
               <View style={styles.detailRow}>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textGray]}>Vehicle Class:</CustomText>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>{data.engineNumber}</CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textGray]}
+                >
+                  Owner Name:
+                </CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textBlack]}
+                >
+                  {data.owner}
+                </CustomText>
+              </View>
+            )}
+
+            {/* {data.engineNumber && (
+              <View style={styles.detailRow}>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textGray]}
+                >
+                  Vehicle Class:
+                </CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textBlack]}
+                >
+                  {data.engineNumber}
+                </CustomText>
               </View>
             )}
 
             {data.manufacturer && (
               <View style={styles.detailRow}>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textGray]}>Manufacturer:</CustomText>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>{data.manufacturer}</CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textGray]}
+                >
+                  Manufacturer:
+                </CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textBlack]}
+                >
+                  {data.manufacturer}
+                </CustomText>
               </View>
-            )}
+            )} */}
 
             {data.makerModel && (
               <View style={styles.detailRow}>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textGray]}>Model:</CustomText>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>{data.makerModel}</CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textGray]}
+                >
+                  Model:
+                </CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textBlack]}
+                >
+                  {data.makerModel}
+                </CustomText>
               </View>
             )}
 
             {data.fuel_type && (
               <View style={styles.detailRow}>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textGray]}>Fuel Type:</CustomText>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>{data.fuel_type}</CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textGray]}
+                >
+                  Fuel Type:
+                </CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textBlack]}
+                >
+                  {data.fuel_type}
+                </CustomText>
               </View>
             )}
 
             {data.engine_no && (
               <View style={styles.detailRow}>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textGray]}>Engine Number:</CustomText>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>{data.engine_no}</CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textGray]}
+                >
+                  Engine Number:
+                </CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textBlack]}
+                >
+                  {data.engine_no}
+                </CustomText>
               </View>
             )}
 
             {data.chassis_no && (
               <View style={styles.detailRow}>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textGray]}>Chassis Number:</CustomText>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>{data.chassis_no}</CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textGray]}
+                >
+                  Chassis Number:
+                </CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textBlack]}
+                >
+                  {data.chassis_no}
+                </CustomText>
               </View>
             )}
 
             {data.registration_date && (
               <View style={styles.detailRow}>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textGray]}>Registration Date:</CustomText>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>{data.registration_date}</CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textGray]}
+                >
+                  Registration Date:
+                </CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textBlack]}
+                >
+                  {data.registration_date}
+                </CustomText>
               </View>
             )}
 
             {data.fitness_upto && (
               <View style={styles.detailRow}>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textGray]}>Fitness Valid Until:</CustomText>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>{data.fitness_upto}</CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textGray]}
+                >
+                  Fitness Valid Until:
+                </CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textBlack]}
+                >
+                  {data.fitness_upto}
+                </CustomText>
               </View>
             )}
 
             {data.insurance_upto && (
               <View style={styles.detailRow}>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textGray]}>Insurance Valid Until:</CustomText>
-                <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>{data.insurance_upto}</CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textGray]}
+                >
+                  Insurance Valid Until:
+                </CustomText>
+                <CustomText
+                  style={[globalStyles.f12Bold, globalStyles.textBlack]}
+                >
+                  {data.insurance_upto}
+                </CustomText>
               </View>
             )}
 
@@ -192,7 +382,9 @@ const RcVerification = () => {
               style={[styles.addCarButton, { backgroundColor: color.primary }]}
               onPress={handleAddCar}
             >
-              <CustomText style={[globalStyles.f14Bold, { color: color.white }]}>
+              <CustomText
+                style={[globalStyles.f14Bold, { color: color.white }]}
+              >
                 Add This Car
               </CustomText>
             </TouchableOpacity>
@@ -200,7 +392,8 @@ const RcVerification = () => {
         ) : (
           <View style={styles.errorContainer}>
             <CustomText style={[globalStyles.f12Bold, globalStyles.textGray]}>
-              {message || 'Unable to verify RC number. Please check the number and try again.'}
+              {message ||
+                "Unable to verify RC number. Please check the number and try again."}
             </CustomText>
           </View>
         )}
@@ -211,10 +404,10 @@ const RcVerification = () => {
   return (
     <View style={styles.container}>
       <StatusBar
-        backgroundColor={Platform.OS === 'android' ? color.white : undefined}
+        backgroundColor={Platform.OS === "android" ? color.white : undefined}
         barStyle="dark-content"
       />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -238,22 +431,25 @@ const RcVerification = () => {
               Verify Your Vehicle
             </CustomText>
             <CustomText style={[globalStyles.f10Bold, globalStyles.textGray]}>
-              Enter your vehicle's registration number to automatically fetch vehicle details
+              Enter your vehicle's registration number to automatically fetch
+              vehicle details
             </CustomText>
           </View>
         </View>
 
         {/* RC Number Input */}
         <View style={styles.inputContainer}>
-          <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack, styles.label]}>
+          <CustomText
+            style={[globalStyles.f12Bold, globalStyles.textBlack, styles.label]}
+          >
             Registration Number
           </CustomText>
           <TextInput
             style={[styles.input, error ? styles.inputError : null]}
-            value={rcNumber}
+            // value={rcNumber}
             onChangeText={(text) => {
               setRcNumber(text.toUpperCase());
-              setError('');
+              setError("");
               setVerificationResult(null);
             }}
             placeholder="Enter RC number (e.g., TS15FH4090)"
@@ -262,7 +458,9 @@ const RcVerification = () => {
             maxLength={10}
           />
           {error ? (
-            <CustomText style={[globalStyles.f10Bold, { color: color.alertError }]}>
+            <CustomText
+              style={[globalStyles.f10Bold, { color: color.alertError }]}
+            >
               {error}
             </CustomText>
           ) : null}
@@ -272,7 +470,7 @@ const RcVerification = () => {
         <TouchableOpacity
           style={[
             styles.verifyButton,
-            { backgroundColor: loading ? color.neutral[300] : color.primary }
+            { backgroundColor: loading ? color.neutral[300] : color.primary },
           ]}
           onPress={handleVerifyRc}
           disabled={loading}
@@ -282,7 +480,12 @@ const RcVerification = () => {
           ) : (
             <>
               <Ionicons name="search" size={20} color={color.white} />
-              <CustomText style={[globalStyles.f14Bold, { color: color.white, marginLeft: 8 }]}>
+              <CustomText
+                style={[
+                  globalStyles.f14Bold,
+                  { color: color.white, marginLeft: 8 },
+                ]}
+              >
                 Verify RC Number
               </CustomText>
             </>
@@ -302,9 +505,9 @@ const styles = StyleSheet.create({
     backgroundColor: color.background,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 15,
     backgroundColor: color.white,
@@ -322,12 +525,12 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   instructionCard: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: color.white,
     padding: 15,
     borderRadius: 12,
     marginBottom: 20,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   instructionText: {
     flex: 1,
@@ -353,9 +556,9 @@ const styles = StyleSheet.create({
     borderColor: color.alertError,
   },
   verifyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 15,
     borderRadius: 8,
     marginBottom: 20,
@@ -367,8 +570,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   resultHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 15,
   },
   sectionTitle: {
@@ -379,9 +582,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: color.neutral[100],
@@ -395,7 +598,7 @@ const styles = StyleSheet.create({
   addCarButton: {
     paddingVertical: 12,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 20,
   },
 });
