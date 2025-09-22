@@ -478,7 +478,7 @@ const NotificationScreen = () => {
   // };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
+    <View style={{ flex: 1, backgroundColor: "#F5F5F5"}}>
       <StatusBar
         backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
         barStyle="dark-content"
@@ -487,8 +487,8 @@ const NotificationScreen = () => {
           Notifications
         </CustomText> */}
       <FlatList
-        style={{ flex: 1, backgroundColor: "#F5F5F5" }}
-        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+        style={{ flex: 1, backgroundColor: "#F5F5F5",}}
+        contentContainerStyle={{ padding: 16, paddingBottom: 150 }}
         data={notifications}
         keyExtractor={(item) => String(item.id)}
         renderItem={renderItem}
