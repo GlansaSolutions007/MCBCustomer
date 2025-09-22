@@ -376,6 +376,31 @@ const CartPage = () => {
   // ✅ Final amount = discounted price + GST
   const finalAmount = taxableAmount + gst;
 
+  // Function to validate if scheduled date/time is in the past
+  const validateScheduledDateTime = () => {
+    if (!scheduledDate || !scheduledTimeLabel) {
+      return { isValid: false, message: "Please choose a date and time to schedule your service." };
+    }
+
+    const now = new Date();
+    const scheduledDateTime = new Date(scheduledDate);
+    
+    // Get today's date (without time)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const scheduledDateOnly = new Date(scheduledDate);
+    scheduledDateOnly.setHours(0, 0, 0, 0);
+
+    // Check if the date is before today (past dates)
+    if (scheduledDateOnly < today) {
+      return { 
+        isValid: false, 
+        message: "Cannot book for past dates. Please select today or a future date." 
+      };
+    }
+    return { isValid: true };
+  };
+
   const postBooking = async () => {
     // alert(paymentMethod);
     try {
@@ -385,6 +410,22 @@ const CartPage = () => {
       const user = JSON.parse(userData);
       const token = getToken();
       console.log("At the payment:", API_URL);
+
+      // Validate scheduled date and time first
+      const dateTimeValidation = validateScheduledDateTime();
+      if (!dateTimeValidation.isValid) {
+        showCustomAlert(
+          "error",
+          "Missing Date and Time",
+          dateTimeValidation.message,
+          () => {
+            navigation.navigate("Schedule", { selectedServices: cartItems });
+          }
+        );
+        setIsLoading(false);
+        setDisable(false);
+        return;
+      }
 
       if (
         !customerName ||

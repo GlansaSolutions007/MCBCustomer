@@ -416,9 +416,11 @@ const RcVerification = () => {
         >
           <Ionicons name="arrow-back" size={24} color={color.textDark} />
         </TouchableOpacity>
-        <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack]}>
-          RC Verification
-        </CustomText>
+        <View style={styles.headerTitle}>
+          <CustomText style={[globalStyles.f16Bold, globalStyles.textBlack]}>
+            RC Verification
+          </CustomText>
+        </View>
         <View style={styles.placeholder} />
       </View>
 
@@ -509,16 +511,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingTop: Platform.OS === 'android' ? 50 : 20,
+    paddingBottom: 15,
     backgroundColor: color.white,
     borderBottomWidth: 1,
     borderBottomColor: color.neutral[100],
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   backButton: {
-    padding: 5,
+    padding: 8,
+  },
+  headerTitle: {
+    flex: 1,
+    alignItems: 'center',
   },
   placeholder: {
-    width: 34,
+    width: 40,
   },
   content: {
     flex: 1,

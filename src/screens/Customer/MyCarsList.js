@@ -374,7 +374,7 @@ export const MyCarsList = () => {
                 onPress={() => navigation.navigate("OCRScreen")}
                 style={[styles.addIconWrapper, styles.ocrButton]}
               >
-                <Ionicons name="scan" size={24} color="white" />
+                <Ionicons name="scan" size={30} color="white" />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => navigation.navigate("SelectCarBrand")}
@@ -435,12 +435,13 @@ const styles = StyleSheet.create({
   },
   addIconWrapper: {
     padding: 6,
-    backgroundColor: color.secondary,
+    backgroundColor: color.primary,
     borderRadius: 8,
     marginTop: 8
   },
   ocrButton: {
     backgroundColor: color.primary,
+    marginLeft: 8,
   },
   numberText: {
     borderWidth: 2,
