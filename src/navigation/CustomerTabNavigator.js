@@ -154,7 +154,11 @@ export default function CustomerTabNavigator() {
           },
         })}
       />
-      <Tab.Screen name="My Cars" component={MyCarsStack} options={{ unmountOnBlur: true }} />
+      <Tab.Screen name="My Cars" component={MyCarsStack} options={{ unmountOnBlur: true }} listeners={({ navigation }) => ({
+          tabPress: () => {
+            navigation.navigate('My Cars', { screen: 'MyCarsList' });
+          },
+        })} />
       <Tab.Screen 
         name="Services" 
         component={ServicesStack}

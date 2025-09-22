@@ -57,6 +57,9 @@ export default function ReviewsPage({ route }) {
         animateStars(review.ServiceRating, serviceStarAnim);
         animateStars(review.TechRating, techStarAnim);
         console.log('Existing review fetched:', review);
+        try {
+          await AsyncStorage.setItem(`reviewed:${booking.BookingID}`, 'true');
+        } catch {}
       }
     } catch (error) {
       console.log('No existing review or error:', error.response?.data || error.message);
@@ -131,6 +134,9 @@ export default function ReviewsPage({ route }) {
         setServiceRating(0);
         setTechnicianRating(0);
         fetchExistingReview();
+        try {
+          await AsyncStorage.setItem(`reviewed:${booking.BookingID}`, 'true');
+        } catch {}
       } else {
         setAlertTitle('Error');
         setAlertMessage('Failed to submit review. Please try again.');
@@ -183,6 +189,10 @@ export default function ReviewsPage({ route }) {
 
         {existingReview ? (
           <View style={styles.reviewCard}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color.primary, marginRight: 8 }} />
+              <CustomText style={[globalStyles.f12Bold, { color: color.primary }]}>Thanks for your feedback</CustomText>
+            </View>
             <CustomText style={styles.sectionHeader}>Service Rating</CustomText>
             <View style={styles.starRow}>
               {[1, 2, 3, 4, 5].map((star, index) => (
@@ -219,6 +229,21 @@ export default function ReviewsPage({ route }) {
                 {existingReview.ServiceReview || 'No comments'}
               </CustomText>
             </View>
+            <TouchableOpacity
+              style={{
+                marginTop: 12,
+                alignSelf: 'flex-start',
+                backgroundColor: '#F0FDF4',
+                borderColor: color.primary,
+                borderWidth: 1,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                borderRadius: 8,
+              }}
+              onPress={() => navigation.goBack()}
+            >
+              <CustomText style={[globalStyles.f10Bold, { color: color.primary }]}>Back to Bookings</CustomText>
+            </TouchableOpacity>
           </View>
         ) : (
           <>

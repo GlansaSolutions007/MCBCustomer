@@ -387,8 +387,7 @@ export default function BookingsInnerPage() {
       const origin = `${techLoc.latitude},${techLoc.longitude}`;
       const destination = `${custLoc.latitude},${custLoc.longitude}`;
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${
-          process.env.GOOGLE_MAPS_APIKEY || ""
+        `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${process.env.GOOGLE_MAPS_APIKEY || ""
         }&avoid=tolls&units=metric`
       );
       if (!response.ok) return;
@@ -430,7 +429,7 @@ export default function BookingsInnerPage() {
           }
         );
         hasFittedOnceRef.current = true;
-      } catch (_) {}
+      } catch (_) { }
     }
   }, [isMapReady, technicianLocation, customerLocation]);
 
@@ -461,8 +460,8 @@ export default function BookingsInnerPage() {
       if (!rawPhone) return;
       const phone = rawPhone.replace(/\s+/g, "");
       const url = `tel:${phone}`;
-      Linking.openURL(url).catch(() => {});
-    } catch (_) {}
+      Linking.openURL(url).catch(() => { });
+    } catch (_) { }
   };
 
   const handleCancelBooking = async (reason) => {
@@ -532,11 +531,11 @@ export default function BookingsInnerPage() {
                   initialRegion={
                     customerLocation
                       ? {
-                          latitude: customerLocation.latitude,
-                          longitude: customerLocation.longitude,
-                          latitudeDelta: 0.05,
-                          longitudeDelta: 0.05,
-                        }
+                        latitude: customerLocation.latitude,
+                        longitude: customerLocation.longitude,
+                        latitudeDelta: 0.05,
+                        longitudeDelta: 0.05,
+                      }
                       : undefined
                   }
                   showsUserLocation={false}
@@ -708,9 +707,9 @@ export default function BookingsInnerPage() {
               </View>
             </View>
           </View>
-           <View style={{ flexDirection: "column", alignItems: "start" }}>
-           <CustomText style={[globalStyles.f12Bold, { marginTop: 8 }]}>
-             Booking Address:
+          <View style={{ flexDirection: "column", alignItems: "start" }}>
+            <CustomText style={[globalStyles.f12Bold, { marginTop: 8 }]}>
+              Booking Address:
             </CustomText>
             <CustomText style={[globalStyles.f10Bold, { color: "#666" }]}>
               {booking.FullAddress}
@@ -781,12 +780,12 @@ export default function BookingsInnerPage() {
                         backgroundColor: step.iconBgColor
                           ? step.iconBgColor
                           : step.isCompleted
-                          ? step.isActive
-                            ? color.primary
-                            : "#34C759"
-                          : step.isActive
-                          ? color.primary + "20"
-                          : "#f0f0f0",
+                            ? step.isActive
+                              ? color.primary
+                              : "#34C759"
+                            : step.isActive
+                              ? color.primary + "20"
+                              : "#f0f0f0",
                         transform: [
                           {
                             scale: step.isActive ? 1.1 : 1,
@@ -802,10 +801,10 @@ export default function BookingsInnerPage() {
                         step.iconColor
                           ? step.iconColor
                           : step.isCompleted
-                          ? "#fff"
-                          : step.isActive
-                          ? color.primary
-                          : "#999"
+                            ? "#fff"
+                            : step.isActive
+                              ? color.primary
+                              : "#999"
                       }
                     />
                   </Animated.View>
@@ -818,8 +817,8 @@ export default function BookingsInnerPage() {
                           color: step.isActive
                             ? color.primary
                             : step.isCompleted
-                            ? "#333"
-                            : "#999",
+                              ? "#333"
+                              : "#999",
                         },
                       ]}
                     >
@@ -953,8 +952,8 @@ export default function BookingsInnerPage() {
                 {booking?.TechID == null
                   ? "Not Assigned Yet"
                   : booking?.TechPhoneNumber
-                  ? `${booking.TechPhoneNumber}`
-                  : "Phone not available"}
+                    ? `${booking.TechPhoneNumber}`
+                    : "Phone not available"}
               </CustomText>
             </View>
             {booking?.TechID != null && !!booking?.TechPhoneNumber && (

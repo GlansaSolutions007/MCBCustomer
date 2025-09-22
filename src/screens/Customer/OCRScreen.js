@@ -14,6 +14,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  StatusBar,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -50,7 +51,7 @@ export default function OCRScreen({ navigation }) {
     // Request both camera and media library permissions
     const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
     const mediaPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
     if (cameraPermission.status !== 'granted' || mediaPermission.status !== 'granted') {
       Alert.alert(
         'Permission Required',
@@ -96,13 +97,13 @@ export default function OCRScreen({ navigation }) {
     if (fileName && fileName.includes('.')) {
       return fileName.split('.').pop().split('?')[0].toLowerCase();
     }
-  
+
     // fallback: try to parse from uri directly (handles query params)
     if (asset.uri) {
       const m = asset.uri.match(/\.([a-zA-Z0-9]+)(?:\?.*)?$/);
       if (m && m[1]) return m[1].toLowerCase();
     }
-  
+
     // no extension found
     return null;
   };
@@ -130,8 +131,8 @@ export default function OCRScreen({ navigation }) {
         console.log('Camera selected image:', asset.uri);
         setExtractedData(null);
         const ext = getFileExtensionFromAsset(asset);
-      console.log('Camera selected file extension:', ext); // e.g. "jpg" or null
-        Image.getSize(result.assets[0].uri, (w, h) => setSelectedImageSize({ width: w, height: h }), () => {});
+        console.log('Camera selected file extension:', ext); // e.g. "jpg" or null
+        Image.getSize(result.assets[0].uri, (w, h) => setSelectedImageSize({ width: w, height: h }), () => { });
       }
     } catch (error) {
       console.error('Camera Error:', error);
@@ -162,7 +163,7 @@ export default function OCRScreen({ navigation }) {
         setExtractedData(null);
         const ext = getFileExtensionFromAsset(asset);
         console.log('Gallery selected file extension:', ext); // e.g. "jpg" or null
-        Image.getSize(result.assets[0].uri, (w, h) => setSelectedImageSize({ width: w, height: h }), () => {});
+        Image.getSize(result.assets[0].uri, (w, h) => setSelectedImageSize({ width: w, height: h }), () => { });
       }
     } catch (error) {
       console.error('Gallery Error:', error);
@@ -182,11 +183,11 @@ export default function OCRScreen({ navigation }) {
     setOcrProgress(0);
     try {
       console.log('Starting OCR processing for image:', selectedImage);
-      
+
       // Extract text from image using OCR service
       const extractedText = await OCRService.extractTextFromImage(selectedImage, setOcrProgress);
       console.log('Extracted text:', extractedText);
-      
+
       // Parse the extracted text to get structured RC data
       const parsedData = await OCRService.parseRCText(extractedText);
       console.log('Parsed RC data:', parsedData);
@@ -229,7 +230,7 @@ export default function OCRScreen({ navigation }) {
 
     const jsonData = JSON.stringify(extractedData, null, 2);
     console.log('RC Data JSON:', jsonData);
-    
+
     // Here you can implement sharing functionality
     Alert.alert(
       'Export Successful',
@@ -300,6 +301,10 @@ export default function OCRScreen({ navigation }) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
+        <StatusBar
+          backgroundColor={Platform.OS === 'android' ? '#fff' : undefined}
+          barStyle="dark-content"
+        />
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             {/* Header */}
@@ -320,7 +325,7 @@ export default function OCRScreen({ navigation }) {
               <CustomText style={styles.infoText}>
                 📱 Scan your RC to extract exact vehicle data using real OCR API with your API key. Requires internet connection.
               </CustomText>
-              
+
               {selectedImage ? (
                 <View style={styles.imageContainer}>
                   <Image
@@ -534,7 +539,7 @@ export default function OCRScreen({ navigation }) {
                   <View
                     style={{
                       width: '100%',
-                      aspectRatio: (imageViewSize.width && imageViewSize.height) ? imageViewSize.width / imageViewSize.height : 16/9,
+                      aspectRatio: (imageViewSize.width && imageViewSize.height) ? imageViewSize.width / imageViewSize.height : 16 / 9,
                       backgroundColor: '#000',
                       borderRadius: 8,
                       overflow: 'hidden',
@@ -628,7 +633,7 @@ export default function OCRScreen({ navigation }) {
                           );
 
                           setSelectedImage(result.uri);
-                          Image.getSize(result.uri, (w, h) => setSelectedImageSize({ width: w, height: h }), () => {});
+                          Image.getSize(result.uri, (w, h) => setSelectedImageSize({ width: w, height: h }), () => { });
                           setShowCropModal(false);
                           setAlertMessage('Image cropped successfully!');
                           setAlertType('success');

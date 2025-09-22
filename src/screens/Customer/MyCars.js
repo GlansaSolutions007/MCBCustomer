@@ -244,10 +244,6 @@ export default function MyCars() {
                 />
             ) : (
                 <>
-                    <SearchBox
-                        value={searchQuery}
-                        onChangeText={handleSearch}
-                    />
                     <View style={{ marginVertical: 10 }}>
                         <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>Add Your Car</CustomText>
                         <CustomText style={{ ...globalStyles.f10Bold, color: color.secondary }}>
@@ -297,6 +293,10 @@ export default function MyCars() {
                     {/* Manual Flow - Brand Selection */}
                     {showManualFlow && (
                         <>
+                            <SearchBox
+                                value={searchQuery}
+                                onChangeText={handleSearch}
+                            />
                             <View style={{ marginVertical: 10 }}>
                                 <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>Select Manufacturer</CustomText>
                                 <CustomText style={{ ...globalStyles.f10Bold, color: color.secondary }}>
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     addCarOptions: {
-        marginBottom: 20,
+        marginBottom: 10,
     },
     optionCard: {
         flexDirection: 'row',

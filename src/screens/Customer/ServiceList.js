@@ -45,6 +45,7 @@ export default function ServiceList() {
   const [selectedTab, setSelectedTab] = useState("Bookings");
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [reviewedMap, setReviewedMap] = useState({});
   const navigation = useNavigation();
   const tabs = ["Bookings", "Completed", "Cancelled"];
   const { refreshing, onRefresh } = useGlobalRefresh(fetchBookings);
@@ -125,6 +126,23 @@ export default function ServiceList() {
       setBookings((prev) => {
         return [...bookingsData];
       });
+
+      // Load reviewed flags for fetched bookings
+      try {
+        const entries = await Promise.all(
+          (bookingsData || []).map(async (b) => {
+            try {
+              const key = `reviewed:${b.BookingID}`;
+              const value = await AsyncStorage.getItem(key);
+              return [b.BookingID, value === 'true'];
+            } catch {
+              return [b.BookingID, false];
+            }
+          })
+        );
+        const map = Object.fromEntries(entries);
+        setReviewedMap(map);
+      } catch {}
 
       // Monitor bookings for notification changes
       // if (custID) {
@@ -1403,13 +1421,19 @@ export default function ServiceList() {
                     <View style={styles.divider} />
                     <View style={styles.reviewSection}>
                       <TouchableOpacity
-                        style={styles.reviewButton}
+                        style={[
+                          styles.reviewButton,
+                          reviewedMap[booking.BookingID] && { backgroundColor: '#e9f7ef', borderWidth: 1, borderColor: color.primary }
+                        ]}
                         onPress={() =>
                           navigation.navigate("Reviews", { booking })
                         }
                       >
-                        <CustomText style={styles.reviewButtonText}>
-                          Write a Review
+                        <CustomText style={[
+                          styles.reviewButtonText,
+                          reviewedMap[booking.BookingID] && { color: color.primary }
+                        ]}>
+                          {reviewedMap[booking.BookingID] ? 'View Your Review' : 'Write a Review'}
                         </CustomText>
                       </TouchableOpacity>
                     </View>
@@ -2178,7 +2202,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   reviewButton: {
-    backgroundColor: color.secondary,
+    backgroundColor: color.primary,
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
