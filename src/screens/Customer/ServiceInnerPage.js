@@ -110,6 +110,10 @@ const ServiceInnerPage = () => {
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['bottom']}>
+            <StatusBar
+                backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
+                barStyle="light-content"
+            />
             {/* Sticky header */}
             <ImageBackground
                 source={{ uri: `${API_IMAGE_URL}${pkg.image}` }}
@@ -223,7 +227,7 @@ const ServiceInnerPage = () => {
                     {descLineCount > 4 && (
                         <TouchableOpacity
                             onPress={() => setDescExpanded(!descExpanded)}
-                            style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6,justifyContent: 'flex-end' }}
+                            style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6, justifyContent: 'flex-end' }}
                         >
                             <CustomText style={[globalStyles.f12Bold, { color: color.primary }]}>
                                 {descExpanded ? 'less' : 'more'}
@@ -246,7 +250,7 @@ const ServiceInnerPage = () => {
                         <DetailRow label="Amount" value={`₹${pkg.price}`} icon="cash-outline" />
                     </View>
                 </View>
-                
+
 
             </ScrollView>
             <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', padding: 16, paddingBottom: 16 + insets.bottom, borderTopWidth: 1, borderColor: '#eee' }}>

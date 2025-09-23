@@ -287,8 +287,7 @@ const InteriorService = () => {
         );
         setLoading(true);
         const response = await axios.get(
-          `${API_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?categoryId=${categoryId}&subCategoryId=${subCategoryId}&BrandId=${
-            brandId || ""
+          `${API_URL}PlanPackage/GetPlanPackagesByCategoryAndSubCategory?categoryId=${categoryId}&subCategoryId=${subCategoryId}&BrandId=${brandId || ""
           }&ModelId=${modelId || ""}&fuelTypeId=${fuelId || ""}`,
           {
             headers: {
@@ -499,7 +498,7 @@ const InteriorService = () => {
                   <CustomText style={styles.discountText}>
                     {Math.round(
                       ((item.originalPrice - item.price) / item.originalPrice) *
-                        100
+                      100
                     )}
                     %
                   </CustomText>
@@ -913,8 +912,12 @@ const InteriorService = () => {
       style={{ flex: 1, backgroundColor: "#fff" }}
       edges={["bottom"]}
     >
+      <StatusBar
+        backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
+        barStyle="light-content"
+      />
       {isFlying && (
-      <Animated.Image
+        <Animated.Image
           source={{ uri: flyImageUri.current || "" }}
           style={{
             position: "absolute",
@@ -925,13 +928,13 @@ const InteriorService = () => {
               {
                 translateX: flyAnim.interpolate({
                   inputRange: [0, 1],
-                outputRange: [flyStart.current.x, flyEnd.current.x],
+                  outputRange: [flyStart.current.x, flyEnd.current.x],
                 }),
               },
               {
                 translateY: flyAnim.interpolate({
                   inputRange: [0, 1],
-                outputRange: [flyStart.current.y, flyEnd.current.y],
+                  outputRange: [flyStart.current.y, flyEnd.current.y],
                 }),
               },
               {
@@ -943,7 +946,7 @@ const InteriorService = () => {
             ],
             opacity: flyOpacity,
             zIndex: 999,
-          elevation: 1000,
+            elevation: 1000,
           }}
           pointerEvents="none"
         />

@@ -1274,11 +1274,11 @@ export default function ServiceList() {
                   </View>
                 )}
 
-                {/* Reschedule Button - Show for pending and confirmed bookings */}
+                {/* Reschedule Button - Show for pending and confirmed bookings; hide when Payments is null */}
                 {((
                   booking.BookingStatus?.toLowerCase() === "confirmed" ||
                   booking.BookingStatus?.toLowerCase() === "pending"
-                )) && (
+                ) && booking.Payments != null) && (
                     <View style={styles.rescheduleCard}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                         <View style={styles.rescheduleIconWrap}>
