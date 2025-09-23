@@ -42,6 +42,8 @@ import CustomAlert from "../../components/CustomAlert";
 
 const CartPage = () => {
   //
+  const token = getToken();
+
   const [addressModalVisible, setAddressModalVisible] = useState(false);
   const [addressList, setAddressList] = useState([]);
   const [primaryAddress, setPrimaryAddress] = useState(null);
@@ -57,7 +59,9 @@ const CartPage = () => {
   const [alertStatus, setAlertStatus] = useState("info"); // 'success', 'error', 'info'
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
-  const [alertOnClose, setAlertOnClose] = useState(() => () => setAlertVisible(false));
+  const [alertOnClose, setAlertOnClose] = useState(
+    () => () => setAlertVisible(false)
+  );
   // for selection of payment method
   const [paymentMethod, setPaymentMethod] = useState("Razorpay");
   const [disable, setDisable] = useState(false);
@@ -73,7 +77,10 @@ const CartPage = () => {
 
   const setPendingPayment = async (data) => {
     try {
-      await AsyncStorage.setItem(PENDING_PAYMENT_KEY, JSON.stringify({ ...data, createdAt: Date.now() }));
+      await AsyncStorage.setItem(
+        PENDING_PAYMENT_KEY,
+        JSON.stringify({ ...data, createdAt: Date.now() })
+      );
     } catch {}
   };
 
@@ -92,14 +99,19 @@ const CartPage = () => {
     }
   };
 
-  const showCustomAlert = (status, title, message, onCloseCallback = () => { }) => {
+  const showCustomAlert = (
+    status,
+    title,
+    message,
+    onCloseCallback = () => {}
+  ) => {
     // Use setTimeout to ensure the alert shows immediately after state updates
     setTimeout(() => {
       setAlertStatus(status);
       setAlertTitle(title);
       setAlertMessage(message);
       setAlertOnClose(() => () => {
-        console.log('Alert closed, executing callback');
+        console.log("Alert closed, executing callback");
         setAlertVisible(false);
         onCloseCallback();
       });
@@ -110,7 +122,9 @@ const CartPage = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
-  const { cartItems, removeFromCart, clearCart } = useCart();
+  const { cartItems, removeFromCart, clearCart, addToCart } = useCart();
+  const [relatedPackages, setRelatedPackages] = useState([]);
+  const [relatedLoading, setRelatedLoading] = useState(false);
 
   const { appliedCoupon, setAppliedCoupon } = useCoupon();
 
@@ -177,9 +191,9 @@ const CartPage = () => {
         setTimeout(() => {
           setRedirecting(true);
           clearCart();
-          navigation.navigate('CustomerTabs', {
-            screen: 'My Bookings',
-            params: { screen: 'ServiceList' },
+          navigation.navigate("CustomerTabs", {
+            screen: "My Bookings",
+            params: { screen: "ServiceList" },
           });
         }, 1200);
       }
@@ -240,7 +254,9 @@ const CartPage = () => {
         console.warn("No userData found in AsyncStorage");
 
         if (retryCount < 2) {
-          console.log(`Retrying fetchAddresses in 1 second... (attempt ${retryCount + 1})`);
+          console.log(
+            `Retrying fetchAddresses in 1 second... (attempt ${retryCount + 1})`
+          );
           setTimeout(() => fetchAddresses(retryCount + 1), 1000);
         }
         return;
@@ -252,7 +268,9 @@ const CartPage = () => {
         console.warn("Invalid userData or missing custID:", parsedData);
 
         if (retryCount < 2) {
-          console.log(`Retrying fetchAddresses in 1 second... (attempt ${retryCount + 1})`);
+          console.log(
+            `Retrying fetchAddresses in 1 second... (attempt ${retryCount + 1})`
+          );
           setTimeout(() => fetchAddresses(retryCount + 1), 1000);
         }
         return;
@@ -277,11 +295,12 @@ const CartPage = () => {
       console.error("Failed to fetch addresses:", error.message || error);
 
       if (retryCount < 2) {
-        console.log(`Retrying fetchAddresses in 1 second... (attempt ${retryCount + 1})`);
+        console.log(
+          `Retrying fetchAddresses in 1 second... (attempt ${retryCount + 1})`
+        );
         setTimeout(() => fetchAddresses(retryCount + 1), 1000);
       }
-    }
-    finally {
+    } finally {
       isFetching.current = false; // Reset fetching state
     }
   };
@@ -381,12 +400,15 @@ const CartPage = () => {
   // Function to validate if scheduled date/time is in the past
   const validateScheduledDateTime = () => {
     if (!scheduledDate || !scheduledTimeLabel) {
-      return { isValid: false, message: "Please choose a date and time to schedule your service." };
+      return {
+        isValid: false,
+        message: "Please choose a date and time to schedule your service.",
+      };
     }
 
     const now = new Date();
     const scheduledDateTime = new Date(scheduledDate);
-    
+
     // Get today's date (without time)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -395,9 +417,10 @@ const CartPage = () => {
 
     // Check if the date is before today (past dates)
     if (scheduledDateOnly < today) {
-      return { 
-        isValid: false, 
-        message: "Cannot book for past dates. Please select today or a future date." 
+      return {
+        isValid: false,
+        message:
+          "Cannot book for past dates. Please select today or a future date.",
       };
     }
     return { isValid: true };
@@ -491,7 +514,10 @@ const CartPage = () => {
             "Please fill Customer Name",
             () => {
               setCustomerDetailsExpanded(true);
-              scrollViewRef.current?.scrollTo({ y: customerDetailsY, animated: true });
+              scrollViewRef.current?.scrollTo({
+                y: customerDetailsY,
+                animated: true,
+              });
             }
           );
           setIsLoading(false);
@@ -505,14 +531,16 @@ const CartPage = () => {
             "Please fill Customer Email",
             () => {
               setCustomerDetailsExpanded(true);
-              scrollViewRef.current?.scrollTo({ y: customerDetailsY, animated: true });
+              scrollViewRef.current?.scrollTo({
+                y: customerDetailsY,
+                animated: true,
+              });
             }
           );
           setIsLoading(false);
           setDisable(false);
           return;
         }
-
 
         if (!vehicleId) {
           showCustomAlert(
@@ -524,7 +552,6 @@ const CartPage = () => {
           setDisable(false);
           return;
         }
-
 
         console.log("Missing information for booking:", {
           user,
@@ -652,9 +679,9 @@ const CartPage = () => {
         setTimeout(() => {
           setRedirecting(true);
           clearCart();
-          navigation.navigate('CustomerTabs', {
-            screen: 'My Bookings',
-            params: { screen: 'ServiceList' },
+          navigation.navigate("CustomerTabs", {
+            screen: "My Bookings",
+            params: { screen: "ServiceList" },
           });
         }, 1500);
       }
@@ -690,7 +717,7 @@ const CartPage = () => {
       const token = await getToken();
       const payload = {
         bookingID: bookingID,
-        bookingStatus: status
+        bookingStatus: status,
       };
 
       console.log("Updating booking status:", payload);
@@ -709,13 +736,20 @@ const CartPage = () => {
       console.log("Booking status update response:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Failed to update booking status:", error?.response || error);
+      console.error(
+        "Failed to update booking status:",
+        error?.response || error
+      );
       throw error;
     }
   };
 
   const handlePayment = async (orderid, bookingID) => {
-    await setPendingPayment({ orderId: orderid, bookingID, amount: finalAmount });
+    await setPendingPayment({
+      orderId: orderid,
+      bookingID,
+      amount: finalAmount,
+    });
     const options = {
       description: "MyCarBuddy Service Payment",
       image: "https://mycarsbuddy.com/logo2.png",
@@ -780,9 +814,9 @@ const CartPage = () => {
               await AsyncStorage.removeItem("selectedDate");
               await AsyncStorage.removeItem("selectedTimeSlotLabel");
               clearCart();
-              navigation.navigate('CustomerTabs', {
-                screen: 'My Bookings',
-                params: { screen: 'ServiceList' },
+              navigation.navigate("CustomerTabs", {
+                screen: "My Bookings",
+                params: { screen: "ServiceList" },
               });
             }, 800);
           } catch (error) {
@@ -803,19 +837,28 @@ const CartPage = () => {
           }
         })
         .catch(async (error) => {
-          console.log(`Payment cancelled or failed: ${error.data?.message || error.message}`);
+          console.log(
+            `Payment cancelled or failed: ${
+              error.data?.message || error.message
+            }`
+          );
 
           // Update booking status to Failed when payment is cancelled
           try {
             await updateBookingStatus(bookingID, "Failed");
-            console.log("Booking status updated to Failed due to payment cancellation");
+            console.log(
+              "Booking status updated to Failed due to payment cancellation"
+            );
           } catch (statusError) {
             console.error("Failed to update booking status:", statusError);
           }
 
           await clearPendingPayment();
           // Show appropriate message based on error type
-          if (error.data?.code === 'BAD_REQUEST_ERROR' && error.data?.description?.includes('cancelled')) {
+          if (
+            error.data?.code === "BAD_REQUEST_ERROR" &&
+            error.data?.description?.includes("cancelled")
+          ) {
             showCustomAlert(
               "error",
               "Payment Cancelled",
@@ -825,18 +868,80 @@ const CartPage = () => {
             showCustomAlert(
               "error",
               "Payment Failed",
-              error.data?.message || error.message || "Something went wrong with the payment"
+              error.data?.message ||
+                error.message ||
+                "Something went wrong with the payment"
             );
           }
         });
     } catch (error) {
       console.log("Unexpected Razorpay call error:", error);
-      showCustomAlert("error", "Payment Error", "Unable to process payment. Please try again.");
+      showCustomAlert(
+        "error",
+        "Payment Error",
+        "Unable to process payment. Please try again."
+      );
     }
   };
 
+  const fetchLessAmountPackages = async () => {
+    try {
+      setRelatedLoading(true);
+      const response = await axios.get(
+        `${API_URL}PlanPackage/GetPlanPackagesDetails`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+  
+      const data = Array.isArray(response.data) ? response.data : [];
+      console.log("Fetched packages:", data);
+      console.log("Cart items:", cartItems);
+  
+      if (!Array.isArray(cartItems) || cartItems.length === 0) {
+        console.log("No cart items available");
+        setRelatedPackages([]);
+        return [];
+      }
+  
+      // ✅ Calculate total of all cart items
+      const cartTotal = cartItems.reduce(
+        (sum, item) => sum + Number(item.originalPrice ?? item.price ?? 0),
+        0
+      );
+      console.log("Cart total:", cartTotal);
+  
+      // ✅ Build set of cart package IDs for exclusion
+      const cartIds = new Set((cartItems || []).map((i) => i.id));
 
+      // ✅ Filter packages whose price is <= cart total and not in cart
+      const eligible = data.filter((pkg) => {
+        const price = Number(
+          pkg?.Serv_Off_Price ?? pkg?.Serv_Reg_Price ?? pkg?.Total_Offer_Price ?? 0
+        );
+        return price > 0 && price <= cartTotal && !cartIds.has(pkg?.PackageID);
+      });
 
+      // ✅ Randomize and limit to 7 each fetch
+      const shuffled = [...eligible].sort(() => Math.random() - 0.5);
+      const pick = shuffled.slice(0, 7);
+
+      console.log("Final limited packages (random 7):", pick);
+      setRelatedPackages(pick);
+      return pick;
+    } catch (error) {
+      console.error("Failed to fetch less amount packages:", error);
+      setRelatedPackages([]);
+      return [];
+    } finally {
+      setRelatedLoading(false);
+    }
+  };
+  
+
+  useEffect(() => {
+    fetchLessAmountPackages();
+  }, [cartItems]);
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + 1 }]}>
@@ -914,7 +1019,11 @@ const CartPage = () => {
             }}
           >
             {/* <Ionicons name="cart-outline" size={48} color={color.primary} /> */}
-            <MaterialCommunityIcons name="car-wrench" size={48} color={color.primary} />
+            <MaterialCommunityIcons
+              name="car-wrench"
+              size={48}
+              color={color.primary}
+            />
           </View>
 
           {/* Title */}
@@ -928,7 +1037,12 @@ const CartPage = () => {
           </CustomText>
 
           {/* Subtext */}
-          <CustomText style={[{ color: "#777", textAlign: "center", marginBottom: 20 }, globalStyles.f10Medium]}>
+          <CustomText
+            style={[
+              { color: "#777", textAlign: "center", marginBottom: 20 },
+              globalStyles.f10Medium,
+            ]}
+          >
             Browse our services and add them to your cart to continue
           </CustomText>
 
@@ -950,7 +1064,7 @@ const CartPage = () => {
             onPress={() =>
               navigation.navigate("CustomerTabs", {
                 screen: "Services",
-                params: { screen: "BookServiceScreen" } ,
+                params: { screen: "BookServiceScreen" },
               })
             }
           >
@@ -1037,6 +1151,98 @@ const CartPage = () => {
                 </CustomText>
               </View>
             </View>
+            {/* Related packages below cart total */}
+            {relatedPackages.length > 0 && (
+              <View style={[styles.card, { marginTop: 16 }]}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <CustomText style={styles.sectionTitle}>
+                    Add More Services
+                  </CustomText>
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={{ marginTop: 6 }}
+                >
+                  {relatedPackages.map((pkg) => {
+                    const price = pkg?.Total_Offer_Price ?? pkg?.Total_Offer_Price;
+                    const imageUrl = String(
+                      pkg?.PackageImage || pkg?.Serv_Img || ""
+                    );
+                    const normalized = imageUrl.startsWith("http")
+                      ? imageUrl
+                      : `${API_IMAGE_URL}/${
+                          imageUrl?.startsWith("/")
+                            ? imageUrl.slice(1)
+                            : imageUrl
+                        }`;
+                    return (
+                      <View
+                        key={
+                          pkg.PackageID?.toString?.() ??
+                          String(pkg.PackageID || pkg.id)
+                        }
+                        style={styles.moreServiceCard}
+                      >
+                        <View>
+                          <Image
+                            source={{ uri: normalized }}
+                            style={styles.moreServiceImage}
+                          />
+                          <View style={styles.plusIcon}>
+                            <TouchableOpacity
+                              onPress={() => {
+                                const formatted = {
+                                  id: pkg.PackageID,
+                                  title: pkg.PackageName,
+                                  image: pkg.PackageImage,
+                                  price: Number(
+                                    pkg?.Total_Offer_Price ??
+                                      pkg?.Total_Offer_Price ??
+                                      0
+                                  ),
+                                  originalPrice: Number(
+                                    pkg?.Default_Price ??
+                                      pkg?.Default_Price ??
+                                      0
+                                  ),
+                                };
+                                addToCart(formatted);
+                              }}
+                              style={{
+                                backgroundColor: color.secondary,
+                                width: 24,
+                                height: 24,
+                                borderRadius: 8,
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <AntDesign name="plus" size={14} color="#fff" />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                        <CustomText
+                          numberOfLines={2}
+                          style={styles.moreServiceText}
+                        >
+                          {pkg.PackageName}
+                        </CustomText>
+                        <CustomText style={styles.moreServicePrice}>
+                          ₹{price}
+                        </CustomText>
+                      </View>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
 
             <View style={{ marginHorizontal: 16, marginTop: 20 }}>
               <View style={{ borderRadius: 16, overflow: "hidden" }}>
@@ -1206,7 +1412,9 @@ const CartPage = () => {
               {/* {customerDetailsExpanded && ( */}
               <View style={{ marginTop: 12 }}>
                 {/* Full Name */}
-                <CustomText style={[{ color: color.textBlack }, globalStyles.f10Bold]}>
+                <CustomText
+                  style={[{ color: color.textBlack }, globalStyles.f10Bold]}
+                >
                   Full Name <Text style={{ color: "red" }}>*</Text>
                 </CustomText>
                 <TextInput
@@ -1218,7 +1426,12 @@ const CartPage = () => {
                 />
 
                 {/* Phone Number (read-only) */}
-                <CustomText style={[{ color: color.textBlack, marginTop: 10 }, globalStyles.f10Bold]}>
+                <CustomText
+                  style={[
+                    { color: color.textBlack, marginTop: 10 },
+                    globalStyles.f10Bold,
+                  ]}
+                >
                   Mobile Number <Text style={{ color: "red" }}>*</Text>
                 </CustomText>
                 <TextInput
@@ -1232,7 +1445,12 @@ const CartPage = () => {
                 />
 
                 {/* Email */}
-                <CustomText style={[{ color: color.textBlack, marginTop: 10 }, globalStyles.f10Bold]}>
+                <CustomText
+                  style={[
+                    { color: color.textBlack, marginTop: 10 },
+                    globalStyles.f10Bold,
+                  ]}
+                >
                   Email <Text style={{ color: "red" }}>*</Text>
                 </CustomText>
                 <TextInput
@@ -1358,7 +1576,8 @@ const CartPage = () => {
                 onChangeText={setInstructions}
               />
               <CustomText style={styles.textLimit}>
-                {Math.max(0, 200 - (instructions ? instructions.length : 0))}/200
+                {Math.max(0, 200 - (instructions ? instructions.length : 0))}
+                /200
               </CustomText>
             </View>
 
@@ -1446,7 +1665,6 @@ const CartPage = () => {
               </TouchableOpacity>
 
               {/* Option 2: Pay with RazorPay */}
-
             </View>
           </ScrollView>
 
@@ -1461,14 +1679,24 @@ const CartPage = () => {
                 //     : styles.bookNowBtn,
                 // ]}
                 style={[
-                  isLoading ? styles.disabledBtn : (paymentMethod === "Razorpay" ? styles.payNowBtn : styles.bookNowBtn),
+                  isLoading
+                    ? styles.disabledBtn
+                    : paymentMethod === "Razorpay"
+                    ? styles.payNowBtn
+                    : styles.bookNowBtn,
                 ]}
                 onPress={postBooking}
               >
                 {/* <CustomText style={styles.payNowText}>
                   {paymentMethod === "Razorpay" ? "Pay Now" : "Book Now"}
                 </CustomText> */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   {isLoading && (
                     <ActivityIndicator
                       size="small"
@@ -1477,13 +1705,18 @@ const CartPage = () => {
                     />
                   )}
                   <CustomText style={styles.payNowText}>
-                    {isLoading ? (paymentMethod === "Razorpay" ? "Processing Payment..." : "Booking...") : (paymentMethod === "Razorpay" ? "Pay Now" : "Book Now")}
+                    {isLoading
+                      ? paymentMethod === "Razorpay"
+                        ? "Processing Payment..."
+                        : "Booking..."
+                      : paymentMethod === "Razorpay"
+                      ? "Pay Now"
+                      : "Book Now"}
                   </CustomText>
                 </View>
               </TouchableOpacity>
             </View>
           </View>
-
         </>
       )}
       <Modal
@@ -1492,9 +1725,7 @@ const CartPage = () => {
         visible={addressModalVisible}
         onRequestClose={() => setAddressModalVisible(false)}
       >
-        <TouchableWithoutFeedback
-          onPress={() => setAddressModalVisible(false)}
-        >
+        <TouchableWithoutFeedback onPress={() => setAddressModalVisible(false)}>
           <View
             style={{
               flex: 1,
@@ -1503,7 +1734,7 @@ const CartPage = () => {
             }}
           >
             {/* Prevent modal from closing when content is tapped */}
-            <TouchableWithoutFeedback onPress={() => { }}>
+            <TouchableWithoutFeedback onPress={() => {}}>
               <View
                 style={{
                   backgroundColor: "white",
@@ -1599,8 +1830,8 @@ const CartPage = () => {
                             { color: color.muted },
                           ]}
                         >
-                          {item.AddressLine2}, {item.CityName},{" "}
-                          {item.StateName}, {item.Pincode}
+                          {item.AddressLine2}, {item.CityName}, {item.StateName}
+                          , {item.Pincode}
                         </CustomText>
                       </View>
                     </TouchableOpacity>
@@ -1624,8 +1855,16 @@ const CartPage = () => {
         <View style={styles.overlayBackdrop}>
           <View style={styles.overlayCard}>
             <ActivityIndicator size="large" color={color.primary} />
-            <CustomText style={[globalStyles.f12Bold, { color: '#333', marginTop: 12 }]}>Redirecting…</CustomText>
-            <CustomText style={[globalStyles.f10Regular, { color: '#666', marginTop: 6 }]}>Please wait while we take you to your bookings</CustomText>
+            <CustomText
+              style={[globalStyles.f12Bold, { color: "#333", marginTop: 12 }]}
+            >
+              Redirecting…
+            </CustomText>
+            <CustomText
+              style={[globalStyles.f10Regular, { color: "#666", marginTop: 6 }]}
+            >
+              Please wait while we take you to your bookings
+            </CustomText>
           </View>
         </View>
       </Modal>
@@ -1699,7 +1938,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   moreServiceCard: { width: 120, marginRight: 10, alignItems: "flex-start" },
-  moreServiceImage: { width: 90, height: 120, borderRadius: 8, marginTop: 6 },
+  moreServiceImage: { width: 100, height: 120, borderRadius: 8, marginTop: 6 },
   moreServiceText: {
     textAlign: "flex-start",
     ...globalStyles.f10Bold,
@@ -1784,14 +2023,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   disabledBtn: {
-    backgroundColor: color.yellow, 
+    backgroundColor: color.yellow,
     paddingVertical: 14,
     paddingHorizontal: 14,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     flex: 1,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -1827,7 +2066,7 @@ const styles = StyleSheet.create({
   optionText: {
     marginLeft: 10,
     ...globalStyles.f12Bold,
-    marginBottom: 4
+    marginBottom: 4,
   },
   radioCircle: {
     height: 20,
@@ -1846,20 +2085,20 @@ const styles = StyleSheet.create({
   },
   overlayBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(0,0,0,0.35)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   overlayCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingVertical: 20,
     paddingHorizontal: 24,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     minWidth: 220,
     elevation: 6,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
