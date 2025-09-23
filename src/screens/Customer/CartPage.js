@@ -63,6 +63,7 @@ const CartPage = () => {
   const [disable, setDisable] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [bookingTrackId, setBookingTrackId] = useState(null);
+  const [redirecting, setRedirecting] = useState(false);
   const scrollViewRef = useRef(null);
   const [customerDetailsY, setCustomerDetailsY] = useState(0);
   const isFetching = useRef(false);
@@ -174,6 +175,7 @@ const CartPage = () => {
           `Booking Track ID: ${found.BookingTrackID}\nYour booking is confirmed!`
         );
         setTimeout(() => {
+          setRedirecting(true);
           clearCart();
           navigation.navigate('CustomerTabs', {
             screen: 'My Bookings',
@@ -648,6 +650,7 @@ const CartPage = () => {
         setAppliedCoupon(null);
 
         setTimeout(() => {
+          setRedirecting(true);
           clearCart();
           navigation.navigate('CustomerTabs', {
             screen: 'My Bookings',
@@ -773,6 +776,7 @@ const CartPage = () => {
 
             // Clean up storage and navigate after a short delay
             setTimeout(async () => {
+              setRedirecting(true);
               await AsyncStorage.removeItem("selectedDate");
               await AsyncStorage.removeItem("selectedTimeSlotLabel");
               clearCart();
@@ -1614,6 +1618,17 @@ const CartPage = () => {
         message={alertMessage}
         onClose={alertOnClose}
       />
+
+      {/* Redirecting Overlay */}
+      <Modal transparent visible={redirecting} animationType="fade">
+        <View style={styles.overlayBackdrop}>
+          <View style={styles.overlayCard}>
+            <ActivityIndicator size="large" color={color.primary} />
+            <CustomText style={[globalStyles.f12Bold, { color: '#333', marginTop: 12 }]}>Redirecting…</CustomText>
+            <CustomText style={[globalStyles.f10Regular, { color: '#666', marginTop: 6 }]}>Please wait while we take you to your bookings</CustomText>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -1828,6 +1843,26 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     backgroundColor: "#2c3e50",
+  },
+  overlayBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  overlayCard: {
+    backgroundColor: '#fff',
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 220,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
 });
 
