@@ -833,6 +833,42 @@ export default function BookingsInnerPage() {
                     >
                       {step.description}
                     </CustomText>
+                    {step.id === "reached-location" && !!booking.BookingOTP && (
+                      <View
+                        style={{
+                          marginTop: 6,
+                          alignSelf: "flex-start",
+                          backgroundColor: color.primary + "10",
+                          borderRadius: 10,
+                          paddingHorizontal: 10,
+                          paddingVertical: 6,
+                        }}
+                      >
+                        <CustomText
+                          style={[globalStyles.f10Bold, { color: color.primary }]}
+                        >
+                          Booking OTP: {String(booking.BookingOTP)}
+                        </CustomText>
+                      </View>
+                    )}
+                    {step.id === "service-started" && !!booking.CompletedOTP && (
+                      <View
+                        style={{
+                          marginTop: 6,
+                          alignSelf: "flex-start",
+                          backgroundColor: color.primary + "10",
+                          borderRadius: 10,
+                          paddingHorizontal: 10,
+                          paddingVertical: 6,
+                        }}
+                      >
+                        <CustomText
+                          style={[globalStyles.f10Bold, { color: color.primary }]}
+                        >
+                          Completion OTP: {String(booking.CompletedOTP)}
+                        </CustomText>
+                      </View>
+                    )}
                     {step.time && (
                       <View
                         style={[
@@ -1294,9 +1330,26 @@ export default function BookingsInnerPage() {
             )} */}
         </Animated.View>
 
-        {booking.BookingStatus?.toLowerCase() !== "completed" &&
-          booking.BookingStatus?.toLowerCase() !== "cancelled" &&
-          booking.TechID !== null && (
+        {(() => {
+          const status = (booking.BookingStatus || "").toLowerCase();
+          if (booking.TechID == null) return null;
+          if (status === "cancelled" || status === "completed") return null;
+
+          let otpValue = null;
+          let titleText = "";
+          const isServiceStarted = status === "servicestarted";
+
+          if (isServiceStarted) {
+            if (!booking.CompletedOTP) return null;
+            otpValue = booking.CompletedOTP;
+            titleText = "Completion OTP";
+          } else {
+            if (!booking.BookingOTP) return null;
+            otpValue = booking.BookingOTP;
+            titleText = "Booking OTP";
+          }
+
+          return (
             <View
               style={{
                 backgroundColor: "#fff",
@@ -1311,18 +1364,15 @@ export default function BookingsInnerPage() {
             >
               <View style={{ alignItems: "center" }}>
                 <CustomText style={[globalStyles.f14Bold, { color: "#333" }]}>
-                  Booking OTP
+                  {titleText}
                 </CustomText>
                 <View style={styles.otpRow}>
-                  {String(booking.BookingOTP || "")
+                  {String(otpValue)
                     .split("")
                     .map((digit, idx) => (
                       <View key={`${digit}-${idx}`} style={styles.otpBox}>
                         <CustomText
-                          style={[
-                            globalStyles.f20Bold,
-                            { color: color.primary },
-                          ]}
+                          style={[globalStyles.f20Bold, { color: color.primary }]}
                         >
                           {digit}
                         </CustomText>
@@ -1330,23 +1380,23 @@ export default function BookingsInnerPage() {
                     ))}
                 </View>
               </View>
-
-              <View style={styles.otpNote}>
-                <Icon
-                  name="privacy-tip"
-                  size={18}
-                  color={color.primary}
-                  style={{ marginRight: 8 }}
-                />
-                <CustomText
-                  style={[globalStyles.f12Regular, styles.otpNoteText]}
-                >
-                  Dear buddy please wisper the OTP in our technician ear so that
-                  he can start your service
-                </CustomText>
-              </View>
+              {/* {!isServiceStarted && ( */}
+                <View style={styles.otpNote}>
+                  <Icon
+                    name="privacy-tip"
+                    size={18}
+                    color={color.primary}
+                    style={{ marginRight: 8 }}
+                  />
+                  <CustomText style={[globalStyles.f12Regular, styles.otpNoteText]}>
+                    Dear buddy please whisper the OTP in our technician ear so that
+                    he can start your service
+                  </CustomText>
+                </View>
+              {/* )} */}
             </View>
-          )}
+          );
+        })()}
 
         {/* <CustomText
           style={[styles.sectionTitle, globalStyles.f14Bold, { marginTop: 20 }]}
