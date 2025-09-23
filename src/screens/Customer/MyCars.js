@@ -267,7 +267,7 @@ export default function MyCars() {
                     </View>
 
                     {/* Add Car Options */}
-                    <View style={styles.addCarOptions}>
+                    {/* <View style={styles.addCarOptions}>
                         <TouchableOpacity
                             style={styles.optionCard}
                             onPress={() => navigation.navigate("RcVerification")}
@@ -303,21 +303,21 @@ export default function MyCars() {
                             </View>
                             <Ionicons name="chevron-forward" size={20} color={color.textLight} />
                         </TouchableOpacity>
-                    </View>
+                    </View> */}
 
                     {/* Manual Flow - Brand Selection */}
-                    {showManualFlow && (
+                    {/* {showManualFlow && ( */}
                         <>
                             <SearchBox
                                 value={searchQuery}
                                 onChangeText={handleSearch}
                             />
-                            <View style={{ marginVertical: 10 }}>
+                            {/* <View style={{ marginVertical: 10 }}>
                                 <CustomText style={[globalStyles.f12Bold, globalStyles.textBlack]}>Select Manufacturer</CustomText>
                                 <CustomText style={{ ...globalStyles.f10Bold, color: color.secondary }}>
                                     Start From Selecting Your Manufacturer.
                                 </CustomText>
-                            </View>
+                            </View> */}
                             <FlatList
                                 data={filteredBrands}
                                 renderItem={renderBrand}
@@ -330,7 +330,7 @@ export default function MyCars() {
                                 onRefresh={onRefresh}
                             />
                         </>
-                    )}
+                    {/* )} */}
                 </>
             )}
         </View>);

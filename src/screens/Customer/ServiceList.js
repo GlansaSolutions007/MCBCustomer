@@ -179,20 +179,24 @@ export default function ServiceList() {
     };
   }, [fetchBookings]);
 
-  // Realtime: Listen for booking status change notifications and update UI
+  // Realtime: Listen for booking status change notifications and update UI + refetch
   useEffect(() => {
     const sub = Notifications.addNotificationReceivedListener((notification) => {
       try {
         const data = notification?.request?.content?.data || {};
         if (data?.event === "booking_status_changed" && data?.bookingId) {
           const newStatus = (data?.status || "").toString();
+          const bookingIdNum = Number(data.bookingId);
+          // Optimistic in-place update for immediate feedback
           setBookings((prev) => {
             return (prev || []).map((b) =>
-              b.BookingID === data.bookingId
+              Number(b.BookingID) === bookingIdNum
                 ? { ...b, BookingStatus: newStatus }
                 : b
             );
           });
+          // Trigger a fresh fetch to sync all derived fields
+          fetchBookings();
         }
       } catch (e) {
         console.log("notification parse error", e?.message || e);
@@ -201,7 +205,7 @@ export default function ServiceList() {
     return () => {
       try { sub && Notifications.removeNotificationSubscription(sub); } catch { }
     };
-  }, []);
+  }, [fetchBookings]);
 
   // useEffect(() => {
   //   fetchBookings();

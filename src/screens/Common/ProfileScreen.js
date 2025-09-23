@@ -450,7 +450,7 @@ export default function ProfileScreen() {
                 </CustomText>
               </TouchableOpacity>
 
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 style={styles.quickActionCard}
                 onPress={() => navigation.navigate("OCRScreen")}
               >
@@ -470,7 +470,7 @@ export default function ProfileScreen() {
                 >
                   RC Scanner
                 </CustomText>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
 
             {/* Profile Management Section */}
@@ -577,7 +577,7 @@ export default function ProfileScreen() {
 
                 <View style={styles.menuDivider} />
 
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={styles.menuItem}
                   onPress={() => navigation.navigate("OCRScreen")}
                 >
@@ -599,7 +599,7 @@ export default function ProfileScreen() {
                     </CustomText>
                   </View>
                   <Ionicons name="chevron-forward" size={20} color="#C4C4C4" />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
             </View>
 

@@ -33,6 +33,7 @@ import polyline from "@mapbox/polyline";
 import technMarker from "../../../assets/icons/tech.png";
 import recenter from "../../../assets/images/recenter.png";
 import { Ionicons } from "@expo/vector-icons";
+import * as Notifications from "expo-notifications";
 
 const formatDate = (dateString) => {
   if (!dateString) return "";
@@ -48,6 +49,8 @@ export default function BookingsInnerPage() {
   const [showCancelAlert, setShowCancelAlert] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelReasons, setCancelReasons] = useState([]);
+  const [currentStatus, setCurrentStatus] = useState(booking?.BookingStatus || "");
+  const [cancelReason, setCancelReason] = useState(booking?.Reason || "");
   const [selectedCancelReason, setSelectedCancelReason] = useState("");
   const summaryOpacity = useState(new Animated.Value(0))[0];
   const contentOpacity = useState(new Animated.Value(0))[0];
@@ -117,13 +120,11 @@ export default function BookingsInnerPage() {
     setExpandedPackages((prev) => ({ ...prev, [packageId]: !prev[packageId] }));
   };
 
-  const statusText =
-    booking.BookingStatus?.toLowerCase() === "startjourney"
-      ? "Started Journey"
-      : booking.BookingStatus;
+  const statusLower = (currentStatus || booking?.BookingStatus || "").toLowerCase();
+  const statusText = statusLower === "startjourney" ? "Started Journey" : (currentStatus || booking.BookingStatus);
 
   const getStatusColor = () => {
-    const status = booking.BookingStatus?.toLowerCase();
+    const status = statusLower;
     if (status === "pending") return "#FF9500";
     if (status === "startjourney") return color.primary;
     if (status === "cancelled") return color.alertError || "#FF3B30";
@@ -132,7 +133,7 @@ export default function BookingsInnerPage() {
   };
 
   const getTimelineSteps = () => {
-    const status = booking.BookingStatus?.toLowerCase();
+    const status = statusLower;
     const steps = [
       {
         id: "booking-created",
@@ -205,7 +206,7 @@ export default function BookingsInnerPage() {
         {
           id: "booking-cancelled",
           title: "Cancelled",
-          description: booking.Reason || "Your booking was cancelled",
+          description: cancelReason || booking.Reason || "Your booking was cancelled",
           icon: "cancel",
           isCompleted: true,
           isActive: false,
@@ -218,6 +219,28 @@ export default function BookingsInnerPage() {
 
     return steps;
   };
+
+  // Listen for real-time booking status changes via notifications
+  useEffect(() => {
+    const sub = Notifications.addNotificationReceivedListener((notification) => {
+      try {
+        const data = notification?.request?.content?.data || {};
+        if (data?.event === "booking_status_changed" && data?.bookingId) {
+          const targetId = Number(data.bookingId);
+          if (Number(booking.BookingID) === targetId) {
+            const nextStatus = (data.status || "").toString();
+            setCurrentStatus(nextStatus);
+            if (nextStatus.toLowerCase() === "cancelled" && data?.reason) {
+              setCancelReason(String(data.reason));
+            }
+          }
+        }
+      } catch (_) { }
+    });
+    return () => {
+      try { sub && Notifications.removeNotificationSubscription(sub); } catch { }
+    };
+  }, [booking.BookingID]);
 
   useEffect(() => {
     const fetchCancelReasons = async () => {
@@ -505,7 +528,7 @@ export default function BookingsInnerPage() {
         />
 
         {/* Live Map (shown first like Zomato) */}
-        {booking.BookingStatus?.toLowerCase() === "startjourney" &&
+        {statusLower === "startjourney" &&
           booking.TechID && (
             <Animated.View
               style={[styles.mapCard, { opacity: summaryOpacity }]}
@@ -738,7 +761,7 @@ export default function BookingsInnerPage() {
             <CustomText style={[styles.timelineTitle, globalStyles.f14Bold]}>
               Service Journey
             </CustomText>
-            {booking.BookingStatus?.toLowerCase() === "startjourney" && (
+            {statusLower === "startjourney" && (
               <View style={styles.liveIndicator}>
                 <View style={styles.liveDot} />
                 <CustomText
@@ -1191,19 +1214,17 @@ export default function BookingsInnerPage() {
                 { color: color.primary || "#007AFF", fontWeight: "bold" },
               ]}
             >
-              {booking.BookingStatus.toLowerCase() === "startjourney"
-                ? "Started Journey"
-                : booking.BookingStatus}
+              {statusText}
             </CustomText>
           </View>
 
-          {booking.BookingStatus.toLowerCase() === "cancelled" && (
+          {statusLower === "cancelled" && (
             <View style={styles.section}>
               <CustomText style={[styles.label, globalStyles.f12Bold]}>
                 Cancellation Reason:
               </CustomText>
               <CustomText style={[styles.value, globalStyles.f12Regular]}>
-                {booking.Reason || "N/A"}
+                {cancelReason || booking.Reason || "N/A"}
               </CustomText>
             </View>
           )}
@@ -1245,11 +1266,8 @@ export default function BookingsInnerPage() {
                 : "Payment Failed"}
             </CustomText>
           </View>
-          {booking.BookingStatus.toLowerCase() === "pending" &&
-            !(
-              booking.BookingStatus.toLowerCase() === "pending" &&
-              (!booking.Payments || booking.Payments.length === 0)
-            ) && (
+          {statusLower === "pending" &&
+            !(statusLower === "pending" && (!booking.Payments || booking.Payments.length === 0)) && (
               <View
                 style={[
                   styles.section,
@@ -1331,7 +1349,7 @@ export default function BookingsInnerPage() {
         </Animated.View>
 
         {(() => {
-          const status = (booking.BookingStatus || "").toLowerCase();
+          const status = statusLower;
           if (booking.TechID == null) return null;
           if (status === "cancelled" || status === "completed") return null;
 
@@ -1380,7 +1398,7 @@ export default function BookingsInnerPage() {
                     ))}
                 </View>
               </View>
-              {/* {!isServiceStarted && ( */}
+              {!isServiceStarted && (
                 <View style={styles.otpNote}>
                   <Icon
                     name="privacy-tip"
@@ -1393,7 +1411,7 @@ export default function BookingsInnerPage() {
                     he can start your service
                   </CustomText>
                 </View>
-              {/* )} */}
+              )}
             </View>
           );
         })()}
