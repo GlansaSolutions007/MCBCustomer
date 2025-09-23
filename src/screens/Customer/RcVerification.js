@@ -10,17 +10,19 @@ import {
   StatusBar,
   Platform,
   ActivityIndicator,
+  Image,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import CustomText from "../../components/CustomText";
 import globalStyles from "../../styles/globalStyles";
 import { color } from "../../styles/theme";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
-import { API_URL, RC_CHECK_URL, RC_CHECK_TOKEN } from "@env";
+import { API_URL, RC_CHECK_URL, RC_CHECK_TOKEN, API_IMAGE_URL } from "@env";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getToken } from "../../utils/token";
 import CustomAlert from "../../components/CustomAlert";
+import { modelName } from "expo-device";
 
 const RcVerification = () => {
   const navigation = useNavigation();
@@ -31,7 +33,15 @@ const RcVerification = () => {
   const [error, setError] = useState("");
   const [carModels, setCarModels] = useState([]);
   const [carFuelType, setCarFuelType] = useState("");
-
+  const [carModelImage, setCarModelImage] = useState("");
+  const [brandId, setBrandId] = useState("");
+  const [modelId, setModelId] = useState("");
+  const [fuelId, setFuelId] = useState("");
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertStatus, setAlertStatus] = useState("info");
+  const token = getToken();
   // const validateRcNumber = (rc) => {
   //   // Basic validation for Indian RC number format
   //   const rcPattern = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/;
@@ -105,33 +115,92 @@ const RcVerification = () => {
 
   // setCarFuelType(mockData.fuelType);
   // setCarModels(mockData.makerModel);
-  
+
   // console.log("Mock Data:", mockData.makerModel); // PETROL
-  
 
   const fetchFuelTypes = async () => {
     try {
       setLoading(true);
+
       const response = await axios.get(`${API_URL}FuelTypes/GetFuelTypes`);
       const json = response.data;
 
-      if (json.status && Array.isArray(json.data)) {
-        const activeFuelTypes = json.data.filter((f) => f.IsActive);
-        const fuelList = activeFuelTypes.map((f) => ({
-          id: f.FuelTypeID,
-          name: f.FuelTypeName,
-        }));
-        
-        console.log("Fuel List:", fuelList);
-        setFuelTypes(activeFuelTypes);
-        console.log("Fuel Types:", activeFuelTypes);
-      } else {
+      if (!json.status || !Array.isArray(json.data)) {
         console.warn("Failed to load fuel types.");
+        return;
       }
+
+      const activeFuelTypes = json.data.filter((f) => f.IsActive);
+      const fuelList = activeFuelTypes.map((f) => ({
+        id: f.FuelTypeID,
+        name: f.FuelTypeName,
+      }));
+      setFuelTypes(fuelList);
+      console.log("Fuel List:", fuelList);
+
+      // Mock data
+      const CarModel = mockData.makerModel;
+      const CarFuelType = mockData.fuelType;
+
+      function normalizeModel(makerModel) {
+        const parts = makerModel.split(" ");
+        return parts[1]?.toLowerCase() || "";
+      }
+
+      const normalizedModel = normalizeModel(CarModel);
+
+      // Fetch vehicle models
+      const modelRes = await axios.get(
+        `${API_URL}VehicleModels/GetListVehicleModel`
+      );
+      const modelList = modelRes.data.data;
+      console.log(modelList, "Model List:");
+
+      const modelMatch = modelList.find((m) =>
+        String(m.ModelName || "")
+          .toLowerCase()
+          .includes(normalizedModel)
+      );
+
+      if (modelMatch) {
+        console.log(
+          modelMatch.ModelID,
+          modelMatch.ModelName,
+          modelMatch.VehicleImage,
+          "Model Match:"
+        );
+        const moedlImagePath = modelMatch.VehicleImage.includes(
+          "Images/VehicleModel"
+        )
+          ? modelMatch.VehicleImage
+          : `${API_IMAGE_URL}${modelMatch.VehicleImage}`;
+        console.log(moedlImagePath, "Model Image Path:");
+        setCarModels(modelMatch.ModelName);
+        setCarModelImage(moedlImagePath);
+        setModelId(String(modelMatch.ModelID || ""));
+        setBrandId(String(modelMatch.BrandID || ""));
+      } else {
+        console.log("No matching model found");
+      }
+
+      // Fuel type match
+      const match = fuelList.find(
+        (f) => f.name.toLowerCase() === CarFuelType.toLowerCase()
+      );
+
+      if (match) {
+        console.log("✅ Fuel Type Matched:", match.name);
+        setCarFuelType(match.name);
+        setFuelId(String(match.id || ""));
+      } else {
+        console.log("❌ No Fuel Type Match Found for:", CarFuelType);
+      }
+
+      setCarModels(CarModel); // set state at the end
     } catch (error) {
       console.error("Error fetching fuel types:", error);
     } finally {
-      setLoading(false); // Set loading to false
+      setLoading(false);
     }
   };
 
@@ -139,11 +208,110 @@ const RcVerification = () => {
     fetchFuelTypes();
   }, []);
 
-  const handleVerifyRc = async () => {
-    if (!rcNumber.trim()) {
-      setError("Please enter RC number");
-      return;
+  // Normalize brand helper
+  const normalizeBrandAndFetch = async (makerDescription) => {
+    if (!makerDescription) return "";
+
+    // 🔹 Normalize the maker description
+    const normalized = String(makerDescription)
+      .replace(/INDIA LTD\.?[,]?/i, "")
+      .replace(/LTD\.?[,]?/i, "")
+      .replace(/MOTOR\.?[,]?/i, "")
+      .replace(/LIMITED\.?[,]?/i, "")
+      .replace(/INDIA\.?[,]?/i, "")
+      .replace(/PVT\.?[,]?/i, "")
+      .trim();
+
+    console.log(normalized, "Normalized:");
+
+    try {
+      const response = await axios.get(
+        `${API_URL}VehicleBrands/GetVehicleBrands`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const brands = response.data?.data || response.data; // depends on API shape
+      // console.log("Brands from API:", brands);
+
+      const match = brands.find(
+        (b) => b.BrandName?.toLowerCase() === normalized.toLowerCase()
+      );
+      
+      if (match) {
+        const matchedBrandName = match.BrandName;
+        const matchedBrandId = match.BrandID;
+        console.log("✅ Brand Matched:", matchedBrandName, "ID:", matchedBrandId);
+      } else {
+        console.log("❌ No Brand Match Found for:", normalized);
+      }
+      return matchedBrandId;
+    } catch (err) {
+      console.error("Error fetching brands:", err);
+      return { normalized, match: null };
     }
+  };
+
+  // After verification, derive model image and IDs from verified data
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const data = verificationResult?.data;
+        if (!data) return;
+
+        const modelText = String(data.makerModel || "");
+        const fuelText = String(data.fuelType || "");
+        if (modelText) {
+          const parts = modelText.split(" ");
+          const normalizedModel = (parts[1] || modelText).toLowerCase();
+
+          const modelRes = await axios.get(
+            `${API_URL}VehicleModels/GetListVehicleModel`
+          );
+          const modelList = modelRes?.data?.data || [];
+          const modelMatch = modelList.find((m) =>
+            String(m.ModelName || "")
+              .toLowerCase()
+              .includes(normalizedModel)
+          );
+
+          if (modelMatch) {
+            const vehicleImage = String(modelMatch.VehicleImage || "");
+            const finalImage = vehicleImage.includes("Images/VehicleModel")
+              ? vehicleImage
+              : `${API_IMAGE_URL}${vehicleImage}`;
+            setCarModels(modelMatch.ModelName);
+            setCarModelImage(finalImage);
+            setModelId(String(modelMatch.ModelID || ""));
+            setBrandId(String(modelMatch.BrandID || ""));
+          }
+        }
+
+        if (fuelTypes.length && fuelText) {
+          const match = fuelTypes.find(
+            (f) => String(f.name).toLowerCase() === fuelText.toLowerCase()
+          );
+          if (match) {
+            setCarFuelType(match.name);
+            setFuelId(String(match.id || ""));
+          }
+        }
+      } catch (e) {
+        console.warn(
+          "Failed to derive model/fuel from verified data",
+          e?.message || e
+        );
+      }
+    };
+    run();
+  }, [verificationResult, fuelTypes]);
+
+  const handleVerifyRc = async () => {
+    // if (!rcNumber.trim()) {
+    //   setError("Please enter RC number");
+    //   return;
+    // }
 
     // if (!validateRcNumber(rcNumber)) {
     //   setError("Please enter a valid RC number (e.g., TS15FH4090)");
@@ -155,24 +323,154 @@ const RcVerification = () => {
     setVerificationResult(null);
 
     try {
-      const response = await axios.post(
-        RC_CHECK_URL,
-        {
-          reg: rcNumber.toUpperCase(),
+      // const responseee = await axios.post(
+      //   RC_CHECK_URL,
+      //   {
+      //     reg: rcNumber.toUpperCase(),
+      //   },
+      //   {
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //       Authorization: RC_CHECK_TOKEN,
+      //     },
+      //   }
+      // );
+
+      const response = {
+        data: {
+          valid: true,
+          status: "ACTIVE",
+          registered: "03-07-2006",
+          owner: "ASHWANI KUMAR SONI",
+          masked: null,
+          ownerNumber: "3",
+          father: "NAND KISHORE",
+          currentAddress:
+            "RAILWAY CROSSING K PASS , GULAB BADI,, Ajmer -305001",
+          permanentAddress:
+            "RAILWAY CROSSING K PASS , GULAB BADI,, Ajmer -305001",
+          mobile: null,
+          category: "LMV",
+          categoryDescription: "Motor Car(LMV)",
+          chassisNumber: "MALAA51HR6M854586D",
+          engineNumber: "G4HG6M820834",
+          makerDescription: "HYUNDAI MOTOR INDIA LTD",
+          makerModel: "SANTRO XL",
+          makerVariant: null,
+          bodyType: "SALOON",
+          fuelType: "PETROL",
+          colorType: "BRIGHT SILVER",
+          normsType: "Not Available",
+          fitnessUpto: "13-07-2026",
+          financed: false,
+          lender: null,
+          insuranceProvider: "Bajaj Allianz General Insurance Co. Ltd.",
+          insurancePolicyNumber: "OG-22-1414-1801-00000052",
+          insuranceUpto: "06-06-2022",
+          manufactured: "01/2006",
+          rto: "AJMER RTO, Rajasthan",
+          cubicCapacity: "1086",
+          grossWeight: "854",
+          wheelBase: "0",
+          unladenWeight: "854",
+          cylinders: "4",
+          seatingCapacity: "5",
+          sleepingCapacity: null,
+          standingCapacity: "0",
+          pollutionCertificateNumber: "P260RJ01104562",
+          pollutionCertificateUpto: "21-05-2025",
+          permitNumber: null,
+          permitIssued: null,
+          permitFrom: null,
+          permitUpto: null,
+          permitType: null,
+          taxUpto: "02-07-2026",
+          taxPaidUpto: "02-07-2026",
+          nationalPermitNumber: null,
+          nationalPermitIssued: null,
+          nationalPermitFrom: null,
+          nationalPermitUpto: null,
+          blacklistStatus: null,
+          nocDetails: null,
+          challanDetails: null,
+          nationalPermitIssuedBy: null,
+          commercial: false,
+          exShowroomPrice: null,
+          nonUseStatus: null,
+          nonUseFrom: null,
+          nonUseTo: null,
+          blacklistDetails: null,
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: RC_CHECK_TOKEN,
-          },
-        }
-      );
+      };
 
       console.log("RC Verification Response:", response.data);
       if (response.data && response.data.valid) {
+        const verified = response.data;
+
+        const carBrand = normalizeBrandAndFetch(
+          verified.makerDescription
+        );
+        console.log(carBrand, "Car Brand:");
+        // console.log(verified, "Verified:");
+        // Enrich verification data with normalized brand
+        const enrichedData = { ...verified, carBrand };
+
+        // Fetch brand and model IDs
+        // try {
+        //   const config = {
+        //     headers: { Authorization: `Bearer ${token}` },
+        //   };
+
+        //   // Get all brands
+        //   const brandRes = await axios.get(
+        //     `${API_URL}VehicleBrands/GetVehicleBrands`,
+        //     config
+        //   );
+        //   const brands = Array.isArray(brandRes?.data?.data)
+        //     ? brandRes.data.data
+        //     : [];
+
+        //   const matchedBrand = brands.find((b) =>
+        //     normalizeBrandAndFetch(b.BrandName, token).toUpperCase() === carBrand.toUpperCase()
+        //   );
+        //   if (matchedBrand) {
+        //     setBrandId(String(matchedBrand.BrandID || ""));
+        //     // Fetch models and match by brand and model token
+        //     const modelRes = await axios.get(
+        //       `${API_URL}VehicleModels/GetListVehicleModel`,
+        //       config
+        //     );
+        //     const allModels = Array.isArray(modelRes?.data?.data)
+        //       ? modelRes.data.data
+        //       : [];
+        //     const modelsForBrand = allModels.filter(
+        //       (m) => String(m.BrandID) === String(matchedBrand.BrandID)
+        //     );
+
+        //     const modelText = String(verified.makerModel || "");
+        //     const parts = modelText.split(" ");
+        //     const normalizedModel = (parts[1] || modelText).toLowerCase();
+
+        //     const modelMatch = modelsForBrand.find((m) =>
+        //       String(m.ModelName || "").toLowerCase().includes(normalizedModel)
+        //     );
+        //     if (modelMatch) {
+        //       setModelId(String(modelMatch.ModelID || ""));
+        //       setCarModels(modelMatch.ModelName);
+        //       const vehicleImage = String(modelMatch.VehicleImage || "");
+        //       const finalImage = vehicleImage.includes("Images/VehicleModel")
+        //         ? vehicleImage
+        //         : `${API_IMAGE_URL}${vehicleImage}`;
+        //       setCarModelImage(finalImage);
+        //     }
+        //   }
+        // } catch (e) {
+        //   console.warn("Brand/Model resolution failed", e?.message || e);
+        // }
+
         setVerificationResult({
           status: "success",
-          data: response.data,
+          data: enrichedData,
         });
       } else {
         setVerificationResult({
@@ -189,13 +487,6 @@ const RcVerification = () => {
   };
 
   const handleAddCar = async () => {
-    if (verificationResult && verificationResult.status === "success") {
-      navigation.navigate("MyCarDetails", {
-        rcData: verificationResult.data,
-        rcNumber: rcNumber.toUpperCase(),
-      });
-    }
-
     let hasError = false;
 
     // if (!rcNumber.trim()) {
@@ -226,17 +517,15 @@ const RcVerification = () => {
       const payload = {
         custID: custID,
         vehicleNumber: rcNumber,
-        yearOfPurchase: data.registered || "",
-        // engineType: engineType,
-        // kilometersDriven: kilometersDriven,
-        // transmissionType: transmission,
+        yearOfPurchase: verificationResult?.data?.registered || "",
+        engineType: "", // not captured here
+        kilometersDriven: "", // not captured here
+        transmissionType: "",
         createdBy: custID,
-        // brandID: brandId,
-        // modelID: modelId,
-        // fuelTypeID: fuelId,
+        brandID: brandId || "",
+        modelID: modelId || "",
+        fuelTypeID: fuelId || "",
       };
-
-      const token = await getToken();
 
       const res = await axios.post(
         `${API_URL}CustomerVehicles/InsertCustomerVehicle`,
@@ -268,6 +557,11 @@ const RcVerification = () => {
       setAlertStatus("error");
       setAlertVisible(true);
     }
+  };
+
+  const goCarList = () => {
+    setAlertVisible(false);
+    navigation.navigate("My Cars", { screen: "MyCarsList" });
   };
 
   const renderVerificationResult = () => {
@@ -331,6 +625,7 @@ const RcVerification = () => {
                   style={[globalStyles.f12Bold, globalStyles.textBlack]}
                 >
                   {data.registered}
+                  {brandId}
                 </CustomText>
               </View>
             )}
@@ -365,7 +660,8 @@ const RcVerification = () => {
               </View>
             )}
 
-            {data.manufacturer && (
+            //  */}
+            {data.makerDescription && (
               <View style={styles.detailRow}>
                 <CustomText
                   style={[globalStyles.f12Bold, globalStyles.textGray]}
@@ -375,10 +671,10 @@ const RcVerification = () => {
                 <CustomText
                   style={[globalStyles.f12Bold, globalStyles.textBlack]}
                 >
-                  {data.manufacturer}
+                  {data.makerDescription}
                 </CustomText>
               </View>
-            )} */}
+            )}
 
             {data.makerModel && (
               <View style={styles.detailRow}>
@@ -387,11 +683,25 @@ const RcVerification = () => {
                 >
                   Model:
                 </CustomText>
-                <CustomText
-                  style={[globalStyles.f12Bold, globalStyles.textBlack]}
-                >
-                  {data.makerModel}
-                </CustomText>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  {!!carModelImage && (
+                    <Image
+                      source={{ uri: carModelImage }}
+                      style={{
+                        width: 36,
+                        height: 36,
+                        marginRight: 8,
+                        borderRadius: 4,
+                      }}
+                      resizeMode="contain"
+                    />
+                  )}
+                  <CustomText
+                    style={[globalStyles.f12Bold, globalStyles.textBlack]}
+                  >
+                    {carModels}
+                  </CustomText>
+                </View>
               </View>
             )}
 
@@ -504,6 +814,18 @@ const RcVerification = () => {
             </CustomText>
           </View>
         )}
+        <CustomAlert
+          visible={alertVisible}
+          onClose={() => setAlertVisible(false)}
+          title={alertTitle}
+          message={alertMessage}
+          status={alertStatus}
+          showButton={true}
+          buttonText={alertStatus === "success" ? "Go To Cars List" : "OK"}
+          onConfirm={undefined}
+        >
+          {alertStatus === "success" ? <></> : null}
+        </CustomAlert>
       </View>
     );
   };
