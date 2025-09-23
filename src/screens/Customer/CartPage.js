@@ -62,6 +62,8 @@ const CartPage = () => {
   const [alertOnClose, setAlertOnClose] = useState(
     () => () => setAlertVisible(false)
   );
+  const [alertShowButton, setAlertShowButton] = useState(true);
+  const [isRedirectingAlert, setIsRedirectingAlert] = useState(false);
   // for selection of payment method
   const [paymentMethod, setPaymentMethod] = useState("Razorpay");
   const [disable, setDisable] = useState(false);
@@ -103,20 +105,49 @@ const CartPage = () => {
     status,
     title,
     message,
-    onCloseCallback = () => {}
+    onCloseCallback = () => {},
+    immediate = false,
+    autoCloseMs = 0,
+    showBtn = true,
+    redirecting = false
   ) => {
-    // Use setTimeout to ensure the alert shows immediately after state updates
-    setTimeout(() => {
+    const render = () => {
       setAlertStatus(status);
       setAlertTitle(title);
       setAlertMessage(message);
+      setAlertShowButton(showBtn);
+      setIsRedirectingAlert(redirecting);
       setAlertOnClose(() => () => {
         console.log("Alert closed, executing callback");
         setAlertVisible(false);
         onCloseCallback();
       });
       setAlertVisible(true);
-    }, 50);
+      if (autoCloseMs && autoCloseMs > 0) {
+        setTimeout(() => {
+          // Programmatically close and invoke callback
+          setAlertVisible(false);
+          onCloseCallback();
+        }, autoCloseMs);
+      }
+    };
+    if (immediate) {
+      render();
+    } else {
+      setTimeout(render, 50);
+    }
+  };
+
+  const proceedToServiceList = async (delayMs = 0) => {
+    setTimeout(async () => {
+      await AsyncStorage.removeItem("selectedDate");
+      await AsyncStorage.removeItem("selectedTimeSlotLabel");
+      clearCart();
+      navigation.navigate("CustomerTabs", {
+        screen: "My Bookings",
+        params: { screen: "ServiceList" },
+      });
+    }, delayMs);
   };
 
   const navigation = useNavigation();
@@ -183,19 +214,17 @@ const CartPage = () => {
 
       if (found && Array.isArray(found.Payments) && found.Payments.length > 0) {
         await clearPendingPayment();
+        // Show success first for 1.2s, then overlay + navigate
         showCustomAlert(
           "success",
           "Payment Successful",
-          `Booking Track ID: ${found.BookingTrackID}\nYour booking is confirmed!`
+          `Booking Track ID: ${found.BookingTrackID}\nYour booking is confirmed!`,
+          () => proceedToServiceList(0),
+          true,
+          1000,
+          false,
+          true
         );
-        setTimeout(() => {
-          setRedirecting(true);
-          clearCart();
-          navigation.navigate("CustomerTabs", {
-            screen: "My Bookings",
-            params: { screen: "ServiceList" },
-          });
-        }, 1200);
       }
     } catch (e) {
       console.log("reconcilePendingPayment error", e?.message || e);
@@ -665,25 +694,21 @@ const CartPage = () => {
         handlePayment(response.data.razorpay.orderID, response.data.bookingID);
       } else {
         // For cash payment, show success alert with BookingTrackID
+        // Show success first for 1.0s, then overlay + navigate
         showCustomAlert(
           "success",
           "Payment Successful",
-          `Booking Track ID: ${response.data.bookingTrackID}\nYour booking is confirmed!`
+          `Booking Track ID: ${response.data.bookingTrackID}\nYour booking is confirmed!`,
+          () => proceedToServiceList(0),
+          true,
+          1000,
+          false,
+          true
         );
 
         await AsyncStorage.removeItem("selectedDate");
         await AsyncStorage.removeItem("selectedTimeSlotLabel");
-
         setAppliedCoupon(null);
-
-        setTimeout(() => {
-          setRedirecting(true);
-          clearCart();
-          navigation.navigate("CustomerTabs", {
-            screen: "My Bookings",
-            params: { screen: "ServiceList" },
-          });
-        }, 1500);
       }
     } catch (error) {
       if (error.response) {
@@ -801,24 +826,23 @@ const CartPage = () => {
             console.log("Confirm payment API response:", confirmResponse.data);
             await clearPendingPayment();
 
-            // Show success alert immediately with BookingTrackID
+            // Show success alert immediately with BookingTrackID and sync redirect overlay
+            // Show success first for 1.0s, then overlay + navigate
             showCustomAlert(
               "success",
               "Payment Successful",
-              `Booking Track ID: ${bookingTrackId}\nYour booking is confirmed!`
+              `Booking Track ID: ${bookingTrackId}\nYour booking is confirmed!`,
+              () => proceedToServiceList(0),
+              true,
+              1000,
+              false,
+              true
             );
 
-            // Clean up storage and navigate after a short delay
-            setTimeout(async () => {
-              setRedirecting(true);
-              await AsyncStorage.removeItem("selectedDate");
-              await AsyncStorage.removeItem("selectedTimeSlotLabel");
-              clearCart();
-              navigation.navigate("CustomerTabs", {
-                screen: "My Bookings",
-                params: { screen: "ServiceList" },
-              });
-            }, 800);
+            // Pre-clean lightweight state while alert is visible
+            await AsyncStorage.removeItem("selectedDate");
+            await AsyncStorage.removeItem("selectedTimeSlotLabel");
+            clearCart();
           } catch (error) {
             console.error(
               "Payment confirmation failed:",
@@ -1848,26 +1872,17 @@ const CartPage = () => {
         title={alertTitle}
         message={alertMessage}
         onClose={alertOnClose}
-      />
-
-      {/* Redirecting Overlay */}
-      <Modal transparent visible={redirecting} animationType="fade">
-        <View style={styles.overlayBackdrop}>
-          <View style={styles.overlayCard}>
-            <ActivityIndicator size="large" color={color.primary} />
-            <CustomText
-              style={[globalStyles.f12Bold, { color: "#333", marginTop: 12 }]}
-            >
-              Redirecting…
-            </CustomText>
-            <CustomText
-              style={[globalStyles.f10Regular, { color: "#666", marginTop: 6 }]}
-            >
-              Please wait while we take you to your bookings
-            </CustomText>
+        showButton={alertShowButton}
+      >
+        {isRedirectingAlert && (
+          <View style={{ alignItems: 'center', marginTop: 6 }}>
+            <ActivityIndicator size="small" color={color.primary} />
+            <CustomText style={[globalStyles.f10Regular, { color: '#666', marginTop: 6 }]}>Redirecting to My Bookings…</CustomText>
           </View>
-        </View>
-      </Modal>
+        )}
+      </CustomAlert>
+
+      {/* Redirecting Overlay removed per UX request */}
     </View>
   );
 };
