@@ -240,7 +240,10 @@ const NotificationScreen = () => {
           animsRef.current[id] = {
             opacity: new Animated.Value(1),
             translateX: new Animated.Value(0),
+            glow: new Animated.Value(0),
           };
+        } else if (!animsRef.current[id].glow) {
+          animsRef.current[id].glow = new Animated.Value(0);
         }
         const { opacity, translateX } = animsRef.current[id];
         // Reduce shadow immediately for smoother fade
@@ -276,8 +279,10 @@ const NotificationScreen = () => {
 
         // Reset animated values for potential next load
         Object.values(animsRef.current).forEach((vals) => {
-          vals.opacity.setValue(1);
-          vals.translateX.setValue(0);
+          vals.opacity && vals.opacity.setValue(1);
+          vals.translateX && vals.translateX.setValue(0);
+          if (!vals.glow) vals.glow = new Animated.Value(0);
+          else vals.glow.setValue(0);
         });
         setReducedShadowIds({});
 
@@ -376,8 +381,9 @@ const NotificationScreen = () => {
       };
     }
     const { opacity, translateX, glow } = animsRef.current[id];
+    const safeGlow = glow || new Animated.Value(0);
     const lowShadow = reducedShadowIds[id];
-    const borderColor = glow.interpolate({
+    const borderColor = safeGlow.interpolate({
       inputRange: [0, 1],
       outputRange: ['rgba(0,0,0,0)', NEON_COLOR],
     });
