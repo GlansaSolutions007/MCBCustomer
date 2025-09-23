@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  StatusBar,
+  Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import BgImage from "../../../assets/images/loginbg5.png";
@@ -25,6 +27,10 @@ export default function WelcomeScreen() {
       style={styles.container}
       imageStyle={{ opacity: 0.5 }}
     >
+      <StatusBar
+        backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
+        barStyle="dark-content"
+      />
       <View style={styles.overlay} />
       <View style={[styles.content, { paddingBottom: insets.bottom + 20 }]}>
         <View style={[styles.logoContainer]}>
@@ -62,7 +68,7 @@ const styles = StyleSheet.create({
   //     backgroundColor: "#ffffffff",
   //     opacity: 1,
   //   },
-  logoContainer:{
+  logoContainer: {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",

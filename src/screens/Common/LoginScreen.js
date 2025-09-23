@@ -14,6 +14,7 @@ import {
   Alert,
   Animated,
   AppState,
+  StatusBar,
 } from "react-native";
 import fonts from "../../styles/fonts";
 import { Ionicons } from "@expo/vector-icons";
@@ -287,7 +288,14 @@ export default function LoginScreen() {
             duration: 400,
             useNativeDriver: true,
           }),
-        ]).start();
+        ]).start(() => {
+          // Auto-focus the first OTP input after animation completes
+          setTimeout(() => {
+            if (otpRefs.current[0]) {
+              otpRefs.current[0].focus();
+            }
+          }, 100); // Small delay to ensure the input is fully rendered
+        });
       } else {
         const errorText = await response.text();
         throw new Error(errorText);
@@ -502,6 +510,10 @@ export default function LoginScreen() {
       style={styles.backgroundImage}
       resizeMode="cover"
     >
+      <StatusBar
+        backgroundColor={Platform.OS === "android" ? "#fff" : undefined}
+        barStyle="dark-content"
+      />
       {/* {!keyboardVisible && (
         <TouchableOpacity
           style={styles.skipButton}

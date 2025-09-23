@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomText from "../../components/CustomText";
+import CustomAlert from "../../components/CustomAlert";
 import DefaultProfileImage from "../../../assets/images/profile-user.png";
 import axios from "axios";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -27,6 +28,7 @@ export default function ProfileScreen() {
   const [image, setImage] = useState(null);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showLogoutAlert, setShowLogoutAlert] = useState(false);
   const navigation = useNavigation();
   const { logout } = useAuth();
 
@@ -60,7 +62,12 @@ export default function ProfileScreen() {
     navigation.navigate("ProfileRegister");
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
+    setShowLogoutAlert(true);
+  };
+
+  const confirmLogout = async () => {
+    setShowLogoutAlert(false);
     await logout();
     navigation.reset({
       index: 0,
@@ -708,6 +715,32 @@ export default function ProfileScreen() {
           </ScrollView>
         </>
       )}
+
+      {/* Logout Confirmation Alert */}
+      <CustomAlert
+        visible={showLogoutAlert}
+        status="error"
+        title="Logout Confirmation"
+        message="Are you sure you want to logout? You'll need to sign in again to access your account."
+        onClose={() => setShowLogoutAlert(false)}
+        showButton={false}
+      >
+        <View style={styles.alertButtonContainer}>
+
+          <TouchableOpacity
+            style={[styles.alertButton, styles.confirmButton]}
+            onPress={confirmLogout}
+          >
+            <CustomText style={styles.confirmButtonText}>Yes, Logout</CustomText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.alertButton, styles.cancelButton]}
+            onPress={() => setShowLogoutAlert(false)}
+          >
+            <CustomText style={styles.cancelButtonText}>Cancel</CustomText>
+          </TouchableOpacity>
+        </View>
+      </CustomAlert>
     </SafeAreaView>
   );
 }
@@ -903,5 +936,46 @@ const styles = StyleSheet.create({
   touchableText: {
     marginLeft: 12,
     color: "#333",
+  },
+
+  // Alert Button Styles
+  alertButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginTop: 20,
+    gap: 12,
+  },
+  alertButton: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cancelButton: {
+    backgroundColor: "#F5F5F5",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  confirmButton: {
+    backgroundColor: color.alertError,
+  },
+  cancelButtonText: {
+    ...globalStyles.f12Bold,
+    color: "#666",
+  },
+  confirmButtonText: {
+    ...globalStyles.f12Bold,
+    color: "#FFFFFF",
   },
 });
