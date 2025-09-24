@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import NetInfo from "@react-native-community/netinfo";
 
@@ -20,6 +20,9 @@ import TawkChatScreen from "../screens/Common/TawkChatScreen";
 import OCRScreen from "../screens/Customer/OCRScreen";
 // import PreLoader from "../components/PreLoader"; 
 const Stack = createNativeStackNavigator();
+
+// Global navigation ref for out-of-tree navigation (e.g., notification taps)
+export const navigationRef = createNavigationContainerRef();
 
 export default function RootNavigator() {
   const { user, loading } = useAuth();
@@ -78,8 +81,33 @@ export default function RootNavigator() {
     return <PreLoader />; // 👈 use the same loader instead of ActivityIndicator
   }
 
+  // Deep linking configuration for custom scheme mycarbuddy://
+  const linking = {
+    prefixes: ["mycarbuddy://"],
+    config: {
+      screens: {
+        // Top-level stack
+        CustomerTabs: {
+          screens: {
+            // Tabs
+            Services: {
+              screens: {
+                BookServiceScreen: "ServiceList",
+              },
+            },
+            Profile: {
+              screens: {
+                ProfileScreen: "ProfileScreen",
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef} linking={linking}>
       <CartProvider>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           {user && user.token && user.custID ? (

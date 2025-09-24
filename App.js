@@ -5,7 +5,7 @@ import { View } from "react-native";
 import React, { useCallback } from "react";
 import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import RootNavigator from "./src/navigation/RootNavigator";
+import RootNavigator, { navigationRef } from "./src/navigation/RootNavigator";
 import { AuthProvider } from "./src/contexts/AuthContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Text, TextInput } from "react-native";
@@ -57,12 +57,37 @@ export default function App() {
     const responseSub = Notifications.addNotificationResponseReceivedListener(
       (response) => {
         console.log("Notification response (customer):", response);
-        // Handle notification tap
-        const data = response.notification.request.content.data;
-        if (data?.bookingId) {
-          // Navigate to booking details
-          console.log("Navigate to booking:", data.bookingId);
-          // You can add navigation logic here
+        // Handle notification tap → navigate via our linking or direct nav
+        const data = response.notification.request.content.data || {};
+
+        // Prefer explicit deep link path in payload
+        if (data?.deepLink) {
+          try {
+            const url = String(data.deepLink);
+            if (url) {
+              // Let NavigationContainer linking handle it
+              navigationRef?.current?.navigate(url);
+              return;
+            }
+          } catch {}
+        }
+
+        // Fallback: route by type or target
+        if (navigationRef?.current?.isReady()) {
+          if (data?.target === "ServiceList") {
+            navigationRef.current.navigate("CustomerTabs", {
+              screen: "Services",
+              params: { screen: "BookServiceScreen" },
+            });
+            return;
+          }
+          if (data?.target === "ProfileScreen") {
+            navigationRef.current.navigate("CustomerTabs", {
+              screen: "Profile",
+              params: { screen: "ProfileScreen" },
+            });
+            return;
+          }
         }
       }
     );
