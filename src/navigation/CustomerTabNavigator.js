@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from "react";
-import { Image, Pressable, Animated } from "react-native";
+import React, { useRef, useEffect, useState } from "react";
+import { Image, Pressable, Animated, View, Text } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -28,7 +28,7 @@ function AnimatedIcon({ name, focused, color }) {
         tension: 150,
       }),
       Animated.timing(opacity, {
-        toValue: focused ? 1 : 0.6, 
+        toValue: focused ? 1 : 0.6,
         duration: 200,
         useNativeDriver: true,
       }),
@@ -46,7 +46,7 @@ function AnimatedLogo({ focused }) {
   const scale = useRef(new Animated.Value(1)).current;
   const opacity = useRef(new Animated.Value(0.7)).current;
 
-   useEffect(() => {
+  useEffect(() => {
     Animated.parallel([
       Animated.spring(scale, {
         toValue: focused ? 1.15 : 1,
@@ -78,72 +78,179 @@ function AnimatedLogo({ focused }) {
   );
 }
 
+function getIconName(routeName) {
+  switch (routeName) {
+    case "Home":
+      return "home-outline";
+    case "My Cars":
+      return "car-sport-outline";
+    case "Services":
+      return "list";
+    case "My Bookings":
+      return "calendar-outline";
+    case "Profile":
+      return "person-circle-outline";
+    default:
+      return "ellipse-outline";
+  }
+}
+
+function CustomTabBar({ state, descriptors, navigation }) {
+  const insets = useSafeAreaInsets();
+  const [containerWidth, setContainerWidth] = useState(0);
+  const indicatorX = useRef(new Animated.Value(0)).current;
+  const indicatorW = useRef(new Animated.Value(0)).current;
+  const [tabLayouts, setTabLayouts] = useState([]);
+
+  const updateIndicator = (index) => {
+    const layout = tabLayouts[index];
+    if (!layout) return;
+    Animated.parallel([
+      Animated.spring(indicatorX, {
+        toValue: layout.x,
+        useNativeDriver: false,
+        friction: 7,
+        tension: 120,
+      }),
+      Animated.spring(indicatorW, {
+        toValue: layout.width,
+        useNativeDriver: false,
+        friction: 7,
+        tension: 120,
+      }),
+    ]).start();
+  };
+
+  useEffect(() => {
+    updateIndicator(state.index);
+  }, [state.index, tabLayouts]);
+
+  return (
+    <View
+      style={{
+        paddingBottom: insets.bottom || 8,
+        paddingTop: 8,
+        backgroundColor: "white",
+      }}
+    >
+      <View
+        onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
+        style={{
+          marginHorizontal: 16,
+          backgroundColor: "#fff",
+          borderRadius: 24,
+          height: 64,
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: 8,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.12,
+          shadowRadius: 12,
+          elevation: 4,
+          borderWidth: 0.5,
+          borderColor: "#f0f0f0",
+          position: "relative",
+          marginVertical: 8,
+        }}
+      >
+        {tabLayouts.length === state.routes.length && (
+          <Animated.View
+            pointerEvents="none"
+            style={{
+              position: "absolute",
+              top: 4,
+              bottom: 4,
+              left: indicatorX,
+              borderRadius: 20,
+              backgroundColor: color.primary,
+              width: indicatorW,
+            }}
+          />
+        )}
+        {state.routes.map((route, index) => {
+          const { options } = descriptors[route.key];
+          const isFocused = state.index === index;
+          const icon = getIconName(route.name);
+
+          const onPress = () => {
+            const event = navigation.emit({
+              type: "tabPress",
+              target: route.key,
+              canPreventDefault: true,
+            });
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
+
+          const onLongPress = () => {
+            navigation.emit({
+              type: "tabLongPress",
+              target: route.key,
+            });
+          };
+
+          const activeContentColor = isFocused ? "#fff" : "#8e8e93";
+
+          return (
+            <Pressable
+              key={route.key}
+              onPress={onPress}
+              onLongPress={onLongPress}
+              onLayout={(e) => {
+                const { x, width } = e.nativeEvent.layout;
+                setTabLayouts((prev) => {
+                  const next = [...prev];
+                  next[index] = { x, width };
+                  return next;
+                });
+              }}
+              style={{
+                flex: 1,
+                height: "100%",
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "column",
+                paddingHorizontal: 10,
+              }}
+            >
+              <Ionicons
+                name={icon}
+                size={22}
+                color={activeContentColor}
+              />
+              {isFocused && (
+                <Text
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                  style={{
+                    color: activeContentColor,
+                    fontSize: 11,
+                    fontWeight: "600",
+                    marginTop: 4,
+                  }}
+                >
+                  {route.name}
+                </Text>
+              )}
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 export default function CustomerTabNavigator() {
   const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
+      screenOptions={{
         headerShown: false,
-        tabBarShowLabel: true,
-        tabBarActiveTintColor: color.primary,
-        tabBarInactiveTintColor: "#8e8e93",
-        tabBarStyle: {
-          backgroundColor: "#fff",
-          borderTopWidth: 0.5,
-          height: 75 + insets.bottom,
-          paddingTop: 10,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 5,
-        },
-        tabBarItemStyle: {
-          borderRadius: 20,
-        },
-        tabBarPressColor: "rgba(0, 0, 0, 0.01)",
-        tabBarPressOpacity: 0.8,
-        tabBarButton: (props) => (
-          <Pressable
-            android_ripple={{
-              color: "rgba(0, 0, 0, 0.01)",
-              borderless: false,
-            }}
-            style={({ pressed }) => [
-              {
-                opacity: pressed ? 0.9 : 1,
-                borderRadius: 20,
-                justifyContent: "center",
-                alignItems: "center",
-              },
-            ]}
-            {...props}
-          />
-        ),
-        tabBarIcon: ({ color, focused }) => {
-
-          let iconName;
-          switch (route.name) {
-            case "Home":
-              iconName = "home-outline";
-              break;
-            case "My Cars":
-              iconName = "car-sport-outline";
-              break;
-            case "Services":
-              iconName = "list";
-              break;
-            case "My Bookings":
-              iconName = "calendar-outline";
-              break;
-            case "Profile":
-              iconName = "person-circle-outline";
-              break;
-            default:
-              iconName = "ellipse-outline";
-          }
-
-          return <AnimatedIcon name={iconName} color={color} focused={focused} />;
-        },
-        tabBarLabel: undefined,
-      })}
+      }}
+      tabBar={(props) => <CustomTabBar {...props} />}
     >
       <Tab.Screen 
         name="Home" 
@@ -162,7 +269,6 @@ export default function CustomerTabNavigator() {
       <Tab.Screen 
         name="Services" 
         component={ServicesStack}
-        
       />
       <Tab.Screen name="My Bookings" component={BookingsStack} options={{ headerShown: false }} listeners={({ navigation }) => ({
           tabPress: () => {
