@@ -352,38 +352,44 @@ export default function CustomHeader({ navigation }) {
                     { marginBottom: 15 },
                   ]}
                 >
-                  Choose Location
+                  Choose Location: 
                 </CustomText>
 
                 {/* ✅ Use Current Location */}
                 <TouchableOpacity
                   onPress={handleCurrentLocation}
-                  style={{
-                    paddingVertical: 12,
-                    marginBottom: 15,
-                    flexDirection: "row",
-                    alignItems: "center",
-                  }}
+                  style={styles.currentLocationButton}
                 >
-                  {isLocating ? (
-                    <ActivityIndicator
-                      size="small"
-                      color="#333"
-                      style={{ marginRight: 8 }}
-                    />
-                  ) : (
+                  <View style={styles.currentLocationIconContainer}>
+                    {isLocating ? (
+                      <ActivityIndicator
+                        size="small"
+                        color="#fff"
+                      />
+                    ) : (
+                      <Ionicons
+                        name="navigate"
+                        size={20}
+                        color="#fff"
+                      />
+                    )}
+                  </View>
+                  <View style={styles.currentLocationTextContainer}>
+                    <CustomText style={styles.currentLocationTitle}>
+                      {isLocating ? "Detecting Location..." : "Use My Current Location"}
+                    </CustomText>
+                    <CustomText style={styles.currentLocationSubtitle}>
+                      {isLocating ? "Please wait while we find you" : "Automatically detect your current city"}
+                    </CustomText>
+                  </View>
+                  {!isLocating && (
                     <Ionicons
-                      name="navigate"
-                      size={18}
+                      name="arrow-forward"
+                      size={16}
                       color={color.primary}
-                      style={{ marginRight: 8 }}
+                      style={styles.currentLocationArrow}
                     />
                   )}
-                  <CustomText
-                    style={[globalStyles.primary, globalStyles.f14Bold]}
-                  >
-                    Use My Current Location
-                  </CustomText>
                 </TouchableOpacity>
 
                 {/* ✅ Add New Address */}
@@ -567,5 +573,46 @@ const styles = StyleSheet.create({
     color: color.black,
     fontSize: 10,
     fontWeight: "bold",
+  },
+  currentLocationButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: color.primary,
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    marginBottom: 20,
+    shadowColor: color.primary,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  currentLocationIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  currentLocationTextContainer: {
+    flex: 1,
+  },
+  currentLocationTitle: {
+    color: "#fff",
+    ...globalStyles.f14Bold,
+    marginBottom: 2,
+  },
+  currentLocationSubtitle: {
+    color: "rgba(255, 255, 255, 0.8)",
+   ...globalStyles.f10Regular,
+  },
+  currentLocationArrow: {
+    marginLeft: 8,
   },
 });
